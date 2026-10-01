@@ -1,0 +1,1990 @@
+{
+  "summary": {
+    "total_evaluated": 12,
+    "fault_experiments": 10,
+    "control_experiments": 2,
+    "recommendations_ready": 9,
+    "recommendations_with_warning": 1,
+    "no_remediation_required": 2,
+    "zero_collateral_violations": 10,
+    "approval_required_enforced": 10
+  },
+  "evaluations": [
+    {
+      "experiment_id": "EXP-007",
+      "recommendation_status": "NO_REMEDIATION_REQUIRED",
+      "incident_status": "NORMAL",
+      "root_cause": null,
+      "recommended_action": null,
+      "candidate_actions": [],
+      "approval_required": false,
+      "execution_state": "STANDBY",
+      "explanation": "Incident gating verified nominal system telemetry for experiment EXP-007 (NO_FAULT control). Microservices are operating within nominal thresholds. No remediation action is required.",
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": false,
+        "read_only_advisory_mode": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE (NO_FAULT_CONFIRMED)"
+      ],
+      "failed_gates": [],
+      "warnings": []
+    },
+    {
+      "experiment_id": "EXP-008",
+      "recommendation_status": "NO_REMEDIATION_REQUIRED",
+      "incident_status": "NORMAL",
+      "root_cause": null,
+      "recommended_action": null,
+      "candidate_actions": [],
+      "approval_required": false,
+      "execution_state": "STANDBY",
+      "explanation": "Incident gating verified nominal system telemetry for experiment EXP-008 (NO_FAULT control). Microservices are operating within nominal thresholds. No remediation action is required.",
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": false,
+        "read_only_advisory_mode": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE (NO_FAULT_CONFIRMED)"
+      ],
+      "failed_gates": [],
+      "warnings": []
+    },
+    {
+      "experiment_id": "EXP-015",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "inventory-db",
+        "variable": "db_latency",
+        "unit": "ms"
+      },
+      "recommended_action": {
+        "action_id": "ACT-DB-01",
+        "action_name": "Terminate Blocking Queries & Release Table Locks",
+        "action_type": "REDUCE_DB_LATENCY",
+        "target_service": "inventory-db",
+        "target_variable": "db_latency",
+        "mechanism": "Issues pg_cancel_backend / pg_terminate_backend on blocked transactions holding ExclusiveLock on inventory tables",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-DB-01: Postgres Lock Contention & Slow Query Recovery",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 48.0,
+        "scorecard": {
+          "composite_score": 48.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 8.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 35,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 238.33,
+            "mean_avoided_latency_ms": 160.47,
+            "cumulative_avoided_latency_ms_samples": 5616.54
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 0.0,
+            "mean_avoided_error_rate_pct": 0.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+            "estimated_avoided_failed_requests": 0.0,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 238.33,
+              "mean_avoided_p99_latency_ms": 160.47,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 384.4,
+              "mean_avoided_p99_latency_ms": 268.16,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 620.0,
+              "mean_avoided_p99_latency_ms": 444.43,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "inventory-db",
+          "affected_services": [
+            "inventory-db",
+            "inventory-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "payment-service"
+          ],
+          "service_count": 4,
+          "max_hop_distance": 3,
+          "blast_radius_tier": "BROAD",
+          "affected_variables": [
+            "db_latency",
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "inventory-db": 0,
+            "inventory-service": 1,
+            "order-service": 2,
+            "api-gateway": 3
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "payment-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-DB-01",
+          "action_name": "Terminate Blocking Queries & Release Table Locks",
+          "target_service": "inventory-db",
+          "target_variable": "db_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 48.0,
+          "peak_avoided_latency_ms": 238.33,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-DB-02",
+          "action_name": "Drain & Re-initialize Database Connection Pool",
+          "target_service": "inventory-db",
+          "target_variable": "pool_utilization",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 23.1,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.1
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-DB-01] Terminate Blocking Queries & Release Table Locks.\nRoot Cause Target: inventory-db (intervening on db_latency).\nMechanism: Issues pg_cancel_backend / pg_terminate_backend on blocked transactions holding ExclusiveLock on inventory tables.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 238.33 ms and 0.00% peak error rate recovery.\nBlast Radius: 4 downstream services (inventory-db, inventory-service, order-service, api-gateway). Orthogonal microservices strictly isolated (payment-service) with zero collateral damage.\nOperational Score: 48.0/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-DB-01: Postgres Lock Contention & Slow Query Recovery.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-016",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "inventory-db",
+        "variable": "db_latency",
+        "unit": "ms"
+      },
+      "recommended_action": {
+        "action_id": "ACT-DB-01",
+        "action_name": "Terminate Blocking Queries & Release Table Locks",
+        "action_type": "REDUCE_DB_LATENCY",
+        "target_service": "inventory-db",
+        "target_variable": "db_latency",
+        "mechanism": "Issues pg_cancel_backend / pg_terminate_backend on blocked transactions holding ExclusiveLock on inventory tables",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-DB-01: Postgres Lock Contention & Slow Query Recovery",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 48.0,
+        "scorecard": {
+          "composite_score": 48.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 8.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 34,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 285.99,
+            "mean_avoided_latency_ms": 189.03,
+            "cumulative_avoided_latency_ms_samples": 6426.86
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 0.0,
+            "mean_avoided_error_rate_pct": 0.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+            "estimated_avoided_failed_requests": 0.0,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 285.99,
+              "mean_avoided_p99_latency_ms": 189.03,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 461.28,
+              "mean_avoided_p99_latency_ms": 316.75,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 744.0,
+              "mean_avoided_p99_latency_ms": 526.79,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "inventory-db",
+          "affected_services": [
+            "inventory-db",
+            "inventory-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "payment-service"
+          ],
+          "service_count": 4,
+          "max_hop_distance": 3,
+          "blast_radius_tier": "BROAD",
+          "affected_variables": [
+            "db_latency",
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "inventory-db": 0,
+            "inventory-service": 1,
+            "order-service": 2,
+            "api-gateway": 3
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "payment-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-DB-01",
+          "action_name": "Terminate Blocking Queries & Release Table Locks",
+          "target_service": "inventory-db",
+          "target_variable": "db_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 48.0,
+          "peak_avoided_latency_ms": 285.99,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-DB-02",
+          "action_name": "Drain & Re-initialize Database Connection Pool",
+          "target_service": "inventory-db",
+          "target_variable": "pool_utilization",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 23.1,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.1
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-DB-01] Terminate Blocking Queries & Release Table Locks.\nRoot Cause Target: inventory-db (intervening on db_latency).\nMechanism: Issues pg_cancel_backend / pg_terminate_backend on blocked transactions holding ExclusiveLock on inventory tables.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 285.99 ms and 0.00% peak error rate recovery.\nBlast Radius: 4 downstream services (inventory-db, inventory-service, order-service, api-gateway). Orthogonal microservices strictly isolated (payment-service) with zero collateral damage.\nOperational Score: 48.0/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-DB-01: Postgres Lock Contention & Slow Query Recovery.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-031",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "inventory-service",
+        "variable": "p99_latency",
+        "unit": "ms"
+      },
+      "recommended_action": {
+        "action_id": "ACT-INV-01",
+        "action_name": "Scale Inventory Worker Replicas & Clear RPC Backlog",
+        "action_type": "REDUCE_SERVICE_LATENCY",
+        "target_service": "inventory-service",
+        "target_variable": "p99_latency",
+        "mechanism": "Horizontally autoscales inventory-service pods (+2 replicas) and sheds saturated worker queues",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-INV-01: Inventory Worker Saturation Recovery",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 51.0,
+        "scorecard": {
+          "composite_score": 51.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 11.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 35,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 230.64,
+            "mean_avoided_latency_ms": 160.72,
+            "cumulative_avoided_latency_ms_samples": 5625.36
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 0.0,
+            "mean_avoided_error_rate_pct": 0.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+            "estimated_avoided_failed_requests": 0.0,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 230.64,
+              "mean_avoided_p99_latency_ms": 160.72,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 372.0,
+              "mean_avoided_p99_latency_ms": 268.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 600.0,
+              "mean_avoided_p99_latency_ms": 445.71,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "inventory-service",
+          "affected_services": [
+            "inventory-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db",
+            "payment-service"
+          ],
+          "service_count": 3,
+          "max_hop_distance": 2,
+          "blast_radius_tier": "MEDIUM",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "inventory-service": 0,
+            "order-service": 1,
+            "api-gateway": 2
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db",
+            "payment-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-INV-01",
+          "action_name": "Scale Inventory Worker Replicas & Clear RPC Backlog",
+          "target_service": "inventory-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 51.0,
+          "peak_avoided_latency_ms": 230.64,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-INV-02",
+          "action_name": "Engage Circuit Breaker & Fallback to Local Redis Cache",
+          "target_service": "inventory-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "MEDIUM",
+          "composite_score": 43.0,
+          "peak_avoided_latency_ms": 230.64,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-INV-03",
+          "action_name": "Rolling Restart of Deadlocked Inventory Pods",
+          "target_service": "inventory-service",
+          "target_variable": "error_rate",
+          "reversibility": "MEDIUM",
+          "risk_class": "MEDIUM",
+          "composite_score": 11.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-INV-01] Scale Inventory Worker Replicas & Clear RPC Backlog.\nRoot Cause Target: inventory-service (intervening on p99_latency).\nMechanism: Horizontally autoscales inventory-service pods (+2 replicas) and sheds saturated worker queues.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 230.64 ms and 0.00% peak error rate recovery.\nBlast Radius: 3 downstream services (inventory-service, order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db, payment-service) with zero collateral damage.\nOperational Score: 51.0/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-INV-01: Inventory Worker Saturation Recovery.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-040",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "inventory-service",
+        "variable": "p99_latency",
+        "unit": "ms"
+      },
+      "recommended_action": {
+        "action_id": "ACT-INV-01",
+        "action_name": "Scale Inventory Worker Replicas & Clear RPC Backlog",
+        "action_type": "REDUCE_SERVICE_LATENCY",
+        "target_service": "inventory-service",
+        "target_variable": "p99_latency",
+        "mechanism": "Horizontally autoscales inventory-service pods (+2 replicas) and sheds saturated worker queues",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-INV-01: Inventory Worker Saturation Recovery",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 51.0,
+        "scorecard": {
+          "composite_score": 51.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 11.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 34,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 461.28,
+            "mean_avoided_latency_ms": 314.69,
+            "cumulative_avoided_latency_ms_samples": 10699.44
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 0.0,
+            "mean_avoided_error_rate_pct": 0.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+            "estimated_avoided_failed_requests": 0.0,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 461.28,
+              "mean_avoided_p99_latency_ms": 314.69,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 744.0,
+              "mean_avoided_p99_latency_ms": 527.53,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 1200.0,
+              "mean_avoided_p99_latency_ms": 882.35,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "inventory-service",
+          "affected_services": [
+            "inventory-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db",
+            "payment-service"
+          ],
+          "service_count": 3,
+          "max_hop_distance": 2,
+          "blast_radius_tier": "MEDIUM",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "inventory-service": 0,
+            "order-service": 1,
+            "api-gateway": 2
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db",
+            "payment-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-INV-01",
+          "action_name": "Scale Inventory Worker Replicas & Clear RPC Backlog",
+          "target_service": "inventory-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 51.0,
+          "peak_avoided_latency_ms": 461.28,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-INV-02",
+          "action_name": "Engage Circuit Breaker & Fallback to Local Redis Cache",
+          "target_service": "inventory-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "MEDIUM",
+          "composite_score": 43.0,
+          "peak_avoided_latency_ms": 461.28,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-INV-03",
+          "action_name": "Rolling Restart of Deadlocked Inventory Pods",
+          "target_service": "inventory-service",
+          "target_variable": "error_rate",
+          "reversibility": "MEDIUM",
+          "risk_class": "MEDIUM",
+          "composite_score": 11.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-INV-01] Scale Inventory Worker Replicas & Clear RPC Backlog.\nRoot Cause Target: inventory-service (intervening on p99_latency).\nMechanism: Horizontally autoscales inventory-service pods (+2 replicas) and sheds saturated worker queues.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 461.28 ms and 0.00% peak error rate recovery.\nBlast Radius: 3 downstream services (inventory-service, order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db, payment-service) with zero collateral damage.\nOperational Score: 51.0/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-INV-01: Inventory Worker Saturation Recovery.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-043",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "inventory-service",
+        "variable": "error_rate",
+        "unit": "%"
+      },
+      "recommended_action": {
+        "action_id": "ACT-INV-03",
+        "action_name": "Rolling Restart of Deadlocked Inventory Pods",
+        "action_type": "RESTORE_ERROR_RATE",
+        "target_service": "inventory-service",
+        "target_variable": "error_rate",
+        "mechanism": "Performs phased rolling restart of degraded inventory pods to clear unhandled deadlock/crash state",
+        "reversibility": "MEDIUM",
+        "risk_class": "MEDIUM",
+        "playbook_ref": "PB-INV-03: Inventory Worker Rolling Restart",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 27.51,
+        "scorecard": {
+          "composite_score": 27.51,
+          "score_components": {
+            "benefit_score": 16.51,
+            "risk_penalty": 8.0,
+            "reversibility_bonus": 8.0,
+            "blast_radius_factor": 11.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 35,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 0.0,
+            "mean_avoided_latency_ms": 0.0,
+            "cumulative_avoided_latency_ms_samples": 0.0
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 17.15,
+            "mean_avoided_error_rate_pct": 11.77,
+            "cumulative_avoided_error_exposure_pct_seconds": 411.8,
+            "estimated_avoided_failed_requests": 247.1,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 17.15,
+              "mean_avoided_error_rate_pct": 11.77
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 24.5,
+              "mean_avoided_error_rate_pct": 17.5
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 35.0,
+              "mean_avoided_error_rate_pct": 26.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "inventory-service",
+          "affected_services": [
+            "inventory-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db",
+            "payment-service"
+          ],
+          "service_count": 3,
+          "max_hop_distance": 2,
+          "blast_radius_tier": "MEDIUM",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "inventory-service": 0,
+            "order-service": 1,
+            "api-gateway": 2
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db",
+            "payment-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-INV-03",
+          "action_name": "Rolling Restart of Deadlocked Inventory Pods",
+          "target_service": "inventory-service",
+          "target_variable": "error_rate",
+          "reversibility": "MEDIUM",
+          "risk_class": "MEDIUM",
+          "composite_score": 27.51,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 17.15
+        },
+        {
+          "action_id": "ACT-INV-02",
+          "action_name": "Engage Circuit Breaker & Fallback to Local Redis Cache",
+          "target_service": "inventory-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "MEDIUM",
+          "composite_score": 18.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-INV-03] Rolling Restart of Deadlocked Inventory Pods.\nRoot Cause Target: inventory-service (intervening on error_rate).\nMechanism: Performs phased rolling restart of degraded inventory pods to clear unhandled deadlock/crash state.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 0.00 ms and 17.15% peak error rate recovery.\nBlast Radius: 3 downstream services (inventory-service, order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db, payment-service) with zero collateral damage.\nOperational Score: 27.51/100 (Reversibility: MEDIUM, Risk: MEDIUM).\nRunbook Reference: PB-INV-03: Inventory Worker Rolling Restart.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-047",
+      "recommendation_status": "RECOMMENDATION_WITH_WARNING",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "order-service",
+        "variable": "p99_latency",
+        "unit": "ms"
+      },
+      "recommended_action": {
+        "action_id": "ACT-ORD-01",
+        "action_name": "Apply Ingress Rate Shedding & Flush Pending Order Queue",
+        "action_type": "REDUCE_SERVICE_LATENCY",
+        "target_service": "order-service",
+        "target_variable": "p99_latency",
+        "mechanism": "Enforces token-bucket admission control to discard queue overflow and relieve mediator thread pool",
+        "reversibility": "HIGH",
+        "risk_class": "MEDIUM",
+        "playbook_ref": "PB-ORD-01: Order Ingress Shedding",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 40.0,
+        "scorecard": {
+          "composite_score": 40.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 8.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 13.0,
+            "nonlinear_risk_deduction": 5.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 34,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 248.0,
+            "mean_avoided_latency_ms": 176.38,
+            "cumulative_avoided_latency_ms_samples": 5997.0
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 0.0,
+            "mean_avoided_error_rate_pct": 0.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+            "estimated_avoided_failed_requests": 0.0,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 248.0,
+              "mean_avoided_p99_latency_ms": 176.38,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 400.0,
+              "mean_avoided_p99_latency_ms": 294.12,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "order-service",
+          "affected_services": [
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db"
+          ],
+          "service_count": 2,
+          "max_hop_distance": 1,
+          "blast_radius_tier": "LOW",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "order-service": 0,
+            "api-gateway": 1
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-ORD-01",
+          "action_name": "Apply Ingress Rate Shedding & Flush Pending Order Queue",
+          "target_service": "order-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "MEDIUM",
+          "composite_score": 40.0,
+          "peak_avoided_latency_ms": 248.0,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-ORD-02",
+          "action_name": "Increase RPC Retry Backoff & Clear Deadlocked Requests",
+          "target_service": "order-service",
+          "target_variable": "error_rate",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 28.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-ORD-01] Apply Ingress Rate Shedding & Flush Pending Order Queue.\nRoot Cause Target: order-service (intervening on p99_latency).\nMechanism: Enforces token-bucket admission control to discard queue overflow and relieve mediator thread pool.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 248.00 ms and 0.00% peak error rate recovery.\nBlast Radius: 2 downstream services (order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db) with zero collateral damage.\nOperational Score: 40.0/100 (Reversibility: HIGH, Risk: MEDIUM).\nRunbook Reference: PB-ORD-01: Order Ingress Shedding.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.\nNOTE: This recommendation is flagged with a warning due to documented non-linear queueing behavior on order-service.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "DOCUMENTED",
+      "warnings": [
+        "COUNTERFACTUAL CONFIDENCE: LIMITED: Non-linear mediator queueing observed on order-service direct injection",
+        "COUNTERFACTUAL CONFIDENCE: LIMITED: Non-linear mediator queueing observed on order-service direct latency injection (EXP-047 documented limitation)."
+      ],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-059",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "order-service",
+        "variable": "error_rate",
+        "unit": "%"
+      },
+      "recommended_action": {
+        "action_id": "ACT-ORD-02",
+        "action_name": "Increase RPC Retry Backoff & Clear Deadlocked Requests",
+        "action_type": "RESTORE_ERROR_RATE",
+        "target_service": "order-service",
+        "target_variable": "error_rate",
+        "mechanism": "Applies jittered exponential backoff and cancels hung outgoing client requests to break retry loops",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-ORD-02: Retry Storm Mitigation",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 53.0,
+        "scorecard": {
+          "composite_score": 53.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 13.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 35,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 0.0,
+            "mean_avoided_latency_ms": 0.0,
+            "cumulative_avoided_latency_ms_samples": 0.0
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 42.0,
+            "mean_avoided_error_rate_pct": 30.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 1050.1,
+            "estimated_avoided_failed_requests": 630.1,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 42.0,
+              "mean_avoided_error_rate_pct": 30.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 60.0,
+              "mean_avoided_error_rate_pct": 44.57
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "order-service",
+          "affected_services": [
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db"
+          ],
+          "service_count": 2,
+          "max_hop_distance": 1,
+          "blast_radius_tier": "LOW",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "order-service": 0,
+            "api-gateway": 1
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-ORD-02",
+          "action_name": "Increase RPC Retry Backoff & Clear Deadlocked Requests",
+          "target_service": "order-service",
+          "target_variable": "error_rate",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 53.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 42.0
+        },
+        {
+          "action_id": "ACT-ORD-01",
+          "action_name": "Apply Ingress Rate Shedding & Flush Pending Order Queue",
+          "target_service": "order-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "MEDIUM",
+          "composite_score": 15.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-ORD-02] Increase RPC Retry Backoff & Clear Deadlocked Requests.\nRoot Cause Target: order-service (intervening on error_rate).\nMechanism: Applies jittered exponential backoff and cancels hung outgoing client requests to break retry loops.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 0.00 ms and 42.00% peak error rate recovery.\nBlast Radius: 2 downstream services (order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db) with zero collateral damage.\nOperational Score: 53.0/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-ORD-02: Retry Storm Mitigation.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-064",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "payment-service",
+        "variable": "error_rate",
+        "unit": "%"
+      },
+      "recommended_action": {
+        "action_id": "ACT-PAY-01",
+        "action_name": "Failover Payment Route to Standby Acquirer Gateway",
+        "action_type": "RESTORE_ERROR_RATE",
+        "target_service": "payment-service",
+        "target_variable": "error_rate",
+        "mechanism": "Switches outgoing payment gateway upstream DNS/VIP route to standby acquirer partner",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-PAY-01: Payment Gateway Fallback Routing",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 42.51,
+        "scorecard": {
+          "composite_score": 42.51,
+          "score_components": {
+            "benefit_score": 16.51,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 11.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 35,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 0.0,
+            "mean_avoided_latency_ms": 0.0,
+            "cumulative_avoided_latency_ms_samples": 0.0
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 17.15,
+            "mean_avoided_error_rate_pct": 11.77,
+            "cumulative_avoided_error_exposure_pct_seconds": 411.8,
+            "estimated_avoided_failed_requests": 247.1,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 17.15,
+              "mean_avoided_error_rate_pct": 11.77
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 24.5,
+              "mean_avoided_error_rate_pct": 17.5
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 35.0,
+              "mean_avoided_error_rate_pct": 26.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "payment-service",
+          "affected_services": [
+            "payment-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db",
+            "inventory-service"
+          ],
+          "service_count": 3,
+          "max_hop_distance": 2,
+          "blast_radius_tier": "MEDIUM",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "payment-service": 0,
+            "order-service": 1,
+            "api-gateway": 2
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db",
+            "inventory-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-PAY-01",
+          "action_name": "Failover Payment Route to Standby Acquirer Gateway",
+          "target_service": "payment-service",
+          "target_variable": "error_rate",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 42.51,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 17.15
+        },
+        {
+          "action_id": "ACT-PAY-02",
+          "action_name": "Graceful Container Restart & Refresh Auth/JWKS Cache",
+          "target_service": "payment-service",
+          "target_variable": "error_rate",
+          "reversibility": "MEDIUM",
+          "risk_class": "MEDIUM",
+          "composite_score": 27.51,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 17.15
+        },
+        {
+          "action_id": "ACT-PAY-03",
+          "action_name": "Autoscale Payment Service Replicas",
+          "target_service": "payment-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 26.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-PAY-01] Failover Payment Route to Standby Acquirer Gateway.\nRoot Cause Target: payment-service (intervening on error_rate).\nMechanism: Switches outgoing payment gateway upstream DNS/VIP route to standby acquirer partner.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 0.00 ms and 17.15% peak error rate recovery.\nBlast Radius: 3 downstream services (payment-service, order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db, inventory-service) with zero collateral damage.\nOperational Score: 42.51/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-PAY-01: Payment Gateway Fallback Routing.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-065",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "payment-service",
+        "variable": "error_rate",
+        "unit": "%"
+      },
+      "recommended_action": {
+        "action_id": "ACT-PAY-01",
+        "action_name": "Failover Payment Route to Standby Acquirer Gateway",
+        "action_type": "RESTORE_ERROR_RATE",
+        "target_service": "payment-service",
+        "target_variable": "error_rate",
+        "mechanism": "Switches outgoing payment gateway upstream DNS/VIP route to standby acquirer partner",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-PAY-01: Payment Gateway Fallback Routing",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 42.24,
+        "scorecard": {
+          "composite_score": 42.24,
+          "score_components": {
+            "benefit_score": 16.24,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 11.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 34,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 0.0,
+            "mean_avoided_latency_ms": 0.0,
+            "cumulative_avoided_latency_ms_samples": 0.0
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 17.15,
+            "mean_avoided_error_rate_pct": 11.61,
+            "cumulative_avoided_error_exposure_pct_seconds": 394.65,
+            "estimated_avoided_failed_requests": 236.8,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 17.15,
+              "mean_avoided_error_rate_pct": 11.61
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 24.5,
+              "mean_avoided_error_rate_pct": 17.3
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 35.0,
+              "mean_avoided_error_rate_pct": 25.74
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "payment-service",
+          "affected_services": [
+            "payment-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db",
+            "inventory-service"
+          ],
+          "service_count": 3,
+          "max_hop_distance": 2,
+          "blast_radius_tier": "MEDIUM",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "payment-service": 0,
+            "order-service": 1,
+            "api-gateway": 2
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db",
+            "inventory-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-PAY-01",
+          "action_name": "Failover Payment Route to Standby Acquirer Gateway",
+          "target_service": "payment-service",
+          "target_variable": "error_rate",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 42.24,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 17.15
+        },
+        {
+          "action_id": "ACT-PAY-02",
+          "action_name": "Graceful Container Restart & Refresh Auth/JWKS Cache",
+          "target_service": "payment-service",
+          "target_variable": "error_rate",
+          "reversibility": "MEDIUM",
+          "risk_class": "MEDIUM",
+          "composite_score": 27.24,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 17.15
+        },
+        {
+          "action_id": "ACT-PAY-03",
+          "action_name": "Autoscale Payment Service Replicas",
+          "target_service": "payment-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 26.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-PAY-01] Failover Payment Route to Standby Acquirer Gateway.\nRoot Cause Target: payment-service (intervening on error_rate).\nMechanism: Switches outgoing payment gateway upstream DNS/VIP route to standby acquirer partner.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 0.00 ms and 17.15% peak error rate recovery.\nBlast Radius: 3 downstream services (payment-service, order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db, inventory-service) with zero collateral damage.\nOperational Score: 42.24/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-PAY-01: Payment Gateway Fallback Routing.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    },
+    {
+      "experiment_id": "EXP-076",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "incident_status": "INCIDENT",
+      "root_cause": {
+        "node": "payment-service",
+        "variable": "p99_latency",
+        "unit": "ms"
+      },
+      "recommended_action": {
+        "action_id": "ACT-PAY-03",
+        "action_name": "Autoscale Payment Service Replicas",
+        "action_type": "REDUCE_SERVICE_LATENCY",
+        "target_service": "payment-service",
+        "target_variable": "p99_latency",
+        "mechanism": "Adds worker pods to payment deployment to absorb external network latency delay",
+        "reversibility": "HIGH",
+        "risk_class": "LOW",
+        "playbook_ref": "PB-PAY-03: Payment Service Horizontal Scaling",
+        "approval_required": true,
+        "execution_state": "SIMULATED",
+        "composite_score": 51.0,
+        "scorecard": {
+          "composite_score": 51.0,
+          "score_components": {
+            "benefit_score": 25.0,
+            "risk_penalty": 0.0,
+            "reversibility_bonus": 15.0,
+            "blast_radius_factor": 11.0,
+            "nonlinear_risk_deduction": 0.0
+          },
+          "score_breakdown": {
+            "benefit_score_max": 50.0,
+            "risk_penalty_max": 20.0,
+            "reversibility_bonus_max": 15.0,
+            "blast_radius_factor_max": 15.0
+          }
+        },
+        "expected_benefit": {
+          "evaluation_window_steps": 34,
+          "gateway_latency": {
+            "unit": "ms",
+            "peak_avoided_latency_ms": 365.18,
+            "mean_avoided_latency_ms": 260.42,
+            "cumulative_avoided_latency_ms_samples": 8854.32
+          },
+          "gateway_error_rate": {
+            "unit": "%",
+            "peak_avoided_error_rate_pct": 0.0,
+            "mean_avoided_error_rate_pct": 0.0,
+            "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+            "estimated_avoided_failed_requests": 0.0,
+            "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+          },
+          "per_service_avoided_impact": {
+            "api-gateway": {
+              "peak_avoided_p99_latency_ms": 365.18,
+              "mean_avoided_p99_latency_ms": 260.42,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "order-service": {
+              "peak_avoided_p99_latency_ms": 589.0,
+              "mean_avoided_p99_latency_ms": 435.44,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-service": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "payment-service": {
+              "peak_avoided_p99_latency_ms": 950.0,
+              "mean_avoided_p99_latency_ms": 726.47,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            },
+            "inventory-db": {
+              "peak_avoided_p99_latency_ms": 0.0,
+              "mean_avoided_p99_latency_ms": 0.0,
+              "peak_avoided_error_rate_pct": 0.0,
+              "mean_avoided_error_rate_pct": 0.0
+            }
+          }
+        },
+        "residual_impact": {
+          "gateway_residual_p99_latency_ms": 45.0,
+          "gateway_residual_error_rate_pct": 0.1,
+          "gateway_observed_p99_latency_ms": 45.0,
+          "gateway_observed_error_rate_pct": 0.1
+        },
+        "blast_radius": {
+          "target_service": "payment-service",
+          "affected_services": [
+            "payment-service",
+            "order-service",
+            "api-gateway"
+          ],
+          "unaffected_services": [
+            "inventory-db",
+            "inventory-service"
+          ],
+          "service_count": 3,
+          "max_hop_distance": 2,
+          "blast_radius_tier": "MEDIUM",
+          "affected_variables": [
+            "p99_latency",
+            "error_rate"
+          ],
+          "hop_distances": {
+            "payment-service": 0,
+            "order-service": 1,
+            "api-gateway": 2
+          },
+          "orthogonal_isolation_verified": true
+        },
+        "collateral_impact": {
+          "collateral_damage_detected": false,
+          "orthogonal_leakage_detected": false,
+          "unintended_degradation_detected": false,
+          "unaffected_branches_verified": true,
+          "orthogonal_services_checked": [
+            "inventory-db",
+            "inventory-service"
+          ],
+          "violations": []
+        }
+      },
+      "candidate_actions": [
+        {
+          "action_id": "ACT-PAY-03",
+          "action_name": "Autoscale Payment Service Replicas",
+          "target_service": "payment-service",
+          "target_variable": "p99_latency",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 51.0,
+          "peak_avoided_latency_ms": 365.18,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-PAY-01",
+          "action_name": "Failover Payment Route to Standby Acquirer Gateway",
+          "target_service": "payment-service",
+          "target_variable": "error_rate",
+          "reversibility": "HIGH",
+          "risk_class": "LOW",
+          "composite_score": 26.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        },
+        {
+          "action_id": "ACT-PAY-02",
+          "action_name": "Graceful Container Restart & Refresh Auth/JWKS Cache",
+          "target_service": "payment-service",
+          "target_variable": "error_rate",
+          "reversibility": "MEDIUM",
+          "risk_class": "MEDIUM",
+          "composite_score": 11.0,
+          "peak_avoided_latency_ms": 0.0,
+          "peak_avoided_error_rate_pct": 0.0
+        }
+      ],
+      "approval_required": true,
+      "execution_state": "SIMULATED",
+      "explanation": "RECOMMENDED REMEDIATION ACTION: [ACT-PAY-03] Autoscale Payment Service Replicas.\nRoot Cause Target: payment-service (intervening on p99_latency).\nMechanism: Adds worker pods to payment deployment to absorb external network latency delay.\nSimulated Counterfactual Benefit: Peak avoided gateway latency of 365.18 ms and 0.00% peak error rate recovery.\nBlast Radius: 3 downstream services (payment-service, order-service, api-gateway). Orthogonal microservices strictly isolated (inventory-db, inventory-service) with zero collateral damage.\nOperational Score: 51.0/100 (Reversibility: HIGH, Risk: LOW).\nRunbook Reference: PB-PAY-03: Payment Service Horizontal Scaling.\nSAFETY NOTICE: Human operator approval is MANDATORY prior to execution. This action is currently in SIMULATED state only.",
+      "validity_gates": {
+        "GATE_1_INCIDENT_ACTIVE": true,
+        "GATE_2_CAUSAL_TARGET_SUPPORT": true,
+        "GATE_3_PHYSICAL_FEASIBILITY": true,
+        "GATE_4_TEMPORAL_LAG_VALIDITY": true,
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL": true,
+        "GATE_6_EXTRAPOLATION_SAFETY": true,
+        "GATE_7_POSITIVE_NET_BENEFIT": true,
+        "GATE_8_HUMAN_GOVERNANCE_READY": true
+      },
+      "passed_gates": [
+        "GATE_1_INCIDENT_ACTIVE",
+        "GATE_2_CAUSAL_TARGET_SUPPORT",
+        "GATE_3_PHYSICAL_FEASIBILITY",
+        "GATE_4_TEMPORAL_LAG_VALIDITY",
+        "GATE_5_BRANCH_ISOLATION_COLLATERAL",
+        "GATE_6_EXTRAPOLATION_SAFETY",
+        "GATE_7_POSITIVE_NET_BENEFIT",
+        "GATE_8_HUMAN_GOVERNANCE_READY"
+      ],
+      "failed_gates": [],
+      "nonlinear_risk": "LOW",
+      "warnings": [],
+      "safety_metadata": {
+        "autonomous_action_prevented": true,
+        "zero_infrastructure_mutation": true,
+        "approval_required_enforced": true,
+        "read_only_advisory_mode": true,
+        "simulated_only": true
+      }
+    }
+  ]
+}

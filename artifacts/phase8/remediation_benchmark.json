@@ -1,0 +1,89 @@
+{
+  "total_canonical_actions": 11,
+  "safety_policy_rules_enforced": 15,
+  "evaluated_scenarios": [
+    {
+      "case_name": "NO_FAULT",
+      "experiment_id": "EXP-001",
+      "target": "NO_FAULT",
+      "recommendation_status": "NO_REMEDIATION_REQUIRED",
+      "recommended_action": null,
+      "approval_required": false,
+      "safety_gates_passed": 1,
+      "execution_state": "SUPPRESSED_CONTROL",
+      "verification_status": "N/A"
+    },
+    {
+      "case_name": "DB_LATENCY",
+      "experiment_id": "EXP-015",
+      "target": "inventory-db",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "recommended_action": "ACT-DB-01",
+      "approval_required": true,
+      "safety_gates_passed": 8,
+      "execution_state": "INCIDENT_RESOLVED",
+      "verification_status": "VERIFIED"
+    },
+    {
+      "case_name": "INVENTORY_FAULT",
+      "experiment_id": "EXP-031",
+      "target": "inventory-service",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "recommended_action": "ACT-INV-01",
+      "approval_required": true,
+      "safety_gates_passed": 8,
+      "execution_state": "INCIDENT_RESOLVED",
+      "verification_status": "VERIFIED"
+    },
+    {
+      "case_name": "ORDER_FAULT",
+      "experiment_id": "EXP-048",
+      "target": "order-service",
+      "recommendation_status": "RECOMMENDATION_WITH_WARNING",
+      "recommended_action": "ACT-ORD-01",
+      "approval_required": true,
+      "safety_gates_passed": 8,
+      "execution_state": "INCIDENT_RESOLVED",
+      "verification_status": "VERIFIED"
+    },
+    {
+      "case_name": "PAYMENT_FAULT",
+      "experiment_id": "EXP-064",
+      "target": "payment-service",
+      "recommendation_status": "RECOMMENDATION_READY",
+      "recommended_action": "ACT-PAY-01",
+      "approval_required": true,
+      "safety_gates_passed": 8,
+      "execution_state": "INCIDENT_RESOLVED",
+      "verification_status": "VERIFIED"
+    },
+    {
+      "case_name": "EXP047_LIMITATION",
+      "experiment_id": "EXP-047",
+      "target": "order-service",
+      "recommendation_status": "RECOMMENDATION_WITH_WARNING",
+      "recommended_action": "ACT-ORD-01",
+      "approval_required": true,
+      "safety_gates_passed": 8,
+      "execution_state": "INCIDENT_RESOLVED",
+      "verification_status": "VERIFIED"
+    }
+  ],
+  "policy_rule_matrix": {
+    "RULE_01_LOCAL_ENV_ONLY": "Enforced \u2014 rejects any remote/production mutation targets.",
+    "RULE_02_ACTION_ALLOWLISTED": "Enforced \u2014 11 canonical actions in catalog.",
+    "RULE_03_TARGET_ALLOWLISTED": "Enforced \u2014 5 canonical microservices.",
+    "RULE_04_RECOMMENDATION_EXISTS": "Enforced \u2014 rejects forged recommendation IDs.",
+    "RULE_05_TTL_EXPIRATION": "Enforced \u2014 approvals expire after 900 seconds.",
+    "RULE_06_EXPLICIT_APPROVAL_REQUIRED": "Enforced \u2014 unapproved execution strictly blocked.",
+    "RULE_07_OPERATOR_IDENTITY_REQUIRED": "Enforced \u2014 operator identity recorded in audit trail.",
+    "RULE_08_INCIDENT_ACTION_MATCH": "Enforced \u2014 cross-incident token replay prevented.",
+    "RULE_09_NOT_ALREADY_EXECUTED": "Enforced \u2014 idempotency prevents duplicate execution.",
+    "RULE_10_CONCURRENCY_LOCK": "Enforced \u2014 service lock prevents simultaneous conflicting execution.",
+    "RULE_11_ROLLBACK_SUPPORTED": "Enforced \u2014 actions lacking rollback handler rejected.",
+    "RULE_12_COUNTERFACTUAL_VALIDITY": "Enforced \u2014 actions with negative net benefit rejected.",
+    "RULE_13_CRITICAL_WARNINGS_ACK": "Enforced \u2014 unacknowledged warnings block execution.",
+    "RULE_14_BUDGET_NOT_EXCEEDED": "Enforced \u2014 max 3 executions and 1 rollback per incident.",
+    "RULE_15_BLAST_RADIUS_ACCEPTABLE": "Enforced \u2014 blast radius capped at 4 services."
+  }
+}

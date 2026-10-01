@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "n_train": 56,
+  "n_val": 12,
+  "n_test": 12,
+  "feature_dim": 151,
+  "id_overlap_check": "PASSED",
+  "dimension_consistency": "PASSED",
+  "distribution_shift_extreme_features": 0,
+  "issues": []
+}

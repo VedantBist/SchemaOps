@@ -49,11 +49,11 @@ def score(topology, telemetry):
         rows.sort(key=lambda row: _time(row.get("timestamp")))
     firsts = {service: _first(rows) for service, rows in by_service.items()}
     candidates, evidence = [], []
-    for service, rows in by_service.items():
+    for service, rows in list(by_service.items()):
         latest = rows[-1]
         anomaly = float(latest.get("anomaly") or 0)
         descendants = list(nx.descendants(graph, service))
-        affected = [node for node in descendants if float(by_service[node][-1].get("anomaly") or 0) >= THRESHOLD]
+        affected = [node for node in descendants if by_service.get(node) and float(by_service[node][-1].get("anomaly") or 0) >= THRESHOLD]
         if anomaly < THRESHOLD:
             dependency = 0.
             temporal = 0.

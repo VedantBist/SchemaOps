@@ -1,0 +1,30 @@
+{
+  "dataset/tg_v1": {
+    "dir_hash": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+    "file_count": 91
+  },
+  "dataset/ml_v1": {
+    "dir_hash": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+    "file_count": 6
+  },
+  "dataset/failure_prediction_v1": {
+    "dir_hash": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+    "file_count": 14
+  },
+  "ml/models/failure_prediction": {
+    "dir_hash": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+    "file_count": 14
+  },
+  "ml/models/causal_scm": {
+    "dir_hash": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+    "file_count": 11
+  },
+  "ml/causal": {
+    "dir_hash": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+    "file_count": 28
+  },
+  "ml/orchestration": {
+    "dir_hash": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556",
+    "file_count": 10
+  }
+}

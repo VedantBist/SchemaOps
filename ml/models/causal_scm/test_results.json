@@ -1,0 +1,575 @@
+{
+  "test_metrics": {
+    "split_name": "test",
+    "total_samples": 12,
+    "fault_count": 10,
+    "control_count": 2,
+    "root_cause_attribution": {
+      "top1_exact_match_accuracy": 1.0,
+      "top2_recall": 1.0,
+      "exact_matches_count": 10,
+      "top2_matches_count": 10,
+      "support": 10,
+      "per_class_recall": {
+        "inventory-db": {
+          "support": 2,
+          "correct": 2,
+          "recall": 1.0
+        },
+        "inventory-service": {
+          "support": 3,
+          "correct": 3,
+          "recall": 1.0
+        },
+        "order-service": {
+          "support": 2,
+          "correct": 2,
+          "recall": 1.0
+        },
+        "payment-service": {
+          "support": 3,
+          "correct": 3,
+          "recall": 1.0
+        }
+      }
+    },
+    "intervention_validation": {
+      "total_evaluated_experiments": 12,
+      "fault_experiments_count": 10,
+      "sign_agreement_rate": 1.0,
+      "direction_agreement_rate": 1.0,
+      "mean_absolute_error": 47.25,
+      "median_absolute_error": 34.66
+    },
+    "experiment_breakdown": [
+      {
+        "experiment_id": "EXP-015",
+        "fault_type": "DB_LATENCY",
+        "actual_injected_target": "inventory-db",
+        "causal_candidate": "inventory-db",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "inventory-db",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-016",
+        "fault_type": "DB_LATENCY",
+        "actual_injected_target": "inventory-db",
+        "causal_candidate": "inventory-db",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "inventory-db",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-031",
+        "fault_type": "NETWORK_LATENCY",
+        "actual_injected_target": "inventory-service",
+        "causal_candidate": "inventory-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "inventory-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-040",
+        "fault_type": "SERVICE_LATENCY",
+        "actual_injected_target": "inventory-service",
+        "causal_candidate": "inventory-service",
+        "causal_confidence": 0.9978,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "inventory-service",
+            "causal_score": 0.9978
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0022
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-043",
+        "fault_type": "SERVICE_FAILURE",
+        "actual_injected_target": "inventory-service",
+        "causal_candidate": "inventory-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "inventory-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-047",
+        "fault_type": "SERVICE_LATENCY",
+        "actual_injected_target": "order-service",
+        "causal_candidate": "order-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "order-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": {
+          "source": "order-service.error_rate",
+          "target": "api-gateway.error_rate",
+          "hop_count": 1,
+          "total_lag_seconds": 1,
+          "cumulative_effect": 0.485899,
+          "absolute_effect": 0.485899,
+          "path_description": "order-service.error_rate --(lag 1s, coef +0.486)--> api-gateway.error_rate",
+          "edges": [
+            {
+              "source_node": "order-service",
+              "source_variable": "error_rate",
+              "target_node": "api-gateway",
+              "target_variable": "error_rate",
+              "lag": 1,
+              "coefficient": 0.485899,
+              "standardized_effect": 0.485899,
+              "absolute_effect": 0.485899,
+              "sign": "positive",
+              "confidence": 1.0,
+              "allowed_by_topology": true,
+              "retained": true,
+              "selection_frequency": 1.0,
+              "coefficient_std": 0.000483
+            }
+          ]
+        }
+      },
+      {
+        "experiment_id": "EXP-059",
+        "fault_type": "ERROR_RATE",
+        "actual_injected_target": "order-service",
+        "causal_candidate": "order-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "order-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "payment-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": {
+          "source": "order-service.error_rate",
+          "target": "api-gateway.error_rate",
+          "hop_count": 1,
+          "total_lag_seconds": 1,
+          "cumulative_effect": 0.485899,
+          "absolute_effect": 0.485899,
+          "path_description": "order-service.error_rate --(lag 1s, coef +0.486)--> api-gateway.error_rate",
+          "edges": [
+            {
+              "source_node": "order-service",
+              "source_variable": "error_rate",
+              "target_node": "api-gateway",
+              "target_variable": "error_rate",
+              "lag": 1,
+              "coefficient": 0.485899,
+              "standardized_effect": 0.485899,
+              "absolute_effect": 0.485899,
+              "sign": "positive",
+              "confidence": 1.0,
+              "allowed_by_topology": true,
+              "retained": true,
+              "selection_frequency": 1.0,
+              "coefficient_std": 0.000483
+            }
+          ]
+        }
+      },
+      {
+        "experiment_id": "EXP-064",
+        "fault_type": "SERVICE_FAILURE",
+        "actual_injected_target": "payment-service",
+        "causal_candidate": "payment-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "payment-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-065",
+        "fault_type": "SERVICE_FAILURE",
+        "actual_injected_target": "payment-service",
+        "causal_candidate": "payment-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "payment-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      },
+      {
+        "experiment_id": "EXP-076",
+        "fault_type": "NETWORK_LATENCY",
+        "actual_injected_target": "payment-service",
+        "causal_candidate": "payment-service",
+        "causal_confidence": 1.0,
+        "exact_match": true,
+        "in_top_2": true,
+        "ranked_candidates": [
+          {
+            "service": "payment-service",
+            "causal_score": 1.0
+          },
+          {
+            "service": "inventory-db",
+            "causal_score": 0.0
+          },
+          {
+            "service": "inventory-service",
+            "causal_score": 0.0
+          },
+          {
+            "service": "order-service",
+            "causal_score": 0.0
+          }
+        ],
+        "supporting_propagation_path": null
+      }
+    ],
+    "control_breakdown": [
+      {
+        "experiment_id": "EXP-007",
+        "is_fault": false,
+        "max_confidence": 0.0
+      },
+      {
+        "experiment_id": "EXP-008",
+        "is_fault": false,
+        "max_confidence": 0.0
+      }
+    ]
+  },
+  "gnn_comparison": [
+    {
+      "experiment_id": "EXP-015",
+      "fault_type": "DB_LATENCY",
+      "actual_target": "inventory-db",
+      "gnn_candidate": "inventory-db",
+      "gnn_confidence": 0.9991,
+      "causal_candidate": "inventory-db",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-016",
+      "fault_type": "DB_LATENCY",
+      "actual_target": "inventory-db",
+      "gnn_candidate": "inventory-db",
+      "gnn_confidence": 0.9989,
+      "causal_candidate": "inventory-db",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-031",
+      "fault_type": "NETWORK_LATENCY",
+      "actual_target": "inventory-service",
+      "gnn_candidate": "inventory-service",
+      "gnn_confidence": 0.9999,
+      "causal_candidate": "inventory-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-040",
+      "fault_type": "SERVICE_LATENCY",
+      "actual_target": "inventory-service",
+      "gnn_candidate": "inventory-service",
+      "gnn_confidence": 0.9998,
+      "causal_candidate": "inventory-service",
+      "causal_confidence": 0.9978,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-043",
+      "fault_type": "SERVICE_FAILURE",
+      "actual_target": "inventory-service",
+      "gnn_candidate": "inventory-service",
+      "gnn_confidence": 0.9886,
+      "causal_candidate": "inventory-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-047",
+      "fault_type": "SERVICE_LATENCY",
+      "actual_target": "order-service",
+      "gnn_candidate": "order-service",
+      "gnn_confidence": 0.994,
+      "causal_candidate": "order-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": {
+        "source": "order-service.error_rate",
+        "target": "api-gateway.error_rate",
+        "hop_count": 1,
+        "total_lag_seconds": 1,
+        "cumulative_effect": 0.485899,
+        "absolute_effect": 0.485899,
+        "path_description": "order-service.error_rate --(lag 1s, coef +0.486)--> api-gateway.error_rate",
+        "edges": [
+          {
+            "source_node": "order-service",
+            "source_variable": "error_rate",
+            "target_node": "api-gateway",
+            "target_variable": "error_rate",
+            "lag": 1,
+            "coefficient": 0.485899,
+            "standardized_effect": 0.485899,
+            "absolute_effect": 0.485899,
+            "sign": "positive",
+            "confidence": 1.0,
+            "allowed_by_topology": true,
+            "retained": true,
+            "selection_frequency": 1.0,
+            "coefficient_std": 0.000483
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "EXP-059",
+      "fault_type": "ERROR_RATE",
+      "actual_target": "order-service",
+      "gnn_candidate": "order-service",
+      "gnn_confidence": 0.9972,
+      "causal_candidate": "order-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": {
+        "source": "order-service.error_rate",
+        "target": "api-gateway.error_rate",
+        "hop_count": 1,
+        "total_lag_seconds": 1,
+        "cumulative_effect": 0.485899,
+        "absolute_effect": 0.485899,
+        "path_description": "order-service.error_rate --(lag 1s, coef +0.486)--> api-gateway.error_rate",
+        "edges": [
+          {
+            "source_node": "order-service",
+            "source_variable": "error_rate",
+            "target_node": "api-gateway",
+            "target_variable": "error_rate",
+            "lag": 1,
+            "coefficient": 0.485899,
+            "standardized_effect": 0.485899,
+            "absolute_effect": 0.485899,
+            "sign": "positive",
+            "confidence": 1.0,
+            "allowed_by_topology": true,
+            "retained": true,
+            "selection_frequency": 1.0,
+            "coefficient_std": 0.000483
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "EXP-064",
+      "fault_type": "SERVICE_FAILURE",
+      "actual_target": "payment-service",
+      "gnn_candidate": "payment-service",
+      "gnn_confidence": 0.9991,
+      "causal_candidate": "payment-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-065",
+      "fault_type": "SERVICE_FAILURE",
+      "actual_target": "payment-service",
+      "gnn_candidate": "payment-service",
+      "gnn_confidence": 0.9991,
+      "causal_candidate": "payment-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    },
+    {
+      "experiment_id": "EXP-076",
+      "fault_type": "NETWORK_LATENCY",
+      "actual_target": "payment-service",
+      "gnn_candidate": "payment-service",
+      "gnn_confidence": 0.997,
+      "causal_candidate": "payment-service",
+      "causal_confidence": 1.0,
+      "gnn_accuracy": true,
+      "causal_accuracy": true,
+      "agreement": true,
+      "supporting_propagation_path": null
+    }
+  ]
+}

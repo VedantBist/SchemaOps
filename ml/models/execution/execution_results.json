@@ -1,0 +1,315 @@
+{
+  "metrics": {
+    "successful_recoveries": 4,
+    "failed_executions": 0,
+    "successful_rollbacks": 0,
+    "failed_rollbacks": 0,
+    "manual_intervention_required": 0,
+    "no_fault_rejections": 2,
+    "policy_denials": 0,
+    "unauthorized_execution_attempts": 0,
+    "duplicate_execution_preventions": 0
+  },
+  "evaluations": [
+    {
+      "experiment_id": "EXP-015",
+      "label": "inventory-db",
+      "fault_type": "DB_LATENCY",
+      "recommendation_id": "REC-5bd410098a",
+      "approval_id": "APP-cad28e8c1b",
+      "action_id": "ACT-DB-01",
+      "target_service": "inventory-db",
+      "state": "INCIDENT_RESOLVED",
+      "time_to_recommendation_ms": 9.16,
+      "approval_latency_ms": 0.18,
+      "execution_and_verify_latency_ms": 0.66,
+      "verification_result": {
+        "verified": true,
+        "target_improved": true,
+        "severity_decreased": true,
+        "health_restored": true,
+        "no_downstream_regression": true,
+        "stability_confirmed": true,
+        "metrics_before": {
+          "gateway_p99_latency_ms": 283.33,
+          "gateway_error_rate_pct": 0.1,
+          "target_variable": 1015.0
+        },
+        "metrics_after": {
+          "gateway_p99_latency_ms": 36.0,
+          "gateway_error_rate_pct": 0.1,
+          "target_variable": 15.0
+        },
+        "metrics_delta": {
+          "gateway_latency_reduction_ms": 247.33,
+          "gateway_error_rate_reduction_pct": 0.0,
+          "target_variable_reduction": 1000.0
+        },
+        "summary": "Recovery Verified: Target inventory-db.db_latency recovered from 1015.0 to 15.0. Gateway latency reduced by 247.3ms and error rate reduced by 0.0%. Service health restored to nominal.",
+        "verified_at": "2026-09-27T08:13:25.553993+00:00",
+        "verification_window_steps": 15,
+        "details": {}
+      },
+      "rollback_result": null,
+      "policy_decision": {
+        "allowed": true,
+        "policy_name": "CausalOps-Safe-Execution-Policy-v1",
+        "evaluated_at": "2026-09-27T08:13:25.553610+00:00",
+        "rule_results": {
+          "RULE_01_ENVIRONMENT_LOCAL": true,
+          "RULE_02_ACTION_ALLOWLISTED": true,
+          "RULE_03_TARGET_ALLOWLISTED": true,
+          "RULE_04_RECOMMENDATION_EXISTS": true,
+          "RULE_05_RECOMMENDATION_NOT_EXPIRED": true,
+          "RULE_06_EXPLICIT_APPROVAL_EXISTS": true,
+          "RULE_07_APPROVAL_IDENTITY_EXISTS": true,
+          "RULE_08_INCIDENT_MATCH": true,
+          "RULE_09_NOT_ALREADY_EXECUTED": true,
+          "RULE_10_NOT_CURRENTLY_LOCKED": true,
+          "RULE_11_ROLLBACK_SUPPORTED": true,
+          "RULE_12_COUNTERFACTUAL_VALIDITY_OK": true,
+          "RULE_13_NO_UNRESOLVED_CRITICAL_WARNINGS": true,
+          "RULE_14_BUDGET_NOT_EXCEEDED": true,
+          "RULE_15_BLAST_RADIUS_ACCEPTABLE": true
+        },
+        "denial_reasons": [],
+        "violated_rules": [],
+        "metadata": {
+          "incident_id": "EXP-015",
+          "action_id": "ACT-DB-01",
+          "target_service": "inventory-db",
+          "environment": "LOCAL"
+        }
+      }
+    },
+    {
+      "experiment_id": "EXP-043",
+      "label": "inventory-service",
+      "fault_type": "SERVICE_FAILURE",
+      "recommendation_id": "REC-ab5a19eb29",
+      "approval_id": "APP-186b2e95e0",
+      "action_id": "ACT-INV-03",
+      "target_service": "inventory-service",
+      "state": "INCIDENT_RESOLVED",
+      "time_to_recommendation_ms": 9.23,
+      "approval_latency_ms": 0.19,
+      "execution_and_verify_latency_ms": 0.67,
+      "verification_result": {
+        "verified": true,
+        "target_improved": true,
+        "severity_decreased": true,
+        "health_restored": true,
+        "no_downstream_regression": true,
+        "stability_confirmed": true,
+        "metrics_before": {
+          "gateway_p99_latency_ms": 45.0,
+          "gateway_error_rate_pct": 17.25,
+          "target_variable": 35.1
+        },
+        "metrics_after": {
+          "gateway_p99_latency_ms": 45.0,
+          "gateway_error_rate_pct": 0.09,
+          "target_variable": 0.1
+        },
+        "metrics_delta": {
+          "gateway_latency_reduction_ms": 0.0,
+          "gateway_error_rate_reduction_pct": 17.16,
+          "target_variable_reduction": 35.0
+        },
+        "summary": "Recovery Verified: Target inventory-service.error_rate recovered from 35.1 to 0.1. Gateway latency reduced by 0.0ms and error rate reduced by 17.2%. Service health restored to nominal.",
+        "verified_at": "2026-09-27T08:13:25.569561+00:00",
+        "verification_window_steps": 15,
+        "details": {}
+      },
+      "rollback_result": null,
+      "policy_decision": {
+        "allowed": true,
+        "policy_name": "CausalOps-Safe-Execution-Policy-v1",
+        "evaluated_at": "2026-09-27T08:13:25.569142+00:00",
+        "rule_results": {
+          "RULE_01_ENVIRONMENT_LOCAL": true,
+          "RULE_02_ACTION_ALLOWLISTED": true,
+          "RULE_03_TARGET_ALLOWLISTED": true,
+          "RULE_04_RECOMMENDATION_EXISTS": true,
+          "RULE_05_RECOMMENDATION_NOT_EXPIRED": true,
+          "RULE_06_EXPLICIT_APPROVAL_EXISTS": true,
+          "RULE_07_APPROVAL_IDENTITY_EXISTS": true,
+          "RULE_08_INCIDENT_MATCH": true,
+          "RULE_09_NOT_ALREADY_EXECUTED": true,
+          "RULE_10_NOT_CURRENTLY_LOCKED": true,
+          "RULE_11_ROLLBACK_SUPPORTED": true,
+          "RULE_12_COUNTERFACTUAL_VALIDITY_OK": true,
+          "RULE_13_NO_UNRESOLVED_CRITICAL_WARNINGS": true,
+          "RULE_14_BUDGET_NOT_EXCEEDED": true,
+          "RULE_15_BLAST_RADIUS_ACCEPTABLE": true
+        },
+        "denial_reasons": [],
+        "violated_rules": [],
+        "metadata": {
+          "incident_id": "EXP-043",
+          "action_id": "ACT-INV-03",
+          "target_service": "inventory-service",
+          "environment": "LOCAL"
+        }
+      }
+    },
+    {
+      "experiment_id": "EXP-047",
+      "label": "order-service",
+      "fault_type": "SERVICE_LATENCY",
+      "recommendation_id": "REC-d67d940fee",
+      "approval_id": "APP-840a215c27",
+      "action_id": "ACT-ORD-01",
+      "target_service": "order-service",
+      "state": "INCIDENT_RESOLVED",
+      "time_to_recommendation_ms": 8.84,
+      "approval_latency_ms": 0.14,
+      "execution_and_verify_latency_ms": 0.62,
+      "verification_result": {
+        "verified": true,
+        "target_improved": true,
+        "severity_decreased": true,
+        "health_restored": true,
+        "no_downstream_regression": true,
+        "stability_confirmed": true,
+        "metrics_before": {
+          "gateway_p99_latency_ms": 293.0,
+          "gateway_error_rate_pct": 0.1,
+          "target_variable": 480.0
+        },
+        "metrics_after": {
+          "gateway_p99_latency_ms": 42.0,
+          "gateway_error_rate_pct": 0.1,
+          "target_variable": 80.0
+        },
+        "metrics_delta": {
+          "gateway_latency_reduction_ms": 251.0,
+          "gateway_error_rate_reduction_pct": 0.0,
+          "target_variable_reduction": 400.0
+        },
+        "summary": "Recovery Verified: Target order-service.p99_latency recovered from 480.0 to 80.0. Gateway latency reduced by 251.0ms and error rate reduced by 0.0%. Service health restored to nominal.",
+        "verified_at": "2026-09-27T08:13:25.584641+00:00",
+        "verification_window_steps": 15,
+        "details": {}
+      },
+      "rollback_result": null,
+      "policy_decision": {
+        "allowed": true,
+        "policy_name": "CausalOps-Safe-Execution-Policy-v1",
+        "evaluated_at": "2026-09-27T08:13:25.584261+00:00",
+        "rule_results": {
+          "RULE_01_ENVIRONMENT_LOCAL": true,
+          "RULE_02_ACTION_ALLOWLISTED": true,
+          "RULE_03_TARGET_ALLOWLISTED": true,
+          "RULE_04_RECOMMENDATION_EXISTS": true,
+          "RULE_05_RECOMMENDATION_NOT_EXPIRED": true,
+          "RULE_06_EXPLICIT_APPROVAL_EXISTS": true,
+          "RULE_07_APPROVAL_IDENTITY_EXISTS": true,
+          "RULE_08_INCIDENT_MATCH": true,
+          "RULE_09_NOT_ALREADY_EXECUTED": true,
+          "RULE_10_NOT_CURRENTLY_LOCKED": true,
+          "RULE_11_ROLLBACK_SUPPORTED": true,
+          "RULE_12_COUNTERFACTUAL_VALIDITY_OK": true,
+          "RULE_13_NO_UNRESOLVED_CRITICAL_WARNINGS": true,
+          "RULE_14_BUDGET_NOT_EXCEEDED": true,
+          "RULE_15_BLAST_RADIUS_ACCEPTABLE": true
+        },
+        "denial_reasons": [],
+        "violated_rules": [],
+        "metadata": {
+          "incident_id": "EXP-047",
+          "action_id": "ACT-ORD-01",
+          "target_service": "order-service",
+          "environment": "LOCAL"
+        }
+      }
+    },
+    {
+      "experiment_id": "EXP-064",
+      "label": "payment-service",
+      "fault_type": "SERVICE_FAILURE",
+      "recommendation_id": "REC-e0202e3fb7",
+      "approval_id": "APP-843fbd758d",
+      "action_id": "ACT-PAY-01",
+      "target_service": "payment-service",
+      "state": "INCIDENT_RESOLVED",
+      "time_to_recommendation_ms": 13.34,
+      "approval_latency_ms": 0.12,
+      "execution_and_verify_latency_ms": 0.67,
+      "verification_result": {
+        "verified": true,
+        "target_improved": true,
+        "severity_decreased": true,
+        "health_restored": true,
+        "no_downstream_regression": true,
+        "stability_confirmed": true,
+        "metrics_before": {
+          "gateway_p99_latency_ms": 45.0,
+          "gateway_error_rate_pct": 17.25,
+          "target_variable": 35.1
+        },
+        "metrics_after": {
+          "gateway_p99_latency_ms": 45.0,
+          "gateway_error_rate_pct": 0.09,
+          "target_variable": 0.1
+        },
+        "metrics_delta": {
+          "gateway_latency_reduction_ms": 0.0,
+          "gateway_error_rate_reduction_pct": 17.16,
+          "target_variable_reduction": 35.0
+        },
+        "summary": "Recovery Verified: Target payment-service.error_rate recovered from 35.1 to 0.1. Gateway latency reduced by 0.0ms and error rate reduced by 17.2%. Service health restored to nominal.",
+        "verified_at": "2026-09-27T08:13:25.604091+00:00",
+        "verification_window_steps": 15,
+        "details": {}
+      },
+      "rollback_result": null,
+      "policy_decision": {
+        "allowed": true,
+        "policy_name": "CausalOps-Safe-Execution-Policy-v1",
+        "evaluated_at": "2026-09-27T08:13:25.603702+00:00",
+        "rule_results": {
+          "RULE_01_ENVIRONMENT_LOCAL": true,
+          "RULE_02_ACTION_ALLOWLISTED": true,
+          "RULE_03_TARGET_ALLOWLISTED": true,
+          "RULE_04_RECOMMENDATION_EXISTS": true,
+          "RULE_05_RECOMMENDATION_NOT_EXPIRED": true,
+          "RULE_06_EXPLICIT_APPROVAL_EXISTS": true,
+          "RULE_07_APPROVAL_IDENTITY_EXISTS": true,
+          "RULE_08_INCIDENT_MATCH": true,
+          "RULE_09_NOT_ALREADY_EXECUTED": true,
+          "RULE_10_NOT_CURRENTLY_LOCKED": true,
+          "RULE_11_ROLLBACK_SUPPORTED": true,
+          "RULE_12_COUNTERFACTUAL_VALIDITY_OK": true,
+          "RULE_13_NO_UNRESOLVED_CRITICAL_WARNINGS": true,
+          "RULE_14_BUDGET_NOT_EXCEEDED": true,
+          "RULE_15_BLAST_RADIUS_ACCEPTABLE": true
+        },
+        "denial_reasons": [],
+        "violated_rules": [],
+        "metadata": {
+          "incident_id": "EXP-064",
+          "action_id": "ACT-PAY-01",
+          "target_service": "payment-service",
+          "environment": "LOCAL"
+        }
+      }
+    },
+    {
+      "experiment_id": "EXP-007",
+      "label": "NO_FAULT",
+      "fault_type": "NO_FAULT",
+      "state": "NO_REMEDIATION_REQUIRED",
+      "approval_attempt": "REJECTED_BY_POLICY",
+      "rejection_reason": "Cannot approve recommendation for NO_FAULT control experiment."
+    },
+    {
+      "experiment_id": "EXP-008",
+      "label": "NO_FAULT",
+      "fault_type": "NO_FAULT",
+      "state": "NO_REMEDIATION_REQUIRED",
+      "approval_attempt": "REJECTED_BY_POLICY",
+      "rejection_reason": "Cannot approve recommendation for NO_FAULT control experiment."
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "status": "PASSED",
+  "total_experiments": 80,
+  "fault_experiments": 70,
+  "nofault_experiments": 10,
+  "fault_detection_rate": 1.0,
+  "within_5s_positive_count": 6,
+  "within_10s_positive_count": 70,
+  "within_30s_positive_count": 70,
+  "detection_misses": 0,
+  "issues": []
+}

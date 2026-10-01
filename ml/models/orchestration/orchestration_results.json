@@ -1,0 +1,93 @@
+{
+  "evaluation_timestamp": "2026-09-27T09:25:10.607664+00:00",
+  "phase": "Phase 6: Multi-Incident Orchestration & Hardening",
+  "official_scenarios": {
+    "scenario_a": {
+      "description": "Simultaneous independent incidents (inventory-db & payment-service)",
+      "isolated": true,
+      "incident_1": "INC-4c7d62dd84",
+      "incident_2": "INC-ace6a72c77",
+      "latency_ms": 0.97,
+      "status": "PASSED"
+    },
+    "scenario_b": {
+      "description": "Cascading downstream symptom correlation",
+      "correlated": true,
+      "parent_id": "INC-4c7d62dd84",
+      "correlation_group": "GRP-2019153bff",
+      "latency_ms": 0.54,
+      "status": "PASSED"
+    },
+    "scenario_c": {
+      "description": "Concurrent conflicting remediations on same service",
+      "conflict_detected": true,
+      "conflict_type": "TARGET_SERVICE_COLLISION",
+      "blocked_actions": [
+        "ACT-DB-02"
+      ],
+      "status": "PASSED"
+    },
+    "scenario_d": {
+      "description": "Stale telemetry during approval blocks execution",
+      "freshness": "STALE",
+      "execution_allowed": false,
+      "status": "PASSED"
+    },
+    "scenario_e": {
+      "description": "Post-action telemetry oscillation detection",
+      "oscillation_detected": true,
+      "final_state": "DEGRADED",
+      "status": "PASSED"
+    },
+    "scenario_f": {
+      "description": "Rollback failure triggers MANUAL_INTERVENTION",
+      "final_state": "MANUAL_INTERVENTION",
+      "status": "PASSED"
+    }
+  },
+  "load_benchmark": {
+    "simultaneous_incidents_count": 10,
+    "telemetry_events_ingested": 20,
+    "effective_ingestion_rate_events_per_sec": 727.3,
+    "concurrent_remediation_candidates": 5,
+    "incident_creation_latency_ms": {
+      "mean": 1.003,
+      "p50": 1.032,
+      "p95": 1.318,
+      "max": 1.354
+    },
+    "event_processing_and_correlation_latency_ms": {
+      "mean": 1.368,
+      "p50": 1.616,
+      "p95": 1.911,
+      "max": 3.712
+    },
+    "scheduler_dispatch_latency_ms": 0.062,
+    "memory_usage_mb": {
+      "current": 0.159,
+      "peak": 0.192
+    },
+    "total_benchmark_duration_seconds": 0.044
+  },
+  "replay_validation": {
+    "total_live_incidents": 30,
+    "total_replayed_incidents": 30,
+    "deterministic_replay_passed": true
+  },
+  "metrics_summary": {
+    "active_incidents": 30,
+    "incidents_created_total": 30,
+    "incidents_correlated_total": 10,
+    "incidents_deduplicated_total": 5,
+    "incidents_recovered_total": 0,
+    "incidents_degraded_total": 1,
+    "remediation_blocked_total": 0,
+    "remediation_executed_total": 0,
+    "remediation_failed_total": 0,
+    "rollback_total": 0,
+    "rollback_failed_total": 0,
+    "stale_telemetry_total": 0,
+    "policy_denial_total": 0,
+    "total_tracked_incidents": 30
+  }
+}

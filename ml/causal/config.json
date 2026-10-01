@@ -1,0 +1,36 @@
+{
+  "model_name": "Topology-Constrained Lagged SCM",
+  "version": "1.0.0",
+  "phase": "3B",
+  "lag_order": 5,
+  "regularization": "ridge",
+  "alpha": 1.0,
+  "fit_intercept": true,
+  "edge_threshold": 0.05,
+  "bootstrap_count": 50,
+  "stability_threshold": 0.60,
+  "normalization": "train_only_standard_scaler",
+  "solver": "ridge",
+  "random_seed": 42,
+  "candidate_features": [
+    "p50_latency",
+    "p95_latency",
+    "p99_latency",
+    "error_rate",
+    "request_rate",
+    "pool_utilization",
+    "db_latency"
+  ],
+  "excluded_features": [
+    "anomaly_score",
+    "p99_latency_delta",
+    "error_rate_delta"
+  ],
+  "nodes": [
+    "api-gateway",
+    "order-service",
+    "inventory-service",
+    "payment-service",
+    "inventory-db"
+  ]
+}

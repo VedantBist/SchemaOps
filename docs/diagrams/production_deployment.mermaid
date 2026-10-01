@@ -1,0 +1,65 @@
+flowchart TD
+    subgraph Client["Edge & User Layer"]
+        Browser[Browser / DevOps Operator]
+    end
+
+    subgraph ExternalNet["Public / Edge Network (frontend-net)"]
+        UI[Frontend Container<br/>React + Vite + Nginx<br/>Port: 3000 / 80]
+        GW[API Gateway Container<br/>Spring Cloud Gateway / Envoy<br/>Port: 8081]
+    end
+
+    subgraph InternalNet["Isolated Backend Network (backend-net)"]
+        API[CausalOps API<br/>Spring Boot 3 / Java 21<br/>Port: 8080]
+        AI[AI Engine<br/>FastAPI / Python 3.11+<br/>Port: 8000]
+        PG[(PostgreSQL 16<br/>Database Container<br/>Port: 5432)]
+
+        subgraph ManagedServices["E-Commerce Microservices"]
+            ORD[order-service<br/>Port: 8082]
+            INV[inventory-service<br/>Port: 8083]
+            PAY[payment-service<br/>Port: 8084]
+            IDB[(inventory-db<br/>PostgreSQL / Port: 5433)]
+        end
+    end
+
+    subgraph ObservabilityNet["Observability & Telemetry Network (telemetry-net)"]
+        OTEL[OpenTelemetry Collector<br/>Ports: 4317 gRPC / 4318 HTTP]
+        PROM[Prometheus Server<br/>Port: 9090]
+        LOKI[Grafana Loki Server<br/>Port: 3100]
+        TEMPO[Grafana Tempo Server<br/>Port: 3200]
+    end
+
+    subgraph Storage["Persistent Named Volumes"]
+        V_PG[(postgres_data)]
+        V_JRN[(journal_data)]
+        V_PROM[(prom_data)]
+        V_LOKI[(loki_data)]
+        V_TEMPO[(tempo_data)]
+    end
+
+    Browser -->|HTTP / SPA| UI
+    Browser -->|REST API / SSE| GW
+    GW --> API
+    API --> AI
+    API --> PG
+    ORD --> INV & PAY
+    INV --> IDB
+
+    ORD & INV & PAY & IDB & GW -.->|OTLP Telemetry| OTEL
+    OTEL --> PROM & LOKI & TEMPO
+    AI -.->|Scrapes Telemetry| PROM & LOKI
+
+    PG --- V_PG
+    AI --- V_JRN
+    PROM --- V_PROM
+    LOKI --- V_LOKI
+    TEMPO --- V_TEMPO
+
+    classDef edge fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef core fill:#1e1e2e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+    classDef obs fill:#1e3a5f,stroke:#60a5fa,stroke-width:2px,color:#f8fafc;
+    classDef vol fill:#312e81,stroke:#a78bfa,stroke-width:2px,color:#f8fafc;
+
+    class UI,GW edge;
+    class API,AI,PG,ORD,INV,PAY,IDB core;
+    class OTEL,PROM,LOKI,TEMPO obs;
+    class V_PG,V_JRN,V_PROM,V_LOKI,V_TEMPO vol;

@@ -1,0 +1,326 @@
+{
+  "version": "1.0.0",
+  "count": 11,
+  "safety_policy": {
+    "autonomous_mutation_enabled": false,
+    "approval_required_enforced": true,
+    "read_only_simulation_mode": true
+  },
+  "actions": [
+    {
+      "action_id": "ACT-DB-01",
+      "name": "Terminate Blocking Queries & Release Table Locks",
+      "action_type": "REDUCE_DB_LATENCY",
+      "target_service": "inventory-db",
+      "target_variable": "db_latency",
+      "mechanism": "Issues pg_cancel_backend / pg_terminate_backend on blocked transactions holding ExclusiveLock on inventory tables",
+      "description": "Eliminates database thread contention and queue stalling by clearing hung queries causing backpressure.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-DB-01: Postgres Lock Contention & Slow Query Recovery",
+      "secondary_variables": [
+        "pool_utilization"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "db_latency": [
+          0.0,
+          null
+        ],
+        "pool_utilization": [
+          0.0,
+          100.0
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-DB-02",
+      "name": "Drain & Re-initialize Database Connection Pool",
+      "action_type": "RESTORE_POOL_UTILIZATION",
+      "target_service": "inventory-db",
+      "target_variable": "pool_utilization",
+      "mechanism": "Signals connection pool proxy to gracefully evict idle/leaked connections and reset connection pool headroom",
+      "description": "Restores database connection availability when pool slots are exhausted.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-DB-02: Connection Pool Exhaustion Mitigation",
+      "secondary_variables": [
+        "db_latency"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "pool_utilization": [
+          0.0,
+          100.0
+        ],
+        "db_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-INV-01",
+      "name": "Scale Inventory Worker Replicas & Clear RPC Backlog",
+      "action_type": "REDUCE_SERVICE_LATENCY",
+      "target_service": "inventory-service",
+      "target_variable": "p99_latency",
+      "mechanism": "Horizontally autoscales inventory-service pods (+2 replicas) and sheds saturated worker queues",
+      "description": "Absorbs high service latency and worker queue backlog by expanding horizontal capacity.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-INV-01: Inventory Worker Saturation Recovery",
+      "secondary_variables": [
+        "pool_utilization"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "p99_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-INV-02",
+      "name": "Engage Circuit Breaker & Fallback to Local Redis Cache",
+      "action_type": "RESTORE_SERVICE_HEALTH",
+      "target_service": "inventory-service",
+      "target_variable": "p99_latency",
+      "mechanism": "Trips downstream DB circuit breaker to serve cached inventory availability, isolating callers from database wait",
+      "description": "Protects upstream order processing by falling back to cached stock counts.",
+      "reversibility": "HIGH",
+      "risk_class": "MEDIUM",
+      "complexity": "MEDIUM",
+      "playbook_ref": "PB-INV-02: Inventory Circuit Breaker Trip",
+      "secondary_variables": [
+        "error_rate"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "p99_latency": [
+          0.0,
+          null
+        ],
+        "error_rate": [
+          0.0,
+          100.0
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-INV-03",
+      "name": "Rolling Restart of Deadlocked Inventory Pods",
+      "action_type": "RESTORE_ERROR_RATE",
+      "target_service": "inventory-service",
+      "target_variable": "error_rate",
+      "mechanism": "Performs phased rolling restart of degraded inventory pods to clear unhandled deadlock/crash state",
+      "description": "Restores service reliability after unrecoverable application error cascade.",
+      "reversibility": "MEDIUM",
+      "risk_class": "MEDIUM",
+      "complexity": "LOW",
+      "playbook_ref": "PB-INV-03: Inventory Worker Rolling Restart",
+      "secondary_variables": [
+        "p99_latency"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "error_rate": [
+          0.0,
+          100.0
+        ],
+        "p99_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-ORD-01",
+      "name": "Apply Ingress Rate Shedding & Flush Pending Order Queue",
+      "action_type": "REDUCE_SERVICE_LATENCY",
+      "target_service": "order-service",
+      "target_variable": "p99_latency",
+      "mechanism": "Enforces token-bucket admission control to discard queue overflow and relieve mediator thread pool",
+      "description": "Relieves mediator queueing saturation and restores checkout pipeline throughput.",
+      "reversibility": "HIGH",
+      "risk_class": "MEDIUM",
+      "complexity": "MEDIUM",
+      "playbook_ref": "PB-ORD-01: Order Ingress Shedding",
+      "secondary_variables": [
+        "error_rate"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "p99_latency": [
+          0.0,
+          null
+        ],
+        "error_rate": [
+          0.0,
+          100.0
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-ORD-02",
+      "name": "Increase RPC Retry Backoff & Clear Deadlocked Requests",
+      "action_type": "RESTORE_ERROR_RATE",
+      "target_service": "order-service",
+      "target_variable": "error_rate",
+      "mechanism": "Applies jittered exponential backoff and cancels hung outgoing client requests to break retry loops",
+      "description": "Dissolves retry storm between order-service and downstream dependencies.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-ORD-02: Retry Storm Mitigation",
+      "secondary_variables": [
+        "p99_latency"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "error_rate": [
+          0.0,
+          100.0
+        ],
+        "p99_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-PAY-01",
+      "name": "Failover Payment Route to Standby Acquirer Gateway",
+      "action_type": "RESTORE_ERROR_RATE",
+      "target_service": "payment-service",
+      "target_variable": "error_rate",
+      "mechanism": "Switches outgoing payment gateway upstream DNS/VIP route to standby acquirer partner",
+      "description": "Bypasses third-party gateway connection timeouts and payment validation failures.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-PAY-01: Payment Gateway Fallback Routing",
+      "secondary_variables": [
+        "p99_latency"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "error_rate": [
+          0.0,
+          100.0
+        ],
+        "p99_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-PAY-02",
+      "name": "Graceful Container Restart & Refresh Auth/JWKS Cache",
+      "action_type": "RESTORE_SERVICE_HEALTH",
+      "target_service": "payment-service",
+      "target_variable": "error_rate",
+      "mechanism": "Triggers graceful rolling restart of payment pods and evicts expired security token keys",
+      "description": "Restores payment verification pipeline after internal auth crash or deadlock.",
+      "reversibility": "MEDIUM",
+      "risk_class": "MEDIUM",
+      "complexity": "LOW",
+      "playbook_ref": "PB-PAY-02: Payment Worker Pod Graceful Restart",
+      "secondary_variables": [
+        "p99_latency"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "error_rate": [
+          0.0,
+          100.0
+        ],
+        "p99_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-PAY-03",
+      "name": "Autoscale Payment Service Replicas",
+      "action_type": "REDUCE_SERVICE_LATENCY",
+      "target_service": "payment-service",
+      "target_variable": "p99_latency",
+      "mechanism": "Adds worker pods to payment deployment to absorb external network latency delay",
+      "description": "Mitigates queue build-up when external payment provider responses are sluggish.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-PAY-03: Payment Service Horizontal Scaling",
+      "secondary_variables": [
+        "error_rate"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "p99_latency": [
+          0.0,
+          null
+        ],
+        "error_rate": [
+          0.0,
+          100.0
+        ]
+      },
+      "nominal_target_hint": null
+    },
+    {
+      "action_id": "ACT-GW-01",
+      "name": "Engage Ingress Rate Limiting & Shed 504 Timeouts",
+      "action_type": "RESTORE_ERROR_RATE",
+      "target_service": "api-gateway",
+      "target_variable": "error_rate",
+      "mechanism": "Applies token bucket rate limiter at ingress edge, returning 429 to non-critical traffic to protect core routing",
+      "description": "Protects API Gateway from cascade failure during widespread downstream timeouts.",
+      "reversibility": "HIGH",
+      "risk_class": "LOW",
+      "complexity": "LOW",
+      "playbook_ref": "PB-GW-01: Gateway Ingress Throttling",
+      "secondary_variables": [
+        "p99_latency"
+      ],
+      "approval_required": true,
+      "can_simulate": true,
+      "physical_bounds": {
+        "error_rate": [
+          0.0,
+          100.0
+        ],
+        "p99_latency": [
+          0.0,
+          null
+        ]
+      },
+      "nominal_target_hint": null
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "model_specification": {
+    "architecture": "Topology-Constrained Lagged Structural Causal Model",
+    "nodes": 5,
+    "variables_per_node": 7,
+    "total_endogenous_variables": 35,
+    "lag_order_P": 5,
+    "ridge_alpha": 1.0,
+    "stable_causal_edges": 48
+  },
+  "axiomatic_tests": {
+    "zero_intervention_identity": {
+      "passed": true,
+      "max_deviation": 0.0,
+      "criterion": "max_deviation < 1e-4"
+    },
+    "branch_isolation": {
+      "passed": true,
+      "unreachable_branch_leakage": 0.0,
+      "criterion": "leakage < 1e-4 on payment-service when intervening on inventory branch"
+    },
+    "temporal_directionality": {
+      "passed": true,
+      "pre_intervention_delta": 0.0,
+      "criterion": "zero effect before intervention step t0"
+    },
+    "placebo_intervention": {
+      "passed": true,
+      "collateral_damage_pct": 0.0
+    },
+    "wrong_target_intervention": {
+      "passed": true,
+      "root_cause_attenuation_ratio": 4.2
+    },
+    "magnitude_monotonicity": {
+      "passed": true,
+      "monotonic_scaling": true
+    }
+  },
+  "gateway_effect_calibration": {
+    "mae_ms": 14.28,
+    "rmse_ms": 18.92,
+    "bias_ms": -2.14,
+    "relative_error_pct": 5.82,
+    "pearson_correlation": 0.9842,
+    "sign_agreement_pct": 100.0
+  },
+  "nonlinear_limitation_analysis_EXP047": {
+    "experiment_id": "EXP-047",
+    "target": "order-service",
+    "fault_type": "SERVICE_LATENCY (5 rps queueing saturation)",
+    "finding": "Linear SCM underestimates downstream queue accumulation during cascading thread-pool starvation. Error increases by 18.4% relative to 1 rps baseline.",
+    "mitigation_implemented": "Recommender automatically sets nonlinear_risk=HIGH and attaches mandatory caveat metadata requiring explicit operator review."
+  }
+}

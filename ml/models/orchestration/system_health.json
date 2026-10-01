@@ -1,0 +1,14 @@
+{
+  "components": {
+    "telemetry": "HEALTHY",
+    "rca_engine": "HEALTHY",
+    "gnn_engine": "HEALTHY",
+    "causal_scm": "HEALTHY",
+    "recommendation_engine": "HEALTHY",
+    "execution_engine": "HEALTHY",
+    "verification_engine": "HEALTHY"
+  },
+  "errors": {},
+  "overall_status": "HEALTHY",
+  "evaluated_at": "2026-09-27T09:25:10.607989+00:00"
+}

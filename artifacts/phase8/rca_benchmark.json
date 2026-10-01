@@ -1,0 +1,100 @@
+{
+  "models_evaluated": {
+    "heuristic_baseline": {
+      "top1_accuracy": 0.5833,
+      "macro_f1": 0.542,
+      "method": "Rule-based threshold & anomaly count heuristic"
+    },
+    "classical_random_forest": {
+      "top1_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "method": "Random Forest on 145 statistical/graph feature matrix"
+    },
+    "temporal_only_gru": {
+      "top1_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "method": "Multi-layer GRU sequence encoder"
+    },
+    "spatiotemporal_gnn": {
+      "top1_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "per_class": {
+        "inventory-db": {
+          "class_index": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "inventory-service": {
+          "class_index": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "order-service": {
+          "class_index": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "payment-service": {
+          "class_index": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        }
+      },
+      "method": "GAT graph convolution + temporal GRU cross-attention"
+    },
+    "topology_constrained_scm": {
+      "top1_accuracy": 1.0,
+      "top2_accuracy": 1.0,
+      "method": "Inverted structural equations residual magnitude ranking"
+    }
+  },
+  "target_service_breakdown": {
+    "inventory-db": {
+      "class_index": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 2
+    },
+    "inventory-service": {
+      "class_index": 1,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 3
+    },
+    "order-service": {
+      "class_index": 2,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 2
+    },
+    "payment-service": {
+      "class_index": 3,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 3
+    }
+  },
+  "attribution_confusion_analysis": {
+    "order_vs_payment_confusion": "Observed in 0-hop unconstrained models due to bidirectional correlation; eliminated in topology-constrained SCM by enforcing DAG edge order (order -> payment).",
+    "db_localization": "100% precision and recall across both RF and GNN models due to unique db_latency and query metrics."
+  },
+  "control_experiment_behavior": {
+    "nofault_misclassification_rate": 0.0,
+    "incident_gate_gating_accuracy": 1.0
+  }
+}

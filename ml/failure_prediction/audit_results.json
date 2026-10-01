@@ -1,0 +1,359 @@
+{
+  "temporal_leakage": {
+    "status": "PASSED",
+    "tested_samples": 10
+  },
+  "lead_time_table": [
+    {
+      "experiment_id": "EXP-015",
+      "target": "inventory-db",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-016",
+      "target": "inventory-db",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-031",
+      "target": "inventory-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-040",
+      "target": "inventory-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-043",
+      "target": "inventory-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-047",
+      "target": "order-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-059",
+      "target": "order-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-064",
+      "target": "payment-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-065",
+      "target": "payment-service",
+      "failure_time": 6.0,
+      "first_prediction_time": 1,
+      "lead_time": 5.0,
+      "category": "EARLY >= 5s"
+    },
+    {
+      "experiment_id": "EXP-076",
+      "target": "payment-service",
+      "failure_time": 5.0,
+      "first_prediction_time": 1,
+      "lead_time": 4.0,
+      "category": "EARLY > 0s"
+    }
+  ],
+  "lead_time_category_counts": {
+    "EARLY >= 10s": 0,
+    "EARLY >= 5s": 9,
+    "EARLY > 0s": 1,
+    "AT_FAILURE": 0,
+    "TOO_LATE": 0
+  },
+  "baselines": {
+    "baseline_a_raw_threshold_acc": 0.16666666666666666,
+    "baseline_b_prev_timestep_acc": 0.16666666666666666,
+    "baseline_c_latency_80ms_acc": 0.16666666666666666,
+    "baseline_d_window_length_acc": 1.0
+  },
+  "lead_shift_ablation": [
+    {
+      "lead_requirement": ">=1s",
+      "lead_sec": 1,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    {
+      "lead_requirement": ">=3s",
+      "lead_sec": 3,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    {
+      "lead_requirement": ">=5s",
+      "lead_sec": 5,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    {
+      "lead_requirement": ">=10s",
+      "lead_sec": 10,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    {
+      "lead_requirement": ">=15s",
+      "lead_sec": 15,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    {
+      "lead_requirement": ">=20s",
+      "lead_sec": 20,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    {
+      "lead_requirement": ">=30s",
+      "lead_sec": 30,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    }
+  ],
+  "nofault_audit": [
+    {
+      "experiment_id": "EXP-001",
+      "full_sequence_prob": 0.1143,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-002",
+      "full_sequence_prob": 0.0943,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-003",
+      "full_sequence_prob": 0.1143,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-004",
+      "full_sequence_prob": 0.0943,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-005",
+      "full_sequence_prob": 0.0943,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-006",
+      "full_sequence_prob": 0.1143,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-007",
+      "full_sequence_prob": 0.0943,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-008",
+      "full_sequence_prob": 0.1143,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-009",
+      "full_sequence_prob": 0.0943,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    },
+    {
+      "experiment_id": "EXP-010",
+      "full_sequence_prob": 0.0943,
+      "full_sequence_verdict": "NORMAL",
+      "max_window_prob": 0.9421,
+      "sliding_window_alerts": 20,
+      "false_positive": false
+    }
+  ],
+  "target_service_audit": {
+    "classes": [
+      "inventory-db",
+      "inventory-service",
+      "order-service",
+      "payment-service"
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        3,
+        0
+      ],
+      [
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        2,
+        1
+      ]
+    ],
+    "accuracy": 0.3
+  },
+  "fault_type_audit": {
+    "classes": [
+      "DB_LATENCY",
+      "ERROR_RATE",
+      "NETWORK_LATENCY",
+      "SERVICE_FAILURE",
+      "SERVICE_LATENCY"
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        3,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        0
+      ]
+    ],
+    "accuracy": 0.4
+  },
+  "feature_ablations": {
+    "A_temporal_slopes_only": {
+      "n_features": 35,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    "B_topology_spreads_only": {
+      "n_features": 10,
+      "auc": 0.5,
+      "f1": 0.909,
+      "recall": 1.0
+    },
+    "C_raw_telemetry_moments_only": {
+      "n_features": 105,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    "D_temporal_plus_topology": {
+      "n_features": 45,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    "E_no_window_length": {
+      "n_features": 150,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    },
+    "F_no_error_no_window_length": {
+      "n_features": 130,
+      "auc": 1.0,
+      "f1": 1.0,
+      "recall": 1.0
+    }
+  },
+  "live_offline_consistency": {
+    "status": "PASSED",
+    "max_diff": 1.4464782305267931e-07,
+    "sample_count": 10
+  }
+}

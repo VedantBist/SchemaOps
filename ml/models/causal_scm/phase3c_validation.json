@@ -1,0 +1,677 @@
+{
+  "phase": "3C",
+  "baseline_facts": {
+    "causal_variables": 35,
+    "nodes": 5,
+    "features_per_node": 7,
+    "lag_order": 5,
+    "alpha": 1.0,
+    "bootstrap_count": 50,
+    "stable_edge_threshold": {
+      "selection_frequency_min": 0.6,
+      "mean_coefficient_abs_min": 0.05
+    },
+    "stable_edges_count": 48,
+    "top1_exact_match_accuracy": 1.0,
+    "top2_recall": 1.0,
+    "gnn_agreement_rate": 1.0,
+    "intervention_sign_agreement": 1.0,
+    "intervention_direction_agreement": 1.0
+  },
+  "phase_3d_gate": {
+    "status": "READY",
+    "all_passed": true,
+    "checks": {
+      "zero_intervention_sanity": {
+        "passed": true,
+        "metric": "Max dev: 0.0 (tol: 0.0001)"
+      },
+      "branch_isolation": {
+        "passed": true,
+        "metric": "Max unreachable leakage: 0.00000000 (ratio: 0.0)"
+      },
+      "temporal_direction": {
+        "passed": true,
+        "metric": "Pre-intervention dev: 0.0, Contemporaneous dev: 0.0, delays match distance"
+      },
+      "placebo_behavior": {
+        "passed": true,
+        "metric": "Pass rate: 100.0% (zero false pathway attribution)"
+      },
+      "wrong_target_discrimination": {
+        "passed": true,
+        "metric": "Discrimination rate: 100.0%"
+      },
+      "magnitude_sensitivity": {
+        "passed": true,
+        "metric": "Monotonic: True, Sign-consistent: True"
+      },
+      "sign_consistency": {
+        "passed": true,
+        "metric": "100.0% sign agreement on both latency and error rate"
+      },
+      "effect_calibration": {
+        "passed": true,
+        "metric": "Latency MAE: 41.29 ms (RelErr: 14.26%), Error Rate MAE: 5.54 %"
+      },
+      "leakage_checks": {
+        "passed": true,
+        "metric": "Strict train-only normalization, test labels excluded from predictors"
+      },
+      "reproducibility": {
+        "passed": true,
+        "metric": "Deterministic execution verified under fixed seed 42"
+      }
+    }
+  },
+  "zero_intervention_test": {
+    "test_name": "Zero / Null Intervention Sanity Test",
+    "passed": true,
+    "tolerance": 0.0001,
+    "max_absolute_deviation": 0.0,
+    "mean_absolute_deviation": 0.0,
+    "per_variable_max_deviation": {
+      "api-gateway.p50_latency": 0.0,
+      "api-gateway.p95_latency": 0.0,
+      "api-gateway.p99_latency": 0.0,
+      "api-gateway.error_rate": 0.0,
+      "api-gateway.request_rate": 0.0,
+      "api-gateway.pool_utilization": 0.0,
+      "api-gateway.db_latency": 0.0,
+      "order-service.p50_latency": 0.0,
+      "order-service.p95_latency": 0.0,
+      "order-service.p99_latency": 0.0,
+      "order-service.error_rate": 0.0,
+      "order-service.request_rate": 0.0,
+      "order-service.pool_utilization": 0.0,
+      "order-service.db_latency": 0.0,
+      "inventory-service.p50_latency": 0.0,
+      "inventory-service.p95_latency": 0.0,
+      "inventory-service.p99_latency": 0.0,
+      "inventory-service.error_rate": 0.0,
+      "inventory-service.request_rate": 0.0,
+      "inventory-service.pool_utilization": 0.0,
+      "inventory-service.db_latency": 0.0,
+      "payment-service.p50_latency": 0.0,
+      "payment-service.p95_latency": 0.0,
+      "payment-service.p99_latency": 0.0,
+      "payment-service.error_rate": 0.0,
+      "payment-service.request_rate": 0.0,
+      "payment-service.pool_utilization": 0.0,
+      "payment-service.db_latency": 0.0,
+      "inventory-db.p50_latency": 0.0,
+      "inventory-db.p95_latency": 0.0,
+      "inventory-db.p99_latency": 0.0,
+      "inventory-db.error_rate": 0.0,
+      "inventory-db.request_rate": 0.0,
+      "inventory-db.pool_utilization": 0.0,
+      "inventory-db.db_latency": 0.0
+    }
+  },
+  "branch_isolation_test": {
+    "test_name": "Branch Isolation / Non-Interference Test",
+    "overall_passed": true,
+    "evaluated_cases": [
+      {
+        "branch": "Inventory Branch (inventory-db -> inventory-service)",
+        "source_node": "inventory-db",
+        "intervened_variable": "db_latency",
+        "reachable_nodes": [
+          "api-gateway",
+          "inventory-db",
+          "inventory-service",
+          "order-service"
+        ],
+        "unreachable_nodes": [
+          "payment-service"
+        ],
+        "max_reachable_effect": 1.791176,
+        "max_unreachable_effect": 0.0,
+        "leakage_ratio": 0.0,
+        "passed": true
+      },
+      {
+        "branch": "Inventory Branch (inventory-service)",
+        "source_node": "inventory-service",
+        "intervened_variable": "p99_latency",
+        "reachable_nodes": [
+          "api-gateway",
+          "inventory-service",
+          "order-service"
+        ],
+        "unreachable_nodes": [
+          "inventory-db",
+          "payment-service"
+        ],
+        "max_reachable_effect": 1.481773,
+        "max_unreachable_effect": 0.0,
+        "leakage_ratio": 0.0,
+        "passed": true
+      },
+      {
+        "branch": "Payment Branch (payment-service)",
+        "source_node": "payment-service",
+        "intervened_variable": "error_rate",
+        "reachable_nodes": [
+          "api-gateway",
+          "order-service",
+          "payment-service"
+        ],
+        "unreachable_nodes": [
+          "inventory-db",
+          "inventory-service"
+        ],
+        "max_reachable_effect": 2.302002,
+        "max_unreachable_effect": 0.0,
+        "leakage_ratio": 0.0,
+        "passed": true
+      }
+    ]
+  },
+  "temporal_direction_test": {
+    "test_name": "Temporal Direction Test",
+    "overall_passed": true,
+    "intervention_start_step": 5,
+    "evaluated_sources": [
+      {
+        "source_node": "inventory-db",
+        "variable": "db_latency",
+        "hop_distance_to_gateway": 3,
+        "pre_intervention_effect": 0.0,
+        "contemporaneous_downstream_effect": 0.0,
+        "gateway_first_effect_step": 8,
+        "gateway_propagation_delay_seconds": 3,
+        "minimum_allowed_lag_seconds": 3,
+        "pre_intervention_passed": true,
+        "contemporaneous_passed": true,
+        "lag_order_passed": true,
+        "passed": true
+      },
+      {
+        "source_node": "inventory-service",
+        "variable": "p99_latency",
+        "hop_distance_to_gateway": 2,
+        "pre_intervention_effect": 0.0,
+        "contemporaneous_downstream_effect": 0.0,
+        "gateway_first_effect_step": 7,
+        "gateway_propagation_delay_seconds": 2,
+        "minimum_allowed_lag_seconds": 2,
+        "pre_intervention_passed": true,
+        "contemporaneous_passed": true,
+        "lag_order_passed": true,
+        "passed": true
+      },
+      {
+        "source_node": "payment-service",
+        "variable": "p99_latency",
+        "hop_distance_to_gateway": 2,
+        "pre_intervention_effect": 0.0,
+        "contemporaneous_downstream_effect": 0.0,
+        "gateway_first_effect_step": 7,
+        "gateway_propagation_delay_seconds": 2,
+        "minimum_allowed_lag_seconds": 2,
+        "pre_intervention_passed": true,
+        "contemporaneous_passed": true,
+        "lag_order_passed": true,
+        "passed": true
+      },
+      {
+        "source_node": "order-service",
+        "variable": "p99_latency",
+        "hop_distance_to_gateway": 1,
+        "pre_intervention_effect": 0.0,
+        "contemporaneous_downstream_effect": 0.0,
+        "gateway_first_effect_step": 6,
+        "gateway_propagation_delay_seconds": 1,
+        "minimum_allowed_lag_seconds": 1,
+        "pre_intervention_passed": true,
+        "contemporaneous_passed": true,
+        "lag_order_passed": true,
+        "passed": true
+      }
+    ]
+  },
+  "placebo_test": {
+    "test_name": "Placebo Intervention Test",
+    "overall_passed": true,
+    "total_evaluated": 10,
+    "pass_rate": 1.0,
+    "effect_threshold_sigma": 3.0,
+    "sample_records": [
+      {
+        "experiment_id": "EXP-015",
+        "fault_type": "DB_LATENCY",
+        "true_target": "inventory-db",
+        "placebo_node": "payment-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.074513,
+        "total_propagated_effect": 37.0474,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-016",
+        "fault_type": "DB_LATENCY",
+        "true_target": "inventory-db",
+        "placebo_node": "payment-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.074513,
+        "total_propagated_effect": 37.0474,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-031",
+        "fault_type": "NETWORK_LATENCY",
+        "true_target": "inventory-service",
+        "placebo_node": "payment-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.074513,
+        "total_propagated_effect": 37.0474,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-040",
+        "fault_type": "SERVICE_LATENCY",
+        "true_target": "inventory-service",
+        "placebo_node": "payment-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.074513,
+        "total_propagated_effect": 37.0474,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-043",
+        "fault_type": "SERVICE_FAILURE",
+        "true_target": "inventory-service",
+        "placebo_node": "payment-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.074513,
+        "total_propagated_effect": 37.0474,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-047",
+        "fault_type": "SERVICE_LATENCY",
+        "true_target": "order-service",
+        "placebo_node": "inventory-db",
+        "placebo_variable": "db_latency",
+        "effect_on_true_target": 0.000414,
+        "max_gateway_effect": 0.000263,
+        "total_propagated_effect": 23.5752,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-059",
+        "fault_type": "ERROR_RATE",
+        "true_target": "order-service",
+        "placebo_node": "inventory-db",
+        "placebo_variable": "db_latency",
+        "effect_on_true_target": 0.000414,
+        "max_gateway_effect": 0.000263,
+        "total_propagated_effect": 23.5752,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-064",
+        "fault_type": "SERVICE_FAILURE",
+        "true_target": "payment-service",
+        "placebo_node": "inventory-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.089091,
+        "total_propagated_effect": 21.0617,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-065",
+        "fault_type": "SERVICE_FAILURE",
+        "true_target": "payment-service",
+        "placebo_node": "inventory-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.089091,
+        "total_propagated_effect": 21.0617,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      },
+      {
+        "experiment_id": "EXP-076",
+        "fault_type": "NETWORK_LATENCY",
+        "true_target": "payment-service",
+        "placebo_node": "inventory-service",
+        "placebo_variable": "p99_latency",
+        "effect_on_true_target": 0.0,
+        "max_gateway_effect": 0.089091,
+        "total_propagated_effect": 21.0617,
+        "affected_variables_count": 0,
+        "spurious_attribution": false,
+        "passed": true
+      }
+    ]
+  },
+  "wrong_target_test": {
+    "test_name": "Wrong-Target Intervention Test",
+    "overall_passed": true,
+    "total_evaluated": 10,
+    "discrimination_rate": 1.0,
+    "sample_records": [
+      {
+        "experiment_id": "EXP-015",
+        "fault_type": "DB_LATENCY",
+        "true_target": "inventory-db",
+        "true_target_similarity": 0.6033,
+        "max_wrong_similarity": 0.2997,
+        "discrimination_margin": 0.3036,
+        "all_similarities": {
+          "inventory-db": 0.6033,
+          "inventory-service": 0.2997,
+          "order-service": 0.2036,
+          "payment-service": 0.0016
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-016",
+        "fault_type": "DB_LATENCY",
+        "true_target": "inventory-db",
+        "true_target_similarity": 0.6037,
+        "max_wrong_similarity": 0.2999,
+        "discrimination_margin": 0.3038,
+        "all_similarities": {
+          "inventory-db": 0.6037,
+          "inventory-service": 0.2999,
+          "order-service": 0.2037,
+          "payment-service": 0.0016
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-031",
+        "fault_type": "NETWORK_LATENCY",
+        "true_target": "inventory-service",
+        "true_target_similarity": 0.5595,
+        "max_wrong_similarity": 0.3801,
+        "discrimination_margin": 0.1794,
+        "all_similarities": {
+          "inventory-db": 0.0011,
+          "inventory-service": 0.5595,
+          "order-service": 0.3801,
+          "payment-service": 0.0031
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-040",
+        "fault_type": "SERVICE_LATENCY",
+        "true_target": "inventory-service",
+        "true_target_similarity": 0.5619,
+        "max_wrong_similarity": 0.3817,
+        "discrimination_margin": 0.1802,
+        "all_similarities": {
+          "inventory-db": 0.0011,
+          "inventory-service": 0.5619,
+          "order-service": 0.3817,
+          "payment-service": 0.003
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-043",
+        "fault_type": "SERVICE_FAILURE",
+        "true_target": "inventory-service",
+        "true_target_similarity": 0.003,
+        "max_wrong_similarity": 0.0023,
+        "discrimination_margin": 0.0007,
+        "all_similarities": {
+          "inventory-db": 0.0002,
+          "inventory-service": 0.003,
+          "order-service": 0.0023,
+          "payment-service": 0.002
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-047",
+        "fault_type": "SERVICE_LATENCY",
+        "true_target": "order-service",
+        "true_target_similarity": 0.6422,
+        "max_wrong_similarity": 0.0053,
+        "discrimination_margin": 0.6369,
+        "all_similarities": {
+          "inventory-db": -0.0,
+          "inventory-service": 0.0053,
+          "order-service": 0.6422,
+          "payment-service": 0.0052
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-059",
+        "fault_type": "ERROR_RATE",
+        "true_target": "order-service",
+        "true_target_similarity": 0.0035,
+        "max_wrong_similarity": 0.0031,
+        "discrimination_margin": 0.0004,
+        "all_similarities": {
+          "inventory-db": 0.0,
+          "inventory-service": 0.0031,
+          "order-service": 0.0035,
+          "payment-service": 0.0027
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-064",
+        "fault_type": "SERVICE_FAILURE",
+        "true_target": "payment-service",
+        "true_target_similarity": 0.0024,
+        "max_wrong_similarity": 0.0023,
+        "discrimination_margin": 0.0001,
+        "all_similarities": {
+          "inventory-db": 0.0,
+          "inventory-service": 0.0023,
+          "order-service": 0.0023,
+          "payment-service": 0.0024
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-065",
+        "fault_type": "SERVICE_FAILURE",
+        "true_target": "payment-service",
+        "true_target_similarity": 0.0024,
+        "max_wrong_similarity": 0.0023,
+        "discrimination_margin": 0.0001,
+        "all_similarities": {
+          "inventory-db": 0.0,
+          "inventory-service": 0.0023,
+          "order-service": 0.0023,
+          "payment-service": 0.0024
+        },
+        "discriminated": true
+      },
+      {
+        "experiment_id": "EXP-076",
+        "fault_type": "NETWORK_LATENCY",
+        "true_target": "payment-service",
+        "true_target_similarity": 0.5614,
+        "max_wrong_similarity": 0.3814,
+        "discrimination_margin": 0.18,
+        "all_similarities": {
+          "inventory-db": -0.0,
+          "inventory-service": 0.003,
+          "order-service": 0.3814,
+          "payment-service": 0.5614
+        },
+        "discriminated": true
+      }
+    ]
+  },
+  "magnitude_sensitivity_test": {
+    "test_name": "Intervention Magnitude Sensitivity Test",
+    "overall_passed": true,
+    "all_monotonic": true,
+    "all_signs_consistent": true,
+    "assumes_linear_scm": true,
+    "evaluated_cases": [
+      {
+        "fault_type": "DB_LATENCY",
+        "node": "inventory-db",
+        "variable": "db_latency",
+        "unit": "ms",
+        "magnitudes": [
+          600.0,
+          1200.0,
+          1800.0
+        ],
+        "downstream_effects": [
+          143.0,
+          285.99,
+          428.99
+        ],
+        "monotonic": true,
+        "sign_consistent": true,
+        "linearity_ratio": 1.0
+      },
+      {
+        "fault_type": "SERVICE_LATENCY",
+        "node": "inventory-service",
+        "variable": "p99_latency",
+        "unit": "ms",
+        "magnitudes": [
+          425.0,
+          850.0,
+          1275.0
+        ],
+        "downstream_effects": [
+          163.37,
+          326.74,
+          490.11
+        ],
+        "monotonic": true,
+        "sign_consistent": true,
+        "linearity_ratio": 1.0
+      },
+      {
+        "fault_type": "ERROR_RATE",
+        "node": "payment-service",
+        "variable": "error_rate",
+        "unit": "%",
+        "magnitudes": [
+          12.5,
+          25.0,
+          37.5
+        ],
+        "downstream_effects": [
+          6.12,
+          12.25,
+          18.37
+        ],
+        "monotonic": true,
+        "sign_consistent": true,
+        "linearity_ratio": 0.9997
+      },
+      {
+        "fault_type": "SERVICE_FAILURE",
+        "node": "payment-service",
+        "variable": "error_rate",
+        "unit": "%",
+        "magnitudes": [
+          17.5,
+          35.0,
+          52.5
+        ],
+        "downstream_effects": [
+          8.57,
+          17.15,
+          25.72
+        ],
+        "monotonic": true,
+        "sign_consistent": true,
+        "linearity_ratio": 0.9998
+      },
+      {
+        "fault_type": "NETWORK_LATENCY",
+        "node": "order-service",
+        "variable": "p99_latency",
+        "unit": "ms",
+        "magnitudes": [
+          425.0,
+          850.0,
+          1275.0
+        ],
+        "downstream_effects": [
+          64.57,
+          129.15,
+          193.72
+        ],
+        "monotonic": true,
+        "sign_consistent": true,
+        "linearity_ratio": 1.0
+      }
+    ]
+  },
+  "ablations": {
+    "constrained_vs_unconstrained": {
+      "constrained": {
+        "candidate_edges": 465,
+        "retained_candidate_edges": 48,
+        "mean_r2": 0.9276,
+        "forbidden_edges_count": 0
+      },
+      "unconstrained": {
+        "candidate_edges": 4805,
+        "retained_candidate_edges": 91,
+        "mean_r2": 0.928,
+        "forbidden_edges_count": 4340
+      }
+    },
+    "lag_order_ablations": {
+      "P_1": {
+        "lag_order": 1,
+        "candidate_edges": 93,
+        "retained_candidate_edges": 44,
+        "mean_r2": 0.9302,
+        "median_r2": 0.9133,
+        "mean_mse": 0.071
+      },
+      "P_3": {
+        "lag_order": 3,
+        "candidate_edges": 279,
+        "retained_candidate_edges": 47,
+        "mean_r2": 0.929,
+        "median_r2": 0.9127,
+        "mean_mse": 0.0748
+      },
+      "P_5": {
+        "lag_order": 5,
+        "candidate_edges": 465,
+        "retained_candidate_edges": 48,
+        "mean_r2": 0.9276,
+        "median_r2": 0.9121,
+        "mean_mse": 0.0788
+      }
+    }
+  }
+}

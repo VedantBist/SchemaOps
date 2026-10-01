@@ -1,0 +1,55 @@
+{
+  "dataset_version": "tg_v1",
+  "audited_at": "2026-10-02T01:16:01.423720",
+  "status": "PASS",
+  "experiments_count": 80,
+  "fault_experiments_count": 70,
+  "control_experiments_count": 10,
+  "graph": {
+    "node_count": 5,
+    "edge_count": 4,
+    "feature_count": 10,
+    "node_order": [
+      "api-gateway",
+      "order-service",
+      "inventory-service",
+      "payment-service",
+      "inventory-db"
+    ],
+    "edge_index": [
+      [
+        0,
+        1,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        3,
+        4
+      ]
+    ]
+  },
+  "sequence_lengths": {
+    "min": 38,
+    "max": 40,
+    "padded": 40
+  },
+  "splits": {
+    "train": 56,
+    "validation": 12,
+    "test": 12,
+    "disjoint_verified": true
+  },
+  "integrity_metrics": {
+    "nan_count": 0,
+    "inf_count": 0,
+    "duplicate_timestamps": 0,
+    "split_violations": 0,
+    "leakage_violations": 0,
+    "shape_violations": 0,
+    "label_violations": 0,
+    "source_immutability": "VERIFIED_FROZEN"
+  }
+}

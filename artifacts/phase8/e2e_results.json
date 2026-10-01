@@ -1,0 +1,519 @@
+[
+  {
+    "scenario_num": 1,
+    "scenario_name": "NO_FAULT Control",
+    "experiment_id": "EXP-001",
+    "incident_id": "INC-EXP-001-f64cec",
+    "correlation_id": "7d94dfc2-3d80-43a6-9754-08ccb9256e03",
+    "timestamp": "2026-10-01T19:44:55.731721+00:00",
+    "fault_type": "NO_FAULT",
+    "target_service": "NO_FAULT",
+    "incident_detected": false,
+    "prediction_generated": false,
+    "prediction_probability": 0.114307,
+    "prediction_horizon": 10,
+    "realized_lead_time": 0.0,
+    "rca_prediction": "NO_FAULT",
+    "rca_confidence": 0.885693,
+    "causal_root_cause": "NO_FAULT",
+    "causal_effect": {},
+    "counterfactual_id": null,
+    "recommended_action": null,
+    "approval_required": false,
+    "approval_status": "SKIPPED_CONTROL",
+    "execution_status": "SUPPRESSED_HEALTHY",
+    "verification_status": "STABLE_HEALTHY",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 2,
+    "scenario_name": "Database Latency Injection",
+    "experiment_id": "EXP-015",
+    "incident_id": "INC-EXP-015-9c5ce5",
+    "correlation_id": "e1104c37-2e37-4db2-ab68-01f336015a84",
+    "timestamp": "2026-10-01T19:44:55.750454+00:00",
+    "fault_type": "DB_LATENCY",
+    "target_service": "inventory-db",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "inventory-db",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "inventory-db",
+    "causal_effect": {
+      "source_node": "inventory-db",
+      "downstream_impact_gateway_ms": 238.33,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-e6fa59f0",
+    "recommended_action": "ACT-DB-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 3,
+    "scenario_name": "Inventory Service Fault",
+    "experiment_id": "EXP-031",
+    "incident_id": "INC-EXP-031-52cc03",
+    "correlation_id": "6a83448a-dcd6-45ca-9304-b2fe8e39d6c2",
+    "timestamp": "2026-10-01T19:44:55.790330+00:00",
+    "fault_type": "NETWORK_LATENCY",
+    "target_service": "inventory-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "inventory-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "inventory-service",
+    "causal_effect": {
+      "source_node": "inventory-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-fdccdbce",
+    "recommended_action": "ACT-INV-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 4,
+    "scenario_name": "Order Service Fault",
+    "experiment_id": "EXP-048",
+    "incident_id": "INC-EXP-048-ef6b73",
+    "correlation_id": "9690de1f-a5fa-4c97-a65f-337a9af61e9a",
+    "timestamp": "2026-10-01T19:44:55.844237+00:00",
+    "fault_type": "SERVICE_LATENCY",
+    "target_service": "order-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "order-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "order-service",
+    "causal_effect": {
+      "source_node": "order-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-81fbd283",
+    "recommended_action": "ACT-ORD-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 5,
+    "scenario_name": "Payment Service Fault",
+    "experiment_id": "EXP-064",
+    "incident_id": "INC-EXP-064-e23512",
+    "correlation_id": "58b0e8bf-31bb-471b-b65c-0a0afc92c33d",
+    "timestamp": "2026-10-01T19:44:55.897310+00:00",
+    "fault_type": "SERVICE_FAILURE",
+    "target_service": "payment-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "payment-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "payment-service",
+    "causal_effect": {
+      "source_node": "payment-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-7ece1fbb",
+    "recommended_action": "ACT-PAY-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 6,
+    "scenario_name": "Network Latency Degradation",
+    "experiment_id": "EXP-029",
+    "incident_id": "INC-EXP-029-f4c9e7",
+    "correlation_id": "8e1a8d67-decc-4ec2-a3b3-e44740b96755",
+    "timestamp": "2026-10-01T19:44:55.938052+00:00",
+    "fault_type": "NETWORK_LATENCY",
+    "target_service": "inventory-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "inventory-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "inventory-service",
+    "causal_effect": {
+      "source_node": "inventory-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-3ab2deb3",
+    "recommended_action": "ACT-INV-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 7,
+    "scenario_name": "Service Failure / Pod Crash",
+    "experiment_id": "EXP-043",
+    "incident_id": "INC-EXP-043-34d5ce",
+    "correlation_id": "7ae7d316-e421-49ec-a89f-7835de6f959a",
+    "timestamp": "2026-10-01T19:44:56.006470+00:00",
+    "fault_type": "SERVICE_FAILURE",
+    "target_service": "inventory-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "inventory-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "inventory-service",
+    "causal_effect": {
+      "source_node": "inventory-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-4ed300b7",
+    "recommended_action": "ACT-INV-03",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 8,
+    "scenario_name": "Error Rate Surge",
+    "experiment_id": "EXP-055",
+    "incident_id": "INC-EXP-055-26ca89",
+    "correlation_id": "623859f1-08fd-44c2-aa39-d377e79a7b5c",
+    "timestamp": "2026-10-01T19:44:56.054036+00:00",
+    "fault_type": "ERROR_RATE",
+    "target_service": "order-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "order-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "order-service",
+    "causal_effect": {
+      "source_node": "order-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-07998378",
+    "recommended_action": "ACT-ORD-02",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 9,
+    "scenario_name": "Nonlinear Queueing / Thread Starvation (Limitation Case)",
+    "experiment_id": "EXP-047",
+    "incident_id": "INC-EXP-047-caa80e",
+    "correlation_id": "0b0bb220-0c5f-46b4-9ab4-522224369b30",
+    "timestamp": "2026-10-01T19:44:56.097786+00:00",
+    "fault_type": "SERVICE_LATENCY",
+    "target_service": "order-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.942148,
+    "prediction_horizon": 10,
+    "realized_lead_time": 5.0,
+    "rca_prediction": "order-service",
+    "rca_confidence": 0.95,
+    "causal_root_cause": "order-service",
+    "causal_effect": {
+      "source_node": "order-service",
+      "downstream_impact_gateway_ms": 150.0,
+      "topology_attenuation_validated": true
+    },
+    "counterfactual_id": "CF-25a58a25",
+    "recommended_action": "ACT-ORD-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "INCIDENT_RESOLVED",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "classical_rca": "1.0.0",
+      "temporal_gnn": "1.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0",
+      "remediation": "5.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664"
+  },
+  {
+    "scenario_num": 10,
+    "scenario_name": "Multi-Incident Cascade & Concurrent Contention",
+    "experiment_id": "EXP-015+EXP-064",
+    "incident_id": "INC-PRED-22fb5d3d,INC-893102864a",
+    "correlation_id": "e0dc41f3-9b64-4f4e-b3cd-2fcf9c2bedb4",
+    "timestamp": "2026-10-01T19:44:56.154707+00:00",
+    "fault_type": "MULTI_INCIDENT_CASCADE",
+    "target_service": "inventory-db,payment-service",
+    "incident_detected": true,
+    "prediction_generated": true,
+    "prediction_probability": 0.94,
+    "prediction_horizon": 10,
+    "realized_lead_time": 4.5,
+    "rca_prediction": "inventory-db,payment-service",
+    "rca_confidence": 0.94,
+    "causal_root_cause": "MULTI_ORIGIN",
+    "causal_effect": {
+      "multi_branch_isolated": true
+    },
+    "counterfactual_id": "CF-MULTI-01",
+    "recommended_action": "ACT-DB-01,ACT-PAY-01",
+    "approval_required": true,
+    "approval_status": "APPROVED",
+    "execution_status": "SERIALIZED_SUCCESS",
+    "verification_status": "VERIFIED",
+    "final_incident_state": "RECOVERED",
+    "model_versions": {
+      "failure_prediction": "1.0.0",
+      "causal_scm": "1.0.0",
+      "orchestration": "6.0.0"
+    },
+    "artifact_checksums": {
+      "dataset/tg_v1": "290d5365f48114e620c9979cd31bc8e072557fdb2e37a1ba6532ede141ceb8a3",
+      "dataset/ml_v1": "a1a70e58261465161fbda75381753c54cdc9ddbe73e378f0a4de379973325377",
+      "dataset/failure_prediction_v1": "d18524563b6cad9af88b3becb2dbbf14ec44483128ad324a310ba46a17e137b9",
+      "ml/models/failure_prediction": "46724448b2bf99b0bb488add8ae696db981da30744a82ebbc5dafe7be0e1970c",
+      "ml/models/causal_scm": "dae76d8717f876cb291bafa4a57fc6c5378994145aaaff92079bc5dec4c545c4",
+      "ml/causal": "dbf31e0afeb486c77fcc6c6a65b7cb37524ee4b2ecabf358fe6b47cc5386e721",
+      "ml/orchestration": "b32652caf24c8cc8de2311fab80ea7ac87c9e9485f1138a03e956adb066e5556"
+    },
+    "api_versions": {
+      "ai_engine": "7.0.0",
+      "orchestration": "6.0.0"
+    },
+    "configuration_version": "production-7.0",
+    "software_git_revision": "bffc804cfb2b73afefc3038df179d2b8e28ca664",
+    "orchestration_details": {
+      "incidents_tracked": 2,
+      "predictions_confirmed": 1,
+      "incidents_created": 2
+    }
+  }
+]

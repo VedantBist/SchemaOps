@@ -251,9 +251,38 @@ Compose uses the service-to-service values defined in `docker-compose.yml`, so c
 └── package.json                 Frontend scripts and dependencies
 ```
 
+## Production Deployment (Phase 7 Hardened Architecture)
+
+For production-style environments, CausalOps includes a hardened deployment specification:
+
+```bash
+# 1. Populate production environment config (never commit real secrets)
+cp .env.example .env
+nano .env
+
+# 2. Build and launch hardened services with isolated networks and health checks
+docker compose -f docker-compose.prod.yml up --build -d
+
+# 3. Verify deployment health via smoke test
+python3 scripts/phase7_smoke_test.py
+```
+
+### Phase 7 Production Features
+- **Production Compose:** `docker-compose.prod.yml` with explicit dependency ordering, strict healthchecks, restart policies (`unless-stopped`), internal networks, and named volume persistence.
+- **Security & Secret Handling:** Strict `.env` segregation, explicit non-wildcard CORS, role-based authorization (Viewer, Operator, Admin), suppressed stack traces, and structured error format (`X-Correlation-ID`).
+- **Persistence:** PostgreSQL 16 schema supporting persistent incident states, failure predictions, SCM simulations, and append-only remediation execution audits.
+- **Model Governance:** Frozen artifacts (`ml/models/`) mounted read-only, verified on startup, and served with version metadata and documented scientific limitations via `GET /models`.
+- **Reliability & Rate Limiting:** Per-IP token-bucket rate limiting on heavy SCM/counterfactual endpoints and Prometheus metrics on `/metrics` and `/metrics/prometheus`.
+
 ## Further documentation
 
+- [Phase 7 Deployment Guide](docs/PHASE_7_DEPLOYMENT.md)
+- [Phase 7 Production Architecture](docs/PHASE_7_ARCHITECTURE.md)
+- [Phase 7 Security Policy](docs/SECURITY.md)
+- [Backup and Restore Guide](docs/BACKUP_RESTORE.md)
+- [Phase 6A Scientific Validation Report](ml/failure_prediction/PHASE_6A_VALIDATION_REPORT.md)
 - [Architecture](docs/architecture.md)
 - [API reference](docs/api.md)
 - [Demo walkthrough](docs/demo.md)
 - [AI engine notes](docs/ai-engine.md)
+

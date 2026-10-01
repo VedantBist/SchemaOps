@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CausalOps Formal Causal Queries Specification",
+  "version": "1.0.0",
+  "phase": "3A",
+  "description": "Mathematical formalization of 5 core causal inference queries required for root-cause analysis, counterfactual validation, and failure prevention in CausalOps.",
+  "queries": [
+    {
+      "query_id": "QUERY_A",
+      "query_name": "Root-Cause Effect (Forward Interventional Impact)",
+      "question": "What downstream telemetry changes across the microservice topology are causally attributable to an intervention at candidate service X?",
+      "mathematical_formulation": "P(Y_{downstream}(t + delta) | do(X_s = x_fault), X_{pre}(t) = x_0)",
+      "inputs": {
+        "candidate_service": "s in {inventory-db, inventory-service, order-service, payment-service}",
+        "intervention_specification": "do(X_s = x_fault)",
+        "pre_intervention_baseline": "Telemetry state X(t < t_fault)"
+      },
+      "outputs": {
+        "expected_telemetry_vector": "E[Y_downstream | do(X_s = x_fault)]",
+        "affected_subgraph": "Set of services {s' in Nodes | Delta Y_{s'} > tau_significance}",
+        "sla_impact": "Predicted delta in api-gateway.p99_latency and api-gateway.error_rate"
+      },
+      "assumptions": [
+        "Causal sufficiency over the 5-node microservice boundary",
+        "Stable structural equations governing inter-service RPC delays",
+        "Absence of unobserved exogenous network partitions during the intervention window"
+      ],
+      "identifiability": "IDENTIFIABLE",
+      "identifiability_justification": "Under controlled fault injection, the intervention do(X_s = x_fault) is directly implemented, truncating incoming edges into X_s. The truncated factorization formula (G-formula) permits direct identification from experimental or SCM post-intervention distributions.",
+      "evaluation_criteria": {
+        "metric": "Mean Absolute Percentage Error (MAPE) against observed downstream degradation during active fault window",
+        "ground_truth_reference": "fault_parameters['latencyMs'] or fault_parameters['errorRate'] applied to attenuation laws"
+      }
+    },
+    {
+      "query_id": "QUERY_B",
+      "query_name": "Root-Cause Comparison (Explanatory Attribution / Posterior Root Cause)",
+      "question": "Given an observed incident degradation profile, which candidate service intervention best explains the observed multi-service symptoms?",
+      "mathematical_formulation": "arg max_{s in S_candidates} P(do(X_s = fault) | E_obs) = arg max_{s} [ P(E_obs | do(X_s = fault)) * P(s) ] / sum_k [ P(E_obs | do(X_k = fault)) * P(k) ]",
+      "inputs": {
+        "observed_incident_telemetry": "Multivariate time series E_obs in R^[T_incident, N, F]",
+        "candidate_set": "S_candidates = {inventory-db, inventory-service, order-service, payment-service}",
+        "prior_probabilities": "P(s) (uniform 0.25 by default, or historical failure rate prior)"
+      },
+      "outputs": {
+        "ranked_root_causes": "Ranked list of candidate services with posterior explanatory likelihoods",
+        "confidence_score": "Normalized posterior probability of top candidate",
+        "root_cause_attribution": "Top-1 candidate node"
+      },
+      "assumptions": [
+        "Single-fault assumption per incident episode (verified by dataset generator: 1 fault injected at a time)",
+        "Incident is caused by one of the modeled microservice failure archetypes",
+        "No unobserved simultaneous external catastrophe causing independent failures in multiple tiers"
+      ],
+      "identifiability": "IDENTIFIABLE",
+      "identifiability_justification": "Because candidate interventions form a discrete mutually exclusive set S_candidates and downstream symptom vectors are distinct across branches (e.g. inventory DB faults do not affect payment, payment faults do not affect DB), the candidate likelihoods are distinct and identifiable.",
+      "evaluation_criteria": {
+        "metric": "Exact Match Top-1 Accuracy and Top-2 Recall",
+        "ground_truth_reference": "fault_target from experiment manifest"
+      }
+    },
+    {
+      "query_id": "QUERY_C",
+      "query_name": "Counterfactual Restoration (Retrospective Remediation Validation)",
+      "question": "If the candidate root cause had NOT degraded (i.e. had remained healthy), would the observed incident and downstream cascade have occurred?",
+      "mathematical_formulation": "Y_{do(X_s = normal)}(u) | E_obs(u)",
+      "pearl_three_step_procedure": {
+        "step_1_abduction": "Compute the specific exogenous noise terms u = {epsilon_i(t)} consistent with the factual observed telemetry E_obs: u_i(t) = X_i(t) - f_i(PA_i(t), X_i(t-1))",
+        "step_2_action": "Modify the structural causal model by replacing the structural equation of node s with the healthy baseline condition: do(X_s(t) = X_{s, baseline}(t))",
+        "step_3_prediction": "Propagate the abducted noise u through the modified structural equations to compute the counterfactual trajectory Y_{CF}(t) for all downstream nodes"
+      },
+      "inputs": {
+        "factual_incident_trajectory": "Observed incident telemetry E_obs(t)",
+        "candidate_root_cause": "Node s to intervene upon",
+        "nominal_baseline_distribution": "Pre-fault healthy telemetry distribution P_nominal"
+      },
+      "outputs": {
+        "counterfactual_telemetry": "Simulated trajectory Y_{CF}(t) for all nodes if s were normal",
+        "incident_resolution_delta": "Delta = api-gateway.p99_latency_factual - api-gateway.p99_latency_counterfactual",
+        "remediation_efficacy_verdict": "Boolean: True if Y_{api-gateway, CF} returns to healthy SLA threshold (< baseline * 2)"
+      },
+      "assumptions": [
+        "Additive exogenous noise model: X_i = f_i(PA_i) + epsilon_i",
+        "Invertibility of structural noise equations",
+        "No structural changes in physical network topology between factual and counterfactual worlds"
+      ],
+      "identifiability": "IDENTIFIABLE",
+      "identifiability_justification": "Under linear/additive SCMs with invertible noise, Pearl's abduction step uniquely identifies the exogenous background state u from factual observations. Action and prediction are deterministic forward evaluations in the mutilated graph.",
+      "evaluation_criteria": {
+        "metric": "Root Mean Squared Error (RMSE) against pre-fault baseline and post-clearance recovery telemetry",
+        "ground_truth_reference": "Pre-fault window [0, t_start) and post-fault recovery window [t_end, finished_at]"
+      }
+    },
+    {
+      "query_id": "QUERY_D",
+      "query_name": "Propagation Pathway (Causal Mediation & Delay Tracking)",
+      "question": "Through which directed sequence of microservice variables does the failure propagate, and what is the temporal lag at each hop?",
+      "mathematical_formulation": "Path(s -> gateway) = [ (V_{k}(t_k) -> V_{k+1}(t_{k+1})) | delta_t_k = t_{k+1} - t_k >= 0, w_{k, k+1} > 0 ]",
+      "inputs": {
+        "root_cause_node": "Identified source node s",
+        "target_symptom": "api-gateway.p99_latency or api-gateway.error_rate",
+        "time_series_observations": "Continuous telemetry matrix X in R^[T, N, F]"
+      },
+      "outputs": {
+        "propagation_path": "Ordered chain of active edges (e.g. inventory-db.db_latency -> inventory-service.p99_latency -> order-service.p99_latency -> api-gateway.p99_latency)",
+        "hop_delays": "Estimated propagation lag per edge in seconds (e.g. lag=1s per inter-service hop)",
+        "path_attenuation": "Cumulative product of transmission coefficients along the path"
+      },
+      "assumptions": [
+        "Propagation occurs strictly along physical network call connections (respecting system-knowledge graph constraints)",
+        "Monotonic transmission: degradation upstream causes degradation downstream",
+        "Sampling interval (1.0s) is sufficient to observe or bound inter-service delay stages"
+      ],
+      "identifiability": "IDENTIFIABLE",
+      "identifiability_justification": "With topological constraints eliminating shortcut and cross-branch edges, the path between any candidate root and api-gateway is unique (or tree-structured). Lagged regression coefficients over discrete time steps uniquely determine path weights.",
+      "evaluation_criteria": {
+        "metric": "Pathway Path-Match Accuracy and Delay Lag Estimation Error (|tau_estimated - tau_actual|)",
+        "ground_truth_reference": "Known call graph path and step-inflection timestamps in telemetry"
+      }
+    },
+    {
+      "query_id": "QUERY_E",
+      "query_name": "Intervention Effect (Average Treatment Effect on Downstream Metrics)",
+      "question": "What is the expected quantitative shift in gateway SLA metrics under an active fault intervention versus normal baseline?",
+      "mathematical_formulation": "ATE(s -> gateway) = E[ Y_{gateway}(t) | do(X_s = x_fault) ] - E[ Y_{gateway}(t) | do(X_s = x_normal) ]",
+      "inputs": {
+        "target_service": "s in Nodes",
+        "fault_condition": "do(X_s = x_fault)",
+        "normal_condition": "do(X_s = x_normal)"
+      },
+      "outputs": {
+        "average_treatment_effect": "Numerical delta in gateway latency (ms) and error rate (%)",
+        "confidence_interval": "95% bootstrap or asymptotic confidence bounds",
+        "severity_classification": "LOW, MEDIUM, HIGH, CRITICAL based on SLA breach thresholds"
+      },
+      "assumptions": [
+        "Consistency: Y(x) = Y whenever X = x",
+        "Positivity: P(X_s = x) > 0 for all evaluated intervention levels",
+        "Exchangeability: (Y(x_fault), Y(x_normal)) independent of X_s under randomized injection"
+      ],
+      "identifiability": "IDENTIFIABLE",
+      "identifiability_justification": "Because fault injections in CausalOps are randomized experimental trials, unconfoundedness holds by design for experimental data: P(Y | do(X = x)) = P(Y | X = x, injected). Identifiable via empirical sample means across matched experiments.",
+      "evaluation_criteria": {
+        "metric": "Absolute Error: |ATE_estimated - ATE_empirical_observed|",
+        "ground_truth_reference": "Difference between control experiment averages and fault experiment averages"
+      }
+    }
+  ]
+}

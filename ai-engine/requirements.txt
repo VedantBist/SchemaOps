@@ -3,3 +3,6 @@ uvicorn[standard]==0.34.0
 pydantic==2.10.6
 numpy==2.2.3
 networkx==3.4.2
+scikit-learn==1.5.1
+joblib==1.5.3
+pandas==2.2.2

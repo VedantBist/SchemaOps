@@ -1,0 +1,5 @@
+actual_class,inventory-db,inventory-service,order-service,payment-service
+inventory-db,2,0,0,0
+inventory-service,0,3,0,0
+order-service,0,0,2,0
+payment-service,0,0,0,3

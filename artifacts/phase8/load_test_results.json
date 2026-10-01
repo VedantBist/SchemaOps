@@ -1,0 +1,199 @@
+{
+  "benchmark_type": "Local Docker / In-Process Concurrency Benchmark",
+  "concurrency_levels": [
+    10,
+    50,
+    100
+  ],
+  "endpoints": {
+    "GET /health": {
+      "concurrency_10": {
+        "requests_sent": 10,
+        "duration_seconds": 0.021,
+        "requests_per_second": 468.36,
+        "status_distribution": {
+          "200": 10
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 11.79,
+        "latency_p95_ms": 20.0,
+        "latency_p99_ms": 20.06,
+        "latency_mean_ms": 14.72
+      },
+      "concurrency_50": {
+        "requests_sent": 50,
+        "duration_seconds": 0.055,
+        "requests_per_second": 904.68,
+        "status_distribution": {
+          "200": 50
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 15.76,
+        "latency_p95_ms": 20.54,
+        "latency_p99_ms": 21.22,
+        "latency_mean_ms": 15.81
+      },
+      "concurrency_100": {
+        "requests_sent": 100,
+        "duration_seconds": 0.116,
+        "requests_per_second": 858.38,
+        "status_distribution": {
+          "200": 100
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 17.17,
+        "latency_p95_ms": 24.43,
+        "latency_p99_ms": 25.69,
+        "latency_mean_ms": 17.74
+      }
+    },
+    "GET /ready": {
+      "concurrency_10": {
+        "requests_sent": 10,
+        "duration_seconds": 0.012,
+        "requests_per_second": 819.23,
+        "status_distribution": {
+          "200": 10
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 9.98,
+        "latency_p95_ms": 11.05,
+        "latency_p99_ms": 11.19,
+        "latency_mean_ms": 10.0
+      },
+      "concurrency_50": {
+        "requests_sent": 50,
+        "duration_seconds": 0.056,
+        "requests_per_second": 892.61,
+        "status_distribution": {
+          "200": 50
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 16.12,
+        "latency_p95_ms": 21.36,
+        "latency_p99_ms": 22.62,
+        "latency_mean_ms": 16.37
+      },
+      "concurrency_100": {
+        "requests_sent": 100,
+        "duration_seconds": 0.118,
+        "requests_per_second": 850.52,
+        "status_distribution": {
+          "200": 100
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 17.62,
+        "latency_p95_ms": 23.22,
+        "latency_p99_ms": 25.56,
+        "latency_mean_ms": 17.91
+      }
+    },
+    "GET /models": {
+      "concurrency_10": {
+        "requests_sent": 10,
+        "duration_seconds": 0.021,
+        "requests_per_second": 482.47,
+        "status_distribution": {
+          "200": 10
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 17.25,
+        "latency_p95_ms": 19.98,
+        "latency_p99_ms": 20.12,
+        "latency_mean_ms": 17.17
+      },
+      "concurrency_50": {
+        "requests_sent": 50,
+        "duration_seconds": 0.079,
+        "requests_per_second": 634.68,
+        "status_distribution": {
+          "200": 50
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 23.24,
+        "latency_p95_ms": 29.44,
+        "latency_p99_ms": 31.61,
+        "latency_mean_ms": 23.04
+      },
+      "concurrency_100": {
+        "requests_sent": 100,
+        "duration_seconds": 0.162,
+        "requests_per_second": 617.14,
+        "status_distribution": {
+          "200": 100
+        },
+        "rate_limited_count": 0,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 24.15,
+        "latency_p95_ms": 31.83,
+        "latency_p99_ms": 34.26,
+        "latency_mean_ms": 24.55
+      }
+    },
+    "POST /analyze/root-cause": {
+      "concurrency_10": {
+        "requests_sent": 10,
+        "duration_seconds": 0.785,
+        "requests_per_second": 12.74,
+        "status_distribution": {
+          "500": 10
+        },
+        "rate_limited_count": 0,
+        "error_count": 10,
+        "success_rate_pct": 0.0,
+        "latency_p50_ms": 782.02,
+        "latency_p95_ms": 783.97,
+        "latency_p99_ms": 784.45,
+        "latency_mean_ms": 782.17
+      },
+      "concurrency_50": {
+        "requests_sent": 50,
+        "duration_seconds": 0.07,
+        "requests_per_second": 713.86,
+        "status_distribution": {
+          "500": 20,
+          "429": 30
+        },
+        "rate_limited_count": 30,
+        "error_count": 20,
+        "success_rate_pct": 60.0,
+        "latency_p50_ms": 16.54,
+        "latency_p95_ms": 35.5,
+        "latency_p99_ms": 37.72,
+        "latency_mean_ms": 19.88
+      },
+      "concurrency_100": {
+        "requests_sent": 100,
+        "duration_seconds": 0.078,
+        "requests_per_second": 1287.64,
+        "status_distribution": {
+          "429": 100
+        },
+        "rate_limited_count": 100,
+        "error_count": 0,
+        "success_rate_pct": 100.0,
+        "latency_p50_ms": 11.78,
+        "latency_p95_ms": 16.07,
+        "latency_p99_ms": 18.1,
+        "latency_mean_ms": 11.74
+      }
+    }
+  }
+}

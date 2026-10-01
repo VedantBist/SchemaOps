@@ -1,0 +1,196 @@
+{
+  "dataset_version": "tg_v1",
+  "source_dataset": "CausalOps Frozen ML Dataset v1 (EXP-001 ... EXP-080)",
+  "source_manifest": "dataset/manifests/ml_dataset_v1.json",
+  "source_splits": "dataset/ml_v1/splits.json",
+  "temporal_representation": "[T, N, F]",
+  "node_count": 5,
+  "node_order": [
+    "api-gateway",
+    "order-service",
+    "inventory-service",
+    "payment-service",
+    "inventory-db"
+  ],
+  "node_name_to_index": {
+    "api-gateway": 0,
+    "order-service": 1,
+    "inventory-service": 2,
+    "payment-service": 3,
+    "inventory-db": 4
+  },
+  "edge_count": 4,
+  "edge_list": [
+    [
+      "api-gateway",
+      "order-service"
+    ],
+    [
+      "order-service",
+      "inventory-service"
+    ],
+    [
+      "order-service",
+      "payment-service"
+    ],
+    [
+      "inventory-service",
+      "inventory-db"
+    ]
+  ],
+  "edge_index": [
+    [
+      0,
+      1,
+      1,
+      2
+    ],
+    [
+      1,
+      2,
+      3,
+      4
+    ]
+  ],
+  "edge_direction": "CALLS (caller -> dependency)",
+  "feature_count": 10,
+  "node_feature_names": [
+    "p50_latency",
+    "p95_latency",
+    "p99_latency",
+    "error_rate",
+    "request_rate",
+    "pool_utilization",
+    "db_latency",
+    "anomaly_score",
+    "p99_latency_delta",
+    "error_rate_delta"
+  ],
+  "feature_definitions": {
+    "p50_latency": {
+      "index": 0,
+      "description": "Median request execution latency",
+      "unit": "milliseconds",
+      "source_field": "p50Latency",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "p95_latency": {
+      "index": 1,
+      "description": "95th percentile request execution latency",
+      "unit": "milliseconds",
+      "source_field": "p95Latency",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "p99_latency": {
+      "index": 2,
+      "description": "99th percentile tail request latency",
+      "unit": "milliseconds",
+      "source_field": "p99Latency",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "error_rate": {
+      "index": 3,
+      "description": "HTTP / gRPC failure percentage",
+      "unit": "percent",
+      "source_field": "errorRate",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "request_rate": {
+      "index": 4,
+      "description": "Incoming request throughput rate",
+      "unit": "requests_per_minute",
+      "source_field": "requestRate",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "pool_utilization": {
+      "index": 5,
+      "description": "Thread / DB connection pool utilization",
+      "unit": "percent",
+      "source_field": "poolUtilization",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "db_latency": {
+      "index": 6,
+      "description": "Database relation query latency (0.0 for non-DB nodes)",
+      "unit": "milliseconds",
+      "source_field": "dbLatency",
+      "derivation": "Observed telemetry snapshot (imputed to 0.0 for non-db nodes)"
+    },
+    "anomaly_score": {
+      "index": 7,
+      "description": "Statistical telemetry anomaly detector score",
+      "unit": "unitless_score [0.0, 1.0]",
+      "source_field": "anomalyScore",
+      "derivation": "Observed telemetry snapshot"
+    },
+    "p99_latency_delta": {
+      "index": 8,
+      "description": "Causal first-difference: p99(t) - p99(t-1)",
+      "unit": "milliseconds",
+      "source_field": "p99Latency",
+      "derivation": "Causal 1-step backward difference (0.0 at t=0)"
+    },
+    "error_rate_delta": {
+      "index": 9,
+      "description": "Causal first-difference: err(t) - err(t-1)",
+      "unit": "percent",
+      "source_field": "errorRate",
+      "derivation": "Causal 1-step backward difference (0.0 at t=0)"
+    }
+  },
+  "sequence_policy": {
+    "sampling_interval_sec": 1.0,
+    "min_observed_length": 38,
+    "max_observed_length": 40,
+    "padded_length": 40,
+    "padding_policy": "post_padding_with_temporal_mask",
+    "padding_value": 0.0,
+    "temporal_mask_description": "Boolean array of length 40 where True indicates observed step and False indicates padding"
+  },
+  "label_definitions": {
+    "root_cause_classes": [
+      "inventory-db",
+      "inventory-service",
+      "order-service",
+      "payment-service"
+    ],
+    "class_count": 4,
+    "target_to_index": {
+      "inventory-db": 0,
+      "inventory-service": 1,
+      "order-service": 2,
+      "payment-service": 3
+    },
+    "index_to_target": {
+      "0": "inventory-db",
+      "1": "inventory-service",
+      "2": "order-service",
+      "3": "payment-service"
+    },
+    "node_label_mapping": {
+      "inventory-db": 4,
+      "inventory-service": 2,
+      "order-service": 1,
+      "payment-service": 3
+    }
+  },
+  "no_fault_policy": {
+    "control_count": 10,
+    "label_type": "NO_FAULT",
+    "target_class": -1,
+    "node_label_index": -1,
+    "description": "NO_FAULT control experiments are explicitly marked with label_type='NO_FAULT' and target_class=-1, preserving them for false-positive validation while permitting clean exclusion from 4-class root-cause classifier training."
+  },
+  "leakage_exclusions": [
+    "fault_target",
+    "fault_type",
+    "ground_truth_root_cause",
+    "detected_root_cause",
+    "detected_confidence",
+    "rca_match",
+    "heuristic_rca_scores",
+    "classical_ml_predictions",
+    "classical_ml_probabilities",
+    "future_temporal_information"
+  ]
+}

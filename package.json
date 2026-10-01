@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "test:frontend": "node --import tsx --test tests/frontend/*.test.ts",
     "demo:fail-auth": "./demo-fail-auth.sh",
     "demo:restore": "./demo-restore.sh"
   },

@@ -1,0 +1,1941 @@
+{
+  "dataset_version": "1.0.0",
+  "total_experiments": 80,
+  "feature_count": 214,
+  "columns": [
+    {
+      "name": "api-gateway__anomaly_count",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Number of telemetry intervals where api-gateway was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__anomaly_duration_sec",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Total anomalous seconds observed on api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__anomaly_fraction",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Fraction of window intervals where api-gateway was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__anomaly_score_max",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak raw anomaly score for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__anomaly_score_mean",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean raw anomaly score for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__dist_to_earliest_anomaly",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Graph hop distance between api-gateway and the earliest anomalous node",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__downstream_anomaly_count",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct downstream callee nodes exhibiting anomalies for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__downstream_count",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of descendant services in DAG downstream of api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__downstream_latency_ratio",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Ratio of api-gateway's peak latency surge to downstream mean latency surge",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__downstream_mean_latency",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct downstream dependencies for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__error_rate_delta",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate delta (max - baseline) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__error_rate_max",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum error rate (%) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__error_rate_mean",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean HTTP/gRPC error rate (%) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__error_rate_slope",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of error rate over time for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__error_rate_std",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate standard deviation for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__in_degree",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph in-degree for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_lag1_diff",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 1-step latency transition rate (x_t - x_t-1) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_lag2_diff",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 2-step latency transition rate (x_t - x_t-2) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_rolling_mean_max",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling mean latency for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_rolling_std_max",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling latency standard deviation for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_slope",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of latency over time for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_step_t0",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Initial baseline latency (mean of first 5 steps) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__latency_step_t_last",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Post-recovery latency (mean of last 5 steps) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__out_degree",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph out-degree for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p50_mean",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P50 latency (ms) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_delta",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Latency surge delta (max - baseline) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_max",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum P99 latency (ms) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_mean",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P99 latency (ms) for api-gateway across window",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_median",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Median P99 latency (ms) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_min",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Minimum P99 latency (ms) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_p95",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "95th percentile of P99 latency (ms) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__p99_std",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Standard deviation of P99 latency for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__pool_util_delta",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Pool utilization surge delta for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__pool_util_max",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak connection/resource pool utilization (%) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__pool_util_mean",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean resource/connection pool utilization (%) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__propagation_order_score",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Precedence alignment score (+1 if api-gateway preceded downstream anomalies, -1 if lagged, 0 if isolated)",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__relative_anomaly_rank",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Temporal onset order rank (1=earliest) of anomaly appearance for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__request_rate_mean",
+      "service": "api-gateway",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean throughput request rate (req/s) for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__time_to_first_anomaly",
+      "service": "api-gateway",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Elapsed seconds from telemetry window start to first anomaly detection on api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__upstream_anomaly_count",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct upstream caller nodes exhibiting anomalies for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__upstream_count",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of ancestor services in DAG upstream of api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "api-gateway__upstream_mean_latency",
+      "service": "api-gateway",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct upstream dependencies for api-gateway",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "global__cascade_diameter",
+      "service": "global",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Maximum topological distance between any two co-anomalous services",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "global__system_max_error_rate",
+      "service": "global",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak error rate observed across any service in the entire system",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "global__system_max_p99_latency",
+      "service": "global",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak P99 latency observed across any service in the entire system",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "global__total_anomalous_services",
+      "service": "global",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Total number of distinct services reporting anomalyScore > 0.3 in the window",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__anomaly_count",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Number of telemetry intervals where inventory-db was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__anomaly_duration_sec",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Total anomalous seconds observed on inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__anomaly_fraction",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Fraction of window intervals where inventory-db was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__anomaly_score_max",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak raw anomaly score for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__anomaly_score_mean",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean raw anomaly score for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__dist_to_earliest_anomaly",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Graph hop distance between inventory-db and the earliest anomalous node",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__downstream_anomaly_count",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct downstream callee nodes exhibiting anomalies for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__downstream_count",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of descendant services in DAG downstream of inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__downstream_latency_ratio",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Ratio of inventory-db's peak latency surge to downstream mean latency surge",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__downstream_mean_latency",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct downstream dependencies for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__error_rate_delta",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate delta (max - baseline) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__error_rate_max",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum error rate (%) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__error_rate_mean",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean HTTP/gRPC error rate (%) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__error_rate_slope",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of error rate over time for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__error_rate_std",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate standard deviation for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__in_degree",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph in-degree for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_lag1_diff",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 1-step latency transition rate (x_t - x_t-1) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_lag2_diff",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 2-step latency transition rate (x_t - x_t-2) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_rolling_mean_max",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling mean latency for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_rolling_std_max",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling latency standard deviation for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_slope",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of latency over time for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_step_t0",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Initial baseline latency (mean of first 5 steps) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__latency_step_t_last",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Post-recovery latency (mean of last 5 steps) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__out_degree",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph out-degree for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p50_mean",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P50 latency (ms) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_delta",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Latency surge delta (max - baseline) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_max",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum P99 latency (ms) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_mean",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P99 latency (ms) for inventory-db across window",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_median",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Median P99 latency (ms) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_min",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Minimum P99 latency (ms) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_p95",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "95th percentile of P99 latency (ms) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__p99_std",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Standard deviation of P99 latency for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__pool_util_delta",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Pool utilization surge delta for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__pool_util_max",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak connection/resource pool utilization (%) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__pool_util_mean",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean resource/connection pool utilization (%) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__propagation_order_score",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Precedence alignment score (+1 if inventory-db preceded downstream anomalies, -1 if lagged, 0 if isolated)",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__relative_anomaly_rank",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Temporal onset order rank (1=earliest) of anomaly appearance for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__request_rate_mean",
+      "service": "inventory-db",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean throughput request rate (req/s) for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__time_to_first_anomaly",
+      "service": "inventory-db",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Elapsed seconds from telemetry window start to first anomaly detection on inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__upstream_anomaly_count",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct upstream caller nodes exhibiting anomalies for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__upstream_count",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of ancestor services in DAG upstream of inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-db__upstream_mean_latency",
+      "service": "inventory-db",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct upstream dependencies for inventory-db",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__anomaly_count",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Number of telemetry intervals where inventory-service was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__anomaly_duration_sec",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Total anomalous seconds observed on inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__anomaly_fraction",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Fraction of window intervals where inventory-service was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__anomaly_score_max",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak raw anomaly score for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__anomaly_score_mean",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean raw anomaly score for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__dist_to_earliest_anomaly",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Graph hop distance between inventory-service and the earliest anomalous node",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__downstream_anomaly_count",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct downstream callee nodes exhibiting anomalies for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__downstream_count",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of descendant services in DAG downstream of inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__downstream_latency_ratio",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Ratio of inventory-service's peak latency surge to downstream mean latency surge",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__downstream_mean_latency",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct downstream dependencies for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__error_rate_delta",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate delta (max - baseline) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__error_rate_max",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum error rate (%) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__error_rate_mean",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean HTTP/gRPC error rate (%) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__error_rate_slope",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of error rate over time for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__error_rate_std",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate standard deviation for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__in_degree",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph in-degree for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_lag1_diff",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 1-step latency transition rate (x_t - x_t-1) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_lag2_diff",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 2-step latency transition rate (x_t - x_t-2) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_rolling_mean_max",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling mean latency for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_rolling_std_max",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling latency standard deviation for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_slope",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of latency over time for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_step_t0",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Initial baseline latency (mean of first 5 steps) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__latency_step_t_last",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Post-recovery latency (mean of last 5 steps) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__out_degree",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph out-degree for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p50_mean",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P50 latency (ms) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_delta",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Latency surge delta (max - baseline) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_max",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum P99 latency (ms) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_mean",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P99 latency (ms) for inventory-service across window",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_median",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Median P99 latency (ms) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_min",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Minimum P99 latency (ms) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_p95",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "95th percentile of P99 latency (ms) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__p99_std",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Standard deviation of P99 latency for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__pool_util_delta",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Pool utilization surge delta for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__pool_util_max",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak connection/resource pool utilization (%) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__pool_util_mean",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean resource/connection pool utilization (%) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__propagation_order_score",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Precedence alignment score (+1 if inventory-service preceded downstream anomalies, -1 if lagged, 0 if isolated)",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__relative_anomaly_rank",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Temporal onset order rank (1=earliest) of anomaly appearance for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__request_rate_mean",
+      "service": "inventory-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean throughput request rate (req/s) for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__time_to_first_anomaly",
+      "service": "inventory-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Elapsed seconds from telemetry window start to first anomaly detection on inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__upstream_anomaly_count",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct upstream caller nodes exhibiting anomalies for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__upstream_count",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of ancestor services in DAG upstream of inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "inventory-service__upstream_mean_latency",
+      "service": "inventory-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct upstream dependencies for inventory-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__anomaly_count",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Number of telemetry intervals where order-service was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__anomaly_duration_sec",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Total anomalous seconds observed on order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__anomaly_fraction",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Fraction of window intervals where order-service was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__anomaly_score_max",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak raw anomaly score for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__anomaly_score_mean",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean raw anomaly score for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__dist_to_earliest_anomaly",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Graph hop distance between order-service and the earliest anomalous node",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__downstream_anomaly_count",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct downstream callee nodes exhibiting anomalies for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__downstream_count",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of descendant services in DAG downstream of order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__downstream_latency_ratio",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Ratio of order-service's peak latency surge to downstream mean latency surge",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__downstream_mean_latency",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct downstream dependencies for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__error_rate_delta",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate delta (max - baseline) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__error_rate_max",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum error rate (%) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__error_rate_mean",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean HTTP/gRPC error rate (%) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__error_rate_slope",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of error rate over time for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__error_rate_std",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate standard deviation for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__in_degree",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph in-degree for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_lag1_diff",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 1-step latency transition rate (x_t - x_t-1) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_lag2_diff",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 2-step latency transition rate (x_t - x_t-2) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_rolling_mean_max",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling mean latency for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_rolling_std_max",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling latency standard deviation for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_slope",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of latency over time for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_step_t0",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Initial baseline latency (mean of first 5 steps) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__latency_step_t_last",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Post-recovery latency (mean of last 5 steps) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__out_degree",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph out-degree for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p50_mean",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P50 latency (ms) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_delta",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Latency surge delta (max - baseline) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_max",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum P99 latency (ms) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_mean",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P99 latency (ms) for order-service across window",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_median",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Median P99 latency (ms) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_min",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Minimum P99 latency (ms) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_p95",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "95th percentile of P99 latency (ms) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__p99_std",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Standard deviation of P99 latency for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__pool_util_delta",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Pool utilization surge delta for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__pool_util_max",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak connection/resource pool utilization (%) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__pool_util_mean",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean resource/connection pool utilization (%) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__propagation_order_score",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Precedence alignment score (+1 if order-service preceded downstream anomalies, -1 if lagged, 0 if isolated)",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__relative_anomaly_rank",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Temporal onset order rank (1=earliest) of anomaly appearance for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__request_rate_mean",
+      "service": "order-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean throughput request rate (req/s) for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__time_to_first_anomaly",
+      "service": "order-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Elapsed seconds from telemetry window start to first anomaly detection on order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__upstream_anomaly_count",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct upstream caller nodes exhibiting anomalies for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__upstream_count",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of ancestor services in DAG upstream of order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "order-service__upstream_mean_latency",
+      "service": "order-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct upstream dependencies for order-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__anomaly_count",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Number of telemetry intervals where payment-service was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__anomaly_duration_sec",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Total anomalous seconds observed on payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__anomaly_fraction",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Fraction of window intervals where payment-service was anomalous",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__anomaly_score_max",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak raw anomaly score for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__anomaly_score_mean",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean raw anomaly score for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__dist_to_earliest_anomaly",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Graph hop distance between payment-service and the earliest anomalous node",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__downstream_anomaly_count",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct downstream callee nodes exhibiting anomalies for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__downstream_count",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of descendant services in DAG downstream of payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__downstream_latency_ratio",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Ratio of payment-service's peak latency surge to downstream mean latency surge",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__downstream_mean_latency",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct downstream dependencies for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__error_rate_delta",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate delta (max - baseline) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__error_rate_max",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum error rate (%) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__error_rate_mean",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean HTTP/gRPC error rate (%) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__error_rate_slope",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of error rate over time for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__error_rate_std",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Error rate standard deviation for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__in_degree",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph in-degree for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_lag1_diff",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 1-step latency transition rate (x_t - x_t-1) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_lag2_diff",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Mean 2-step latency transition rate (x_t - x_t-2) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_rolling_mean_max",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling mean latency for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_rolling_std_max",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Peak 3-step rolling latency standard deviation for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_slope",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Linear regression rate-of-change slope of latency over time for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_step_t0",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Initial baseline latency (mean of first 5 steps) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__latency_step_t_last",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Post-recovery latency (mean of last 5 steps) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__out_degree",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Topology graph out-degree for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p50_mean",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P50 latency (ms) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_delta",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Latency surge delta (max - baseline) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_max",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Maximum P99 latency (ms) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_mean",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean P99 latency (ms) for payment-service across window",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_median",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Median P99 latency (ms) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_min",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Minimum P99 latency (ms) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_p95",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "95th percentile of P99 latency (ms) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__p99_std",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Standard deviation of P99 latency for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__pool_util_delta",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Pool utilization surge delta for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__pool_util_max",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Peak connection/resource pool utilization (%) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__pool_util_mean",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean resource/connection pool utilization (%) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__propagation_order_score",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Precedence alignment score (+1 if payment-service preceded downstream anomalies, -1 if lagged, 0 if isolated)",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__relative_anomaly_rank",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Temporal onset order rank (1=earliest) of anomaly appearance for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__request_rate_mean",
+      "service": "payment-service",
+      "group": "telemetry_only",
+      "dtype": "float64",
+      "description": "Mean throughput request rate (req/s) for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__time_to_first_anomaly",
+      "service": "payment-service",
+      "group": "telemetry_plus_temporal",
+      "dtype": "float64",
+      "description": "Elapsed seconds from telemetry window start to first anomaly detection on payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__upstream_anomaly_count",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Count of direct upstream caller nodes exhibiting anomalies for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__upstream_count",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Number of ancestor services in DAG upstream of payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    },
+    {
+      "name": "payment-service__upstream_mean_latency",
+      "service": "payment-service",
+      "group": "telemetry_temporal_graph",
+      "dtype": "float64",
+      "description": "Mean latency across direct upstream dependencies for payment-service",
+      "leakage_audit": "PASSED - Strictly derived from observed telemetry & topology window"
+    }
+  ],
+  "groups": {
+    "telemetry_only": [
+      "api-gateway__anomaly_count",
+      "api-gateway__anomaly_fraction",
+      "api-gateway__anomaly_score_max",
+      "api-gateway__anomaly_score_mean",
+      "api-gateway__error_rate_delta",
+      "api-gateway__error_rate_max",
+      "api-gateway__error_rate_mean",
+      "api-gateway__error_rate_std",
+      "api-gateway__p50_mean",
+      "api-gateway__p99_delta",
+      "api-gateway__p99_max",
+      "api-gateway__p99_mean",
+      "api-gateway__p99_median",
+      "api-gateway__p99_min",
+      "api-gateway__p99_p95",
+      "api-gateway__p99_std",
+      "api-gateway__pool_util_delta",
+      "api-gateway__pool_util_max",
+      "api-gateway__pool_util_mean",
+      "api-gateway__request_rate_mean",
+      "global__system_max_error_rate",
+      "global__system_max_p99_latency",
+      "global__total_anomalous_services",
+      "inventory-db__anomaly_count",
+      "inventory-db__anomaly_fraction",
+      "inventory-db__anomaly_score_max",
+      "inventory-db__anomaly_score_mean",
+      "inventory-db__error_rate_delta",
+      "inventory-db__error_rate_max",
+      "inventory-db__error_rate_mean",
+      "inventory-db__error_rate_std",
+      "inventory-db__p50_mean",
+      "inventory-db__p99_delta",
+      "inventory-db__p99_max",
+      "inventory-db__p99_mean",
+      "inventory-db__p99_median",
+      "inventory-db__p99_min",
+      "inventory-db__p99_p95",
+      "inventory-db__p99_std",
+      "inventory-db__pool_util_delta",
+      "inventory-db__pool_util_max",
+      "inventory-db__pool_util_mean",
+      "inventory-db__request_rate_mean",
+      "inventory-service__anomaly_count",
+      "inventory-service__anomaly_fraction",
+      "inventory-service__anomaly_score_max",
+      "inventory-service__anomaly_score_mean",
+      "inventory-service__error_rate_delta",
+      "inventory-service__error_rate_max",
+      "inventory-service__error_rate_mean",
+      "inventory-service__error_rate_std",
+      "inventory-service__p50_mean",
+      "inventory-service__p99_delta",
+      "inventory-service__p99_max",
+      "inventory-service__p99_mean",
+      "inventory-service__p99_median",
+      "inventory-service__p99_min",
+      "inventory-service__p99_p95",
+      "inventory-service__p99_std",
+      "inventory-service__pool_util_delta",
+      "inventory-service__pool_util_max",
+      "inventory-service__pool_util_mean",
+      "inventory-service__request_rate_mean",
+      "order-service__anomaly_count",
+      "order-service__anomaly_fraction",
+      "order-service__anomaly_score_max",
+      "order-service__anomaly_score_mean",
+      "order-service__error_rate_delta",
+      "order-service__error_rate_max",
+      "order-service__error_rate_mean",
+      "order-service__error_rate_std",
+      "order-service__p50_mean",
+      "order-service__p99_delta",
+      "order-service__p99_max",
+      "order-service__p99_mean",
+      "order-service__p99_median",
+      "order-service__p99_min",
+      "order-service__p99_p95",
+      "order-service__p99_std",
+      "order-service__pool_util_delta",
+      "order-service__pool_util_max",
+      "order-service__pool_util_mean",
+      "order-service__request_rate_mean",
+      "payment-service__anomaly_count",
+      "payment-service__anomaly_fraction",
+      "payment-service__anomaly_score_max",
+      "payment-service__anomaly_score_mean",
+      "payment-service__error_rate_delta",
+      "payment-service__error_rate_max",
+      "payment-service__error_rate_mean",
+      "payment-service__error_rate_std",
+      "payment-service__p50_mean",
+      "payment-service__p99_delta",
+      "payment-service__p99_max",
+      "payment-service__p99_mean",
+      "payment-service__p99_median",
+      "payment-service__p99_min",
+      "payment-service__p99_p95",
+      "payment-service__p99_std",
+      "payment-service__pool_util_delta",
+      "payment-service__pool_util_max",
+      "payment-service__pool_util_mean",
+      "payment-service__request_rate_mean"
+    ],
+    "telemetry_plus_temporal": [
+      "api-gateway__anomaly_duration_sec",
+      "api-gateway__error_rate_slope",
+      "api-gateway__latency_lag1_diff",
+      "api-gateway__latency_lag2_diff",
+      "api-gateway__latency_rolling_mean_max",
+      "api-gateway__latency_rolling_std_max",
+      "api-gateway__latency_slope",
+      "api-gateway__latency_step_t0",
+      "api-gateway__latency_step_t_last",
+      "api-gateway__relative_anomaly_rank",
+      "api-gateway__time_to_first_anomaly",
+      "inventory-db__anomaly_duration_sec",
+      "inventory-db__error_rate_slope",
+      "inventory-db__latency_lag1_diff",
+      "inventory-db__latency_lag2_diff",
+      "inventory-db__latency_rolling_mean_max",
+      "inventory-db__latency_rolling_std_max",
+      "inventory-db__latency_slope",
+      "inventory-db__latency_step_t0",
+      "inventory-db__latency_step_t_last",
+      "inventory-db__relative_anomaly_rank",
+      "inventory-db__time_to_first_anomaly",
+      "inventory-service__anomaly_duration_sec",
+      "inventory-service__error_rate_slope",
+      "inventory-service__latency_lag1_diff",
+      "inventory-service__latency_lag2_diff",
+      "inventory-service__latency_rolling_mean_max",
+      "inventory-service__latency_rolling_std_max",
+      "inventory-service__latency_slope",
+      "inventory-service__latency_step_t0",
+      "inventory-service__latency_step_t_last",
+      "inventory-service__relative_anomaly_rank",
+      "inventory-service__time_to_first_anomaly",
+      "order-service__anomaly_duration_sec",
+      "order-service__error_rate_slope",
+      "order-service__latency_lag1_diff",
+      "order-service__latency_lag2_diff",
+      "order-service__latency_rolling_mean_max",
+      "order-service__latency_rolling_std_max",
+      "order-service__latency_slope",
+      "order-service__latency_step_t0",
+      "order-service__latency_step_t_last",
+      "order-service__relative_anomaly_rank",
+      "order-service__time_to_first_anomaly",
+      "payment-service__anomaly_duration_sec",
+      "payment-service__error_rate_slope",
+      "payment-service__latency_lag1_diff",
+      "payment-service__latency_lag2_diff",
+      "payment-service__latency_rolling_mean_max",
+      "payment-service__latency_rolling_std_max",
+      "payment-service__latency_slope",
+      "payment-service__latency_step_t0",
+      "payment-service__latency_step_t_last",
+      "payment-service__relative_anomaly_rank",
+      "payment-service__time_to_first_anomaly"
+    ],
+    "telemetry_temporal_graph": [
+      "api-gateway__dist_to_earliest_anomaly",
+      "api-gateway__downstream_anomaly_count",
+      "api-gateway__downstream_count",
+      "api-gateway__downstream_latency_ratio",
+      "api-gateway__downstream_mean_latency",
+      "api-gateway__in_degree",
+      "api-gateway__out_degree",
+      "api-gateway__propagation_order_score",
+      "api-gateway__upstream_anomaly_count",
+      "api-gateway__upstream_count",
+      "api-gateway__upstream_mean_latency",
+      "global__cascade_diameter",
+      "inventory-db__dist_to_earliest_anomaly",
+      "inventory-db__downstream_anomaly_count",
+      "inventory-db__downstream_count",
+      "inventory-db__downstream_latency_ratio",
+      "inventory-db__downstream_mean_latency",
+      "inventory-db__in_degree",
+      "inventory-db__out_degree",
+      "inventory-db__propagation_order_score",
+      "inventory-db__upstream_anomaly_count",
+      "inventory-db__upstream_count",
+      "inventory-db__upstream_mean_latency",
+      "inventory-service__dist_to_earliest_anomaly",
+      "inventory-service__downstream_anomaly_count",
+      "inventory-service__downstream_count",
+      "inventory-service__downstream_latency_ratio",
+      "inventory-service__downstream_mean_latency",
+      "inventory-service__in_degree",
+      "inventory-service__out_degree",
+      "inventory-service__propagation_order_score",
+      "inventory-service__upstream_anomaly_count",
+      "inventory-service__upstream_count",
+      "inventory-service__upstream_mean_latency",
+      "order-service__dist_to_earliest_anomaly",
+      "order-service__downstream_anomaly_count",
+      "order-service__downstream_count",
+      "order-service__downstream_latency_ratio",
+      "order-service__downstream_mean_latency",
+      "order-service__in_degree",
+      "order-service__out_degree",
+      "order-service__propagation_order_score",
+      "order-service__upstream_anomaly_count",
+      "order-service__upstream_count",
+      "order-service__upstream_mean_latency",
+      "payment-service__dist_to_earliest_anomaly",
+      "payment-service__downstream_anomaly_count",
+      "payment-service__downstream_count",
+      "payment-service__downstream_latency_ratio",
+      "payment-service__downstream_mean_latency",
+      "payment-service__in_degree",
+      "payment-service__out_degree",
+      "payment-service__propagation_order_score",
+      "payment-service__upstream_anomaly_count",
+      "payment-service__upstream_count",
+      "payment-service__upstream_mean_latency"
+    ]
+  }
+}

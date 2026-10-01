@@ -1,0 +1,46 @@
+flowchart TD
+    REC[Remediation Recommendation Card<br/>Action ID, Target Service, Blast Radius, Predicted Delta] --> APP{Operator Approval Gate}
+
+    APP -->|Rejected / Timed Out| CANC[Status: REJECTED / EXPIRED]
+    APP -->|Approved by Human Operator| TOK[Generate Approval Token<br/>Operator ID + Nonce + 900s TTL]
+
+    TOK --> POL{15 Safety Policy Gates}
+
+    subgraph Policies["15 Execution Safety Policy Rules"]
+        POL --> R1["Rules 1-3: Local Env & Service/Action Allowlists"]
+        POL --> R4["Rules 4-8: Recommendation Match, TTL, Operator ID, Replay Guard"]
+        POL --> R9["Rules 9-10: Idempotency & Concurrency Mutex Lock"]
+        POL --> R11["Rules 11-13: Rollback Handler, Net Benefit, Warnings Ack"]
+        POL --> R14["Rules 14-15: Remediation Budget & Max Blast Radius"]
+    end
+
+    Policies -->|Any Violation| BLOCK[Execution Blocked & Logged]
+
+    Policies -->|All 15 Rules Satisfied| LOCK[Acquire Service Lock<br/>Exclusive Mutex on Target Service]
+    LOCK --> SNAP[Capture Pre-Execution Snapshot<br/>Replicas, Config, Telemetry]
+    SNAP --> EXEC[Execute Allowlisted Executor<br/>Controlled Service Mutation]
+
+    EXEC --> VERIF{Telemetry Verification Window<br/>Freshness &amp; Latency Gating}
+
+    VERIF -->|Metrics Return to Normal| RES[State: INCIDENT_RESOLVED / RECOVERED<br/>Release Service Mutex Lock]
+    VERIF -->|Degraded / Oscillating / Timeout| RB[Trigger Safe Rollback Handler<br/>Restore Pre-Execution Snapshot]
+
+    RB --> RB_VERIF{Rollback Verification Gate}
+    RB_VERIF -->|Rollback Succeeded| RB_OK[State: ROLLBACK_COMPLETE<br/>Budget Decremented]
+    RB_VERIF -->|Rollback Failed / Double Fault| ESC[State: MANUAL_INTERVENTION<br/>Trigger High-Priority Pager]
+
+    RES --> JRN[(Append-Only Journal<br/>orchestration_journal.jsonl)]
+    RB_OK --> JRN
+    ESC --> JRN
+    BLOCK --> JRN
+    CANC --> JRN
+
+    classDef pass fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef fail fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#f8fafc;
+    classDef gate fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+    classDef state fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+
+    class RES,RB_OK pass;
+    class BLOCK,ESC,CANC fail;
+    class APP,POL,VERIF,RB_VERIF gate;
+    class LOCK,SNAP,EXEC,RB state;

@@ -1,0 +1,31 @@
+{
+  "scenarios_evaluated": {
+    "SCENARIO_A_INDEPENDENT_SIMULTANEOUS": {
+      "passed": true,
+      "description": "Two distinct incidents on different services remain completely isolated in state and lock space."
+    },
+    "SCENARIO_B_SAME_TARGET_DEDUPLICATION": {
+      "passed": true,
+      "description": "Repeated anomalies on identical fingerprint aggregate into a single incident, incrementing repetition counter."
+    },
+    "SCENARIO_C_CONFLICT_DETECTION": {
+      "passed": true,
+      "description": "Overlapping actions on shared service trigger TARGET_SERVICE_COLLISION and block execution."
+    },
+    "SCENARIO_D_SHARED_DEPENDENCY_CASCADE": {
+      "passed": true,
+      "description": "Upstream service anomaly tracked without corrupting downstream dependency records."
+    },
+    "SCENARIO_E_PARTIAL_FAILURE_ISOLATION": {
+      "passed": true,
+      "description": "Failure in one remediation action does not contaminate concurrent independent remediation queues."
+    },
+    "SCENARIO_F_DETERMINISTIC_JOURNAL_REPLAY": {
+      "passed": true,
+      "description": "Restart recovery via append-only journal restores identical incident states without corruption."
+    }
+  },
+  "all_orchestration_scenarios_passed": true,
+  "journal_path": "ml/models/orchestration/orchestration_journal.jsonl",
+  "replayed_incidents_count": 150
+}

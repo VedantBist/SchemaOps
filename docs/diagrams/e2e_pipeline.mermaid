@@ -1,0 +1,47 @@
+flowchart TD
+    subgraph Ingestion["1. Ingestion & Pre-Failure Detection"]
+        T[Microservice Telemetry<br/>Metrics / Logs / Traces] --> OTel[OpenTelemetry Collector]
+        OTel --> AD[Anomaly / Incident Detector]
+        OTel --> FP[Real Failure Prediction Engine<br/>Random Forest / 151 Features]
+        FP -->|Pre-Failure Warning<br/>4-5s Lead Time| IG{Incident Gate}
+        AD -->|Threshold Breach| IG
+    end
+
+    subgraph Diagnostics["2. Root Cause Analysis & Causal Modeling"]
+        IG -->|Active Incident Triggered| RCA[Root Cause Analysis Engine<br/>GAT + GRU Spatiotemporal GNN]
+        RCA -->|Target Service Identification| SCM[Topology-Constrained Lagged SCM<br/>N=5 Nodes, V=7 Metrics, Lag P=5]
+        SCM --> CF[Pearl 3-Step Counterfactual Engine<br/>Abduction &rarr; Action &rarr; Prediction]
+    end
+
+    subgraph Recommendation["3. Remediation & Safety Evaluation"]
+        CF -->|Avoided Latency & Error Impact| RR[Remediation Recommender<br/>11 Canonical Actions Catalog]
+        RR -->|Recommended Action + Blast Radius| SG[Safety Evaluation Gates<br/>Causal, Physical, Temporal Bounds]
+        SG -->|Recommendation Card| UI[CausalOps Console<br/>Interactive Timeline & Graph]
+    end
+
+    subgraph Execution["4. Controlled Execution & Verification"]
+        UI -->|Explicit Operator Approval<br/>Signed Token + TTL| PE[Closed-Loop Remediation Executor]
+        PE --> PG{15 Safety Policy Rules<br/>Allowlists, Locks, Budgets}
+        PG -->|Passed| SNAP[Capture Pre-Execution Snapshot]
+        SNAP --> EXEC[Execute Allowlisted Remediation<br/>Target Service Mutation]
+        EXEC --> VERIF{Telemetry Verification Gate<br/>Healthy / Oscillating / Degraded}
+        VERIF -->|Healthy| RES[Transition to RECOVERED / RESOLVED]
+        VERIF -->|Degraded| RB[Execute Rollback Handler]
+        RB --> MI[Manual Intervention Escalation]
+    end
+
+    subgraph Audit["5. Persistence & Multi-Incident State"]
+        RES --> JRN[(Append-Only Journal<br/>orchestration_journal.jsonl)]
+        RB --> JRN
+        MI --> JRN
+    end
+
+    classDef primary fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+    classDef gate fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+    classDef action fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef alert fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#f8fafc;
+
+    class FP,RCA,SCM,CF primary;
+    class IG,PG,VERIF gate;
+    class EXEC,RES action;
+    class RB,MI alert;

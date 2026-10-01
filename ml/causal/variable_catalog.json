@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CausalOps Telemetry Variable Catalog",
+  "version": "1.0.0",
+  "total_variables": 50,
+  "nodes": [
+    "api-gateway",
+    "order-service",
+    "inventory-service",
+    "payment-service",
+    "inventory-db"
+  ],
+  "node_features": [
+    {
+      "name": "p50_latency",
+      "meaning": "Median request execution latency measured over 1-second collection window",
+      "unit": "milliseconds",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "internal_performance_state",
+      "derivation_formula": null,
+      "notes": "Reflects typical path duration; shifts during service or database slow-downs."
+    },
+    {
+      "name": "p95_latency",
+      "meaning": "95th percentile request execution latency",
+      "unit": "milliseconds",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "internal_performance_state",
+      "derivation_formula": null,
+      "notes": "Captures upper-percentile response degradation before complete timeout."
+    },
+    {
+      "name": "p99_latency",
+      "meaning": "99th percentile tail request execution latency",
+      "unit": "milliseconds",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": true,
+      "contains_potential_leakage": false,
+      "causal_role": "primary_propagation_symptom_and_target",
+      "derivation_formula": null,
+      "notes": "Direct responder in SERVICE_LATENCY and NETWORK_LATENCY faults. Propagates upstream via synchronous caller waiting."
+    },
+    {
+      "name": "error_rate",
+      "meaning": "Percentage of requests returning HTTP 5xx or gRPC failure status",
+      "unit": "percent",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": true,
+      "contains_potential_leakage": false,
+      "causal_role": "primary_propagation_symptom_and_target",
+      "derivation_formula": null,
+      "notes": "Direct responder in ERROR_RATE and SERVICE_FAILURE faults. Propagates upstream to callers whose calls fail."
+    },
+    {
+      "name": "request_rate",
+      "meaning": "Incoming request throughput rate per minute",
+      "unit": "requests_per_minute",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "exogenous_or_downstream_driver",
+      "derivation_formula": null,
+      "notes": "Propagates downstream (api-gateway -> order-service -> callee). When caller is healthy, traffic drives callee throughput."
+    },
+    {
+      "name": "pool_utilization",
+      "meaning": "Percentage of worker threads or database connection pool capacity in use",
+      "unit": "percent",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "internal_resource_mediator",
+      "derivation_formula": null,
+      "notes": "Driven intra-node by request_rate * latency (Little's Law). When latency spikes, pool fills up."
+    },
+    {
+      "name": "db_latency",
+      "meaning": "Direct database query execution latency (non-zero only on database or direct DB client)",
+      "unit": "milliseconds",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "observed",
+      "usable_for_causal_discovery": true,
+      "usable_for_intervention": true,
+      "contains_potential_leakage": false,
+      "causal_role": "root_injection_site_for_db",
+      "derivation_formula": null,
+      "notes": "Direct responder for DB_LATENCY on inventory-db. Imputed to 0.0 on non-DB nodes in graph representation."
+    },
+    {
+      "name": "anomaly_score",
+      "meaning": "Heuristic statistical anomaly detector score normalized between 0.0 and 1.0",
+      "unit": "unitless_score",
+      "temporal_resolution": "1.0 second snapshot",
+      "observed_or_derived": "derived",
+      "usable_for_causal_discovery": false,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "derived_detector_sink",
+      "derivation_formula": "min(1.0, max(0.0, (latency / baselineLatency - 1.0) / 4.0 + (error_rate > 1.0 ? error_rate / 50.0 : 0.0)))",
+      "notes": "CRITICAL: This is a deterministic transformation of latency and error_rate. It must NEVER be treated as a causal parent of raw telemetry, or circular anti-causal edges will be formed. Must be excluded or modeled strictly as a sink variable."
+    },
+    {
+      "name": "p99_latency_delta",
+      "meaning": "First temporal difference: p99_latency(t) - p99_latency(t-1)",
+      "unit": "milliseconds",
+      "temporal_resolution": "1.0 second difference",
+      "observed_or_derived": "derived",
+      "usable_for_causal_discovery": false,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "derived_temporal_difference",
+      "derivation_formula": "p99_latency(t) - p99_latency(t-1) with 0.0 at t=0",
+      "notes": "Assists gradient-based models in detecting sudden shocks. In a lagged SCM, temporal dynamics are modeled explicitly via p99_latency(t-1) -> p99_latency(t), rendering this feature redundant for causal discovery."
+    },
+    {
+      "name": "error_rate_delta",
+      "meaning": "First temporal difference: error_rate(t) - error_rate(t-1)",
+      "unit": "percent",
+      "temporal_resolution": "1.0 second difference",
+      "observed_or_derived": "derived",
+      "usable_for_causal_discovery": false,
+      "usable_for_intervention": false,
+      "contains_potential_leakage": false,
+      "causal_role": "derived_temporal_difference",
+      "derivation_formula": "error_rate(t) - error_rate(t-1) with 0.0 at t=0",
+      "notes": "Assists gradient-based models in detecting sudden shocks. In a lagged SCM, temporal dynamics are modeled explicitly via error_rate(t-1) -> error_rate(t), rendering this feature redundant for causal discovery."
+    }
+  ],
+  "variable_inclusion_summary": {
+    "primary_causal_discovery_features": [
+      "p50_latency",
+      "p95_latency",
+      "p99_latency",
+      "error_rate",
+      "request_rate",
+      "pool_utilization",
+      "db_latency"
+    ],
+    "excluded_or_sink_features": [
+      "anomaly_score",
+      "p99_latency_delta",
+      "error_rate_delta"
+    ],
+    "rationale": "Primary features represent genuine physical system states. Anomaly score and delta features are deterministic transformations; including them as causal drivers would violate causal faithfulness and introduce spurious cycles."
+  }
+}

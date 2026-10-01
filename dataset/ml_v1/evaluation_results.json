@@ -1,0 +1,791 @@
+{
+  "dataset_version": "1.0.0",
+  "task": "ROOT_CAUSE_CLASSIFICATION",
+  "classes": [
+    "inventory-db",
+    "inventory-service",
+    "order-service",
+    "payment-service"
+  ],
+  "split_counts": {
+    "train_fault_samples": 49,
+    "val_fault_samples": 11,
+    "test_fault_samples": 10,
+    "total_fault_samples": 70
+  },
+  "models": {
+    "Logistic Regression": {
+      "hyperparameters": {
+        "C": 1.0,
+        "max_iter": 1000,
+        "solver": "lbfgs"
+      },
+      "feature_count": 214,
+      "train": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            13,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            12,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            12,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            12
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 12
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 13
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          }
+        }
+      },
+      "validation": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        }
+      },
+      "test": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        }
+      }
+    },
+    "Random Forest": {
+      "hyperparameters": {
+        "n_estimators": 100,
+        "max_depth": 5,
+        "random_state": 42
+      },
+      "feature_count": 214,
+      "train": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            13,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            12,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            12,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            12
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 12
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 13
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          }
+        }
+      },
+      "validation": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        }
+      },
+      "test": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        }
+      }
+    },
+    "Gradient Boosting": {
+      "hyperparameters": {
+        "n_estimators": 100,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "random_state": 42
+      },
+      "feature_count": 214,
+      "train": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            13,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            12,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            12,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            12
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 12
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 13
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 12
+          }
+        }
+      },
+      "validation": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        }
+      },
+      "test": {
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_f1": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "payment_service_metrics": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "per_class": {
+          "inventory-db": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        }
+      }
+    }
+  },
+  "ablation_results": {
+    "A_telemetry_only": {
+      "feature_count": 103,
+      "models": {
+        "Logistic Regression": {
+          "cv_train_accuracy_mean": 0.96,
+          "cv_train_accuracy_std": 0.04898979485566355,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        },
+        "Random Forest": {
+          "cv_train_accuracy_mean": 0.9800000000000001,
+          "cv_train_accuracy_std": 0.039999999999999994,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        },
+        "Gradient Boosting": {
+          "cv_train_accuracy_mean": 0.9177777777777777,
+          "cv_train_accuracy_std": 0.07555555555555554,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        }
+      }
+    },
+    "B_telemetry_temporal": {
+      "feature_count": 158,
+      "models": {
+        "Logistic Regression": {
+          "cv_train_accuracy_mean": 0.96,
+          "cv_train_accuracy_std": 0.04898979485566355,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        },
+        "Random Forest": {
+          "cv_train_accuracy_mean": 0.96,
+          "cv_train_accuracy_std": 0.07999999999999999,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        },
+        "Gradient Boosting": {
+          "cv_train_accuracy_mean": 0.8777777777777779,
+          "cv_train_accuracy_std": 0.07436978013636225,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        }
+      }
+    },
+    "C_telemetry_temporal_graph": {
+      "feature_count": 214,
+      "models": {
+        "Logistic Regression": {
+          "cv_train_accuracy_mean": 0.96,
+          "cv_train_accuracy_std": 0.04898979485566355,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        },
+        "Random Forest": {
+          "cv_train_accuracy_mean": 0.96,
+          "cv_train_accuracy_std": 0.07999999999999999,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        },
+        "Gradient Boosting": {
+          "cv_train_accuracy_mean": 0.96,
+          "cv_train_accuracy_std": 0.07999999999999999,
+          "val_accuracy": 1.0,
+          "val_macro_f1": 1.0,
+          "test_accuracy": 1.0,
+          "test_macro_f1": 1.0,
+          "test_payment_service_recall": 1.0
+        }
+      }
+    }
+  },
+  "heuristic_benchmark": {
+    "overall_70_experiments_accuracy": 0.842857,
+    "overall_70_experiments_exact_match": "59 / 70",
+    "test_set_10_experiments_accuracy": 0.8,
+    "test_set_10_experiments_exact_match": "8 / 10",
+    "test_set_payment_service_recall": 0.3333,
+    "test_set_misclassified": [
+      "EXP-064",
+      "EXP-065"
+    ]
+  },
+  "error_analysis": [],
+  "cv_boundary_error_analysis": [
+    {
+      "experiment_id": "EXP-045",
+      "fold": 3,
+      "ground_truth": "inventory-service",
+      "prediction": "order-service",
+      "confidence": 0.48,
+      "fault_type": "SERVICE_FAILURE",
+      "target_service": "inventory-service",
+      "traffic_rate": 15,
+      "key_feature_values": {
+        "inventory-service__pool_util_delta": 49.140000000000015,
+        "inventory-service__anomaly_score_max": 0.7020000000000001,
+        "order-service__anomaly_score_max": 0.492,
+        "order-service__p99_delta": 0.0
+      },
+      "failure_mechanism": "Downstream vs upstream caller confusion in low-data partition"
+    },
+    {
+      "experiment_id": "EXP-067",
+      "fold": 3,
+      "ground_truth": "payment-service",
+      "prediction": "order-service",
+      "confidence": 0.82,
+      "fault_type": "ERROR_RATE",
+      "target_service": "payment-service",
+      "traffic_rate": 1,
+      "key_feature_values": {
+        "payment-service__pool_util_delta": 14.14,
+        "payment-service__anomaly_score_max": 0.2019999999999999,
+        "order-service__anomaly_score_max": 0.142,
+        "order-service__p99_delta": 0.0
+      },
+      "failure_mechanism": "Downstream vs upstream caller confusion in low-data partition"
+    },
+    {
+      "experiment_id": "EXP-011",
+      "fold": 4,
+      "ground_truth": "inventory-db",
+      "prediction": "inventory-service",
+      "confidence": 0.46,
+      "fault_type": "DB_LATENCY",
+      "target_service": "inventory-db",
+      "traffic_rate": 1,
+      "key_feature_values": {
+        "inventory-db__pool_util_delta": 70.0,
+        "inventory-db__anomaly_score_max": 1.0,
+        "inventory-service__anomaly_score_max": 0.5636363636363636,
+        "inventory-service__p99_delta": 124.0
+      },
+      "failure_mechanism": "Caller-callee latency cascade propagation overlap"
+    }
+  ]
+}

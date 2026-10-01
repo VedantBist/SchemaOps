@@ -1,0 +1,161 @@
+{
+  "algorithm": "Pearl Three-Step Structural Counterfactuals (Abduction -> Graph Mutilation Action -> Prediction Rollout)",
+  "rollout_properties": {
+    "total_timesteps": 0,
+    "step_duration_seconds": 1.0,
+    "intervention_node": "inventory-db",
+    "intervention_magnitude": 0.7,
+    "intervention_start_step": 5
+  },
+  "avoided_impact_metrics": {
+    "evaluation_window_steps": 35,
+    "gateway_latency": {
+      "unit": "ms",
+      "peak_avoided_latency_ms": 166.83,
+      "mean_avoided_latency_ms": 113.49,
+      "cumulative_avoided_latency_ms_samples": 3972.08
+    },
+    "gateway_error_rate": {
+      "unit": "%",
+      "peak_avoided_error_rate_pct": 0.0,
+      "mean_avoided_error_rate_pct": 0.0,
+      "cumulative_avoided_error_exposure_pct_seconds": 0.0,
+      "estimated_avoided_failed_requests": 0.0,
+      "failed_requests_estimation_basis": "sum(request_rate * avoided_error_rate / 100)"
+    },
+    "per_service_avoided_impact": {
+      "api-gateway": {
+        "peak_avoided_p99_latency_ms": 166.83,
+        "mean_avoided_p99_latency_ms": 113.49,
+        "peak_avoided_error_rate_pct": 0.0,
+        "mean_avoided_error_rate_pct": 0.0
+      },
+      "order-service": {
+        "peak_avoided_p99_latency_ms": 269.08,
+        "mean_avoided_p99_latency_ms": 189.08,
+        "peak_avoided_error_rate_pct": 0.0,
+        "mean_avoided_error_rate_pct": 0.0
+      },
+      "inventory-service": {
+        "peak_avoided_p99_latency_ms": 434.0,
+        "mean_avoided_p99_latency_ms": 311.57,
+        "peak_avoided_error_rate_pct": 0.0,
+        "mean_avoided_error_rate_pct": 0.0
+      },
+      "payment-service": {
+        "peak_avoided_p99_latency_ms": 0.0,
+        "mean_avoided_p99_latency_ms": 0.0,
+        "peak_avoided_error_rate_pct": 0.0,
+        "mean_avoided_error_rate_pct": 0.0
+      },
+      "inventory-db": {
+        "peak_avoided_p99_latency_ms": 0.0,
+        "mean_avoided_p99_latency_ms": 0.0,
+        "peak_avoided_error_rate_pct": 0.0,
+        "mean_avoided_error_rate_pct": 0.0
+      }
+    }
+  },
+  "axiomatic_verification": {
+    "factual_identity_at_zero_intervention": true,
+    "pre_intervention_invariance": true,
+    "physical_bounds_adherence": true,
+    "branch_isolation_preserved": true
+  },
+  "sample_thesis_trajectory_EXP015": {
+    "experiment_id": "EXP-015",
+    "timesteps": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ],
+    "observed_gateway_latency_ms": [
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      283.33,
+      283.33,
+      283.33,
+      283.33,
+      283.33,
+      283.33,
+      283.33,
+      283.33,
+      283.33
+    ],
+    "counterfactual_gateway_latency_ms": [
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      45.0,
+      283.33,
+      283.33,
+      283.33,
+      116.5,
+      116.5,
+      116.5,
+      116.5,
+      116.5,
+      116.5
+    ],
+    "avoided_latency_ms": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      166.83,
+      166.83,
+      166.83,
+      166.83,
+      166.83,
+      166.83
+    ]
+  }
+}

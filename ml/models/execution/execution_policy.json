@@ -1,0 +1,68 @@
+{
+  "policy_name": "CausalOps-Safe-Execution-Policy-v1",
+  "version": "1.0.0",
+  "enforcement_mode": "STRICT_BLOCKING",
+  "rules_count": 15,
+  "rules": [
+    {
+      "id": "RULE_01_ENVIRONMENT_LOCAL",
+      "description": "Restricts execution strictly to LOCAL, SIMULATION, or TEST environments."
+    },
+    {
+      "id": "RULE_02_ACTION_ALLOWLISTED",
+      "description": "Action ID must be present in typed allowlist registry."
+    },
+    {
+      "id": "RULE_03_TARGET_ALLOWLISTED",
+      "description": "Target microservice must be one of the 5 canonical nodes."
+    },
+    {
+      "id": "RULE_04_RECOMMENDATION_EXISTS",
+      "description": "Recommendation must exist and rejects NO_FAULT controls."
+    },
+    {
+      "id": "RULE_05_RECOMMENDATION_NOT_EXPIRED",
+      "description": "Recommendation age must not exceed TTL (900s)."
+    },
+    {
+      "id": "RULE_06_EXPLICIT_APPROVAL_EXISTS",
+      "description": "Explicit operator approval record must be APPROVED and non-expired."
+    },
+    {
+      "id": "RULE_07_APPROVAL_IDENTITY_EXISTS",
+      "description": "Approving operator identity must be specified."
+    },
+    {
+      "id": "RULE_08_INCIDENT_MATCH",
+      "description": "Approval must match incident ID and action ID exactly."
+    },
+    {
+      "id": "RULE_09_NOT_ALREADY_EXECUTED",
+      "description": "Prevents re-executing an already executed action (idempotency)."
+    },
+    {
+      "id": "RULE_10_NOT_CURRENTLY_LOCKED",
+      "description": "Only one action may execute on a given service at a time."
+    },
+    {
+      "id": "RULE_11_ROLLBACK_SUPPORTED",
+      "description": "Action must support rollback or be certified zero-side-effect."
+    },
+    {
+      "id": "RULE_12_COUNTERFACTUAL_VALIDITY_OK",
+      "description": "Counterfactual rollout must verify zero collateral damage."
+    },
+    {
+      "id": "RULE_13_NO_UNRESOLVED_CRITICAL_WARNINGS",
+      "description": "Documented warnings (EXP-047) must be acknowledged by operator."
+    },
+    {
+      "id": "RULE_14_BUDGET_NOT_EXCEEDED",
+      "description": "Incident execution count must not exceed budget (3)."
+    },
+    {
+      "id": "RULE_15_BLAST_RADIUS_ACCEPTABLE",
+      "description": "Blast radius must not exceed 5 services."
+    }
+  ]
+}

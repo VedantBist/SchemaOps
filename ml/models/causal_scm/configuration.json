@@ -1,0 +1,26 @@
+{
+  "lag_order": 5,
+  "alpha": 1.0,
+  "solver": "ridge",
+  "edge_threshold": 0.05,
+  "stability_threshold": 0.6,
+  "n_bootstrap": 50,
+  "random_seed": 42,
+  "allow_all_topology": false,
+  "nodes": [
+    "api-gateway",
+    "order-service",
+    "inventory-service",
+    "payment-service",
+    "inventory-db"
+  ],
+  "features": [
+    "p50_latency",
+    "p95_latency",
+    "p99_latency",
+    "error_rate",
+    "request_rate",
+    "pool_utilization",
+    "db_latency"
+  ]
+}

@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CausalOps Fault Intervention Specification",
+  "version": "1.0.0",
+  "source_implementation": "backend/causalops-api/src/main/java/com/causalops/api/service/CausalOpsService.java",
+  "description": "Exhaustive specification of the 5 fault-injection mechanisms supported by CausalOps, defining the exact do(X) operators, propagation laws, and non-effects.",
+  "interventions": [
+    {
+      "fault_type": "DB_LATENCY",
+      "intervention_target": "inventory-db",
+      "intervention_variable": "inventory-db.db_latency",
+      "operator": "do(inventory-db.db_latency = baseline + latencyMs)",
+      "parameter_keys": ["latencyMs"],
+      "parameter_ranges": {
+        "latencyMs": [1200, 1800]
+      },
+      "expected_effects": [
+        {
+          "variable": "inventory-db.db_latency",
+          "relation": "immediate_additive",
+          "delay_steps": 0,
+          "attenuation": 1.0,
+          "description": "Direct injection of simulated database query execution delay"
+        },
+        {
+          "variable": "inventory-db.p99_latency",
+          "relation": "immediate_additive",
+          "delay_steps": 0,
+          "attenuation": 1.0,
+          "description": "p99 latency of DB matches query latency"
+        },
+        {
+          "variable": "inventory-service.p99_latency",
+          "relation": "propagated_upstream",
+          "delay_steps": 1,
+          "attenuation": 0.62,
+          "attenuation_formula": "latencyMs * (0.62)^1",
+          "description": "Inventory service synchronous JDBC query waits on database response"
+        },
+        {
+          "variable": "inventory-service.pool_utilization",
+          "relation": "intra_node_mediator",
+          "delay_steps": 1,
+          "description": "Database connection pool slots remain occupied during slow queries"
+        },
+        {
+          "variable": "order-service.p99_latency",
+          "relation": "propagated_upstream",
+          "delay_steps": 2,
+          "attenuation": 0.3844,
+          "attenuation_formula": "latencyMs * (0.62)^2",
+          "description": "Order service HTTP call to inventory service blocks while inventory waits on DB"
+        },
+        {
+          "variable": "order-service.pool_utilization",
+          "relation": "intra_node_mediator",
+          "delay_steps": 2,
+          "description": "Worker threads blocked on downstream inventory call"
+        },
+        {
+          "variable": "api-gateway.p99_latency",
+          "relation": "propagated_upstream",
+          "delay_steps": 3,
+          "attenuation": 0.2383,
+          "attenuation_formula": "latencyMs * (0.62)^3",
+          "description": "Gateway client-facing response latency degrades due to order service delay"
+        }
+      ],
+      "expected_non_effects": [
+        {
+          "variable": "payment-service.p99_latency",
+          "reason": "Orthogonal dependency branch; payment-service does not call or depend on inventory-db"
+        },
+        {
+          "variable": "payment-service.error_rate",
+          "reason": "Payment service processing logic is independent of inventory database performance"
+        },
+        {
+          "variable": "inventory-db.error_rate",
+          "reason": "DB_LATENCY adds pure latency delay without throwing SQL exceptions"
+        },
+        {
+          "variable": "inventory-service.error_rate",
+          "reason": "Latency remains below request timeout limit; no 5xx errors thrown"
+        }
+      ],
+      "temporal_behavior": {
+        "persistence": "persistent_during_window",
+        "typical_duration_seconds": [16, 26],
+        "onset": "abrupt_step_function",
+        "recovery": "immediate_upon_clear",
+        "recovery_relaxation_seconds": 2
+      },
+      "observability": "directly_observable_at_target",
+      "localization": "strictly_localized_to_database_tier"
+    },
+    {
+      "fault_type": "SERVICE_LATENCY",
+      "intervention_target": "order-service",
+      "alternative_targets": ["inventory-service"],
+      "intervention_variable": "order-service.p99_latency",
+      "operator": "do(order-service.p99_latency = baseline + latencyMs)",
+      "parameter_keys": ["latencyMs"],
+      "parameter_ranges": {
+        "latencyMs": [800, 1200]
+      },
+      "expected_effects": [
+        {
+          "variable": "order-service.p99_latency",
+          "relation": "immediate_additive",
+          "delay_steps": 0,
+          "attenuation": 1.0,
+          "description": "Thread sleep injected into order service request execution thread"
+        },
+        {
+          "variable": "order-service.pool_utilization",
+          "relation": "intra_node_mediator",
+          "delay_steps": 0,
+          "description": "Thread pool saturation as request handling threads are delayed"
+        },
+        {
+          "variable": "api-gateway.p99_latency",
+          "relation": "propagated_upstream",
+          "delay_steps": 1,
+          "attenuation": 0.62,
+          "attenuation_formula": "latencyMs * (0.62)^1",
+          "description": "Gateway waits for order service response, elevating gateway client-facing latency"
+        }
+      ],
+      "expected_non_effects": [
+        {
+          "variable": "inventory-db.db_latency",
+          "reason": "Downstream callee DB executes at normal hardware speed; caller latency does not slow down DB engines"
+        },
+        {
+          "variable": "inventory-service.p99_latency",
+          "reason": "Order service delay occurs internally before or after calling inventory; does not inflate inventory's internal processing time"
+        },
+        {
+          "variable": "payment-service.p99_latency",
+          "reason": "Payment service internal execution speed is unaffected by order service thread pause"
+        },
+        {
+          "variable": "order-service.error_rate",
+          "reason": "Delays under timeout threshold (e.g. 5000ms) do not generate HTTP 500 status codes"
+        }
+      ],
+      "temporal_behavior": {
+        "persistence": "persistent_during_window",
+        "typical_duration_seconds": [16, 26],
+        "onset": "abrupt_step_function",
+        "recovery": "immediate_upon_clear",
+        "recovery_relaxation_seconds": 1
+      },
+      "observability": "directly_observable_at_target",
+      "localization": "localized_to_targeted_microservice"
+    },
+    {
+      "fault_type": "NETWORK_LATENCY",
+      "intervention_target": "inventory-service",
+      "alternative_targets": ["payment-service"],
+      "intervention_variable": "order-service.p99_latency",
+      "operator": "do(network_delay(caller, target) = latencyMs)",
+      "parameter_keys": ["latencyMs"],
+      "parameter_ranges": {
+        "latencyMs": [800, 950]
+      },
+      "expected_effects": [
+        {
+          "variable": "order-service.p99_latency",
+          "relation": "caller_perceived_delay",
+          "delay_steps": 0,
+          "attenuation": 1.0,
+          "description": "Caller experiences packet transmission delay in socket round-trip time"
+        },
+        {
+          "variable": "api-gateway.p99_latency",
+          "relation": "propagated_upstream",
+          "delay_steps": 1,
+          "attenuation": 0.62,
+          "attenuation_formula": "latencyMs * (0.62)^1",
+          "description": "Propagates upstream to gateway"
+        }
+      ],
+      "expected_non_effects": [
+        {
+          "variable": "inventory-db.db_latency",
+          "reason": "Database query interface is unaffected by service network link degradation"
+        },
+        {
+          "variable": "payment-service.p99_latency",
+          "reason": "Network link to payment-service is separate from inventory-service link"
+        }
+      ],
+      "temporal_behavior": {
+        "persistence": "persistent_during_window",
+        "typical_duration_seconds": [16, 26],
+        "onset": "abrupt_step_function",
+        "recovery": "immediate_upon_clear",
+        "recovery_relaxation_seconds": 2
+      },
+      "observability": "perceived_by_caller_across_network_edge",
+      "localization": "localized_to_inter_service_network_hop"
+    },
+    {
+      "fault_type": "ERROR_RATE",
+      "intervention_target": "payment-service",
+      "alternative_targets": ["order-service"],
+      "intervention_variable": "payment-service.error_rate",
+      "operator": "do(payment-service.error_rate = baseline + errorRate)",
+      "parameter_keys": ["errorRate"],
+      "parameter_ranges": {
+        "errorRate": [20, 30]
+      },
+      "expected_effects": [
+        {
+          "variable": "payment-service.error_rate",
+          "relation": "immediate_additive",
+          "delay_steps": 0,
+          "attenuation": 1.0,
+          "description": "Injected synthetic HTTP 500 Internal Server Error responses"
+        },
+        {
+          "variable": "order-service.error_rate",
+          "relation": "propagated_upstream",
+          "delay_steps": 1,
+          "attenuation": 0.70,
+          "attenuation_formula": "errorRate * (0.70)^1",
+          "description": "Order service encounters downstream payment call failure"
+        },
+        {
+          "variable": "api-gateway.error_rate",
+          "relation": "propagated_upstream",
+          "delay_steps": 2,
+          "attenuation": 0.49,
+          "attenuation_formula": "errorRate * (0.70)^2",
+          "description": "Order failure propagates to gateway customer response"
+        }
+      ],
+      "expected_non_effects": [
+        {
+          "variable": "inventory-db.db_latency",
+          "reason": "Payment service errors have no structural access or connection to inventory DB"
+        },
+        {
+          "variable": "inventory-service.error_rate",
+          "reason": "Inventory service operates on independent branch; order failure occurs after or independently of inventory check"
+        },
+        {
+          "variable": "payment-service.p99_latency",
+          "reason": "Fast-failing 500 error responses return immediately without latency penalty"
+        }
+      ],
+      "temporal_behavior": {
+        "persistence": "persistent_during_window",
+        "typical_duration_seconds": [16, 26],
+        "onset": "abrupt_step_function",
+        "recovery": "immediate_upon_clear",
+        "recovery_relaxation_seconds": 1
+      },
+      "observability": "directly_observable_at_target",
+      "localization": "localized_to_target_error_handler"
+    },
+    {
+      "fault_type": "SERVICE_FAILURE",
+      "intervention_target": "payment-service",
+      "intervention_variable": "payment-service.error_rate",
+      "operator": "do(payment-service.status = CRITICAL, payment-service.error_rate += 35)",
+      "parameter_keys": [],
+      "parameter_ranges": {},
+      "expected_effects": [
+        {
+          "variable": "payment-service.error_rate",
+          "relation": "immediate_additive",
+          "delay_steps": 0,
+          "attenuation": 1.0,
+          "delta_value": 35.0,
+          "description": "Service process unreachable / connection refused; error rate surges by +35%"
+        },
+        {
+          "variable": "order-service.error_rate",
+          "relation": "propagated_upstream",
+          "delay_steps": 1,
+          "attenuation": 0.70,
+          "attenuation_formula": "35 * (0.70)^1 = 24.5",
+          "description": "Order service calls fail immediately due to downstream payment crash"
+        },
+        {
+          "variable": "api-gateway.error_rate",
+          "relation": "propagated_upstream",
+          "delay_steps": 2,
+          "attenuation": 0.49,
+          "attenuation_formula": "35 * (0.70)^2 = 17.15",
+          "description": "Gateway returns 502 Bad Gateway / 500 Internal Error to client"
+        }
+      ],
+      "expected_non_effects": [
+        {
+          "variable": "inventory-service.error_rate",
+          "reason": "Inventory branch is fully isolated from payment branch"
+        },
+        {
+          "variable": "inventory-db.db_latency",
+          "reason": "Inventory DB load does not increase; database query response time remains normal"
+        },
+        {
+          "variable": "payment-service.p99_latency",
+          "reason": "Connection refused fails instantly (TCP RST) rather than hanging"
+        }
+      ],
+      "temporal_behavior": {
+        "persistence": "persistent_during_window",
+        "typical_duration_seconds": [16, 26],
+        "onset": "abrupt_step_function",
+        "recovery": "immediate_upon_clear",
+        "recovery_relaxation_seconds": 2
+      },
+      "observability": "directly_observable_via_error_rate_and_http_status",
+      "localization": "localized_to_payment_service_process"
+    }
+  ]
+}

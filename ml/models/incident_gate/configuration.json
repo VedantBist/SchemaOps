@@ -1,0 +1,13 @@
+{
+  "model_name": "incident_gate_v1",
+  "architecture": "MLP(300 -> 32 -> 1) with Sigmoid",
+  "parameter_count": 9665,
+  "training_samples": 56,
+  "validation_samples": 12,
+  "best_epoch": 146,
+  "total_epochs": 150,
+  "learning_rate": 0.005,
+  "weight_decay": 0.0001,
+  "random_seed": 42,
+  "training_duration_sec": 0.129
+}

@@ -1,0 +1,100 @@
+{
+  "evaluation_horizons": {
+    "failure_within_5s": {
+      "auc_roc": 1.0,
+      "macro_f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "brier_score": 0.0049,
+      "expected_calibration_error": 0.0682
+    },
+    "failure_within_10s": {
+      "auc_roc": 1.0,
+      "macro_f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "brier_score": 0.0038,
+      "expected_calibration_error": 0.0613
+    },
+    "failure_within_30s": {
+      "auc_roc": 1.0,
+      "macro_f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "brier_score": 0.0038,
+      "expected_calibration_error": 0.0613
+    }
+  },
+  "lead_time_statistics": {
+    "mean_seconds": 4.9,
+    "median_seconds": 5.0,
+    "min_seconds": 4.0,
+    "max_seconds": 5.0,
+    "pct_predicted_before_onset": 100.0,
+    "scientific_interpretation": "Validated pre-failure warning with approximately 4-5 seconds of realized lead time on the current benchmark."
+  },
+  "control_experiment_performance": {
+    "total_controls_evaluated": 10,
+    "false_alarms": 0,
+    "false_positive_rate": 0.0
+  },
+  "attribution_limitations_retained": {
+    "pre_onset_target_service_accuracy": 0.3,
+    "pre_onset_fault_type_accuracy": 0.4,
+    "caveat": "Pre-onset telemetry is insufficient for reliable root-cause service attribution (30%) or fault-type discrimination (40%). Conclusive attribution requires post-onset GNN or causal SCM propagation analysis."
+  },
+  "breakdown_by_fault_type": {
+    "DB_LATENCY": {
+      "count": 2,
+      "mean_lead_time_sec": 5.0
+    },
+    "NETWORK_LATENCY": {
+      "count": 2,
+      "mean_lead_time_sec": 4.5
+    },
+    "SERVICE_LATENCY": {
+      "count": 2,
+      "mean_lead_time_sec": 5.0
+    },
+    "SERVICE_FAILURE": {
+      "count": 3,
+      "mean_lead_time_sec": 5.0
+    },
+    "ERROR_RATE": {
+      "count": 1,
+      "mean_lead_time_sec": 5.0
+    }
+  },
+  "breakdown_by_target_service": {
+    "inventory-db": {
+      "count": 2,
+      "mean_lead_time_sec": 5.0
+    },
+    "inventory-service": {
+      "count": 3,
+      "mean_lead_time_sec": 5.0
+    },
+    "order-service": {
+      "count": 2,
+      "mean_lead_time_sec": 5.0
+    },
+    "payment-service": {
+      "count": 3,
+      "mean_lead_time_sec": 4.67
+    }
+  },
+  "breakdown_by_traffic_rate": {
+    "1rps": {
+      "count": 6,
+      "mean_lead_time_sec": 4.83
+    },
+    "5rps": {
+      "count": 3,
+      "mean_lead_time_sec": 5.0
+    },
+    "15rps": {
+      "count": 1,
+      "mean_lead_time_sec": 5.0
+    }
+  }
+}

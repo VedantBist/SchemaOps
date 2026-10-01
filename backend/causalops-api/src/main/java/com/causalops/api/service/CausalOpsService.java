@@ -53,6 +53,9 @@ public class CausalOpsService {
     @Value("${causalops.service-urls.api-gateway}")
     String gatewayUrl;
 
+    @Value("${causalops.rca.mode:classical_ml}")
+    String defaultRcaMode = "classical_ml";
+
     public CausalOpsService(JdbcTemplate d, ServiceRepository s, RestClient h, EventBus e, ObjectMapper mapper) {
         db = d;
         services = s;
@@ -389,19 +392,35 @@ public class CausalOpsService {
         analyze(id);
     }
 
-    private void analyze(UUID incidentId) {
+    public void analyze(UUID incidentId) {
+        try {
+            analyze(incidentId, defaultRcaMode);
+        } catch (Exception ignored) {
+        }
+    }
+
+    public Map<String, Object> analyze(UUID incidentId, String mode) {
+        String selectedMode = (mode != null && !mode.isBlank()) ? mode : defaultRcaMode;
         try {
             List<Map<String, Object>> telemetry = db.queryForList(
-                    "select service_name as service, p99_latency as latency, " +
-                    "error_rate as \"errorRate\", anomaly_score as anomaly, " +
+                    "select service_name as service, " +
+                    "p50_latency as \"p50Latency\", p95_latency as \"p95Latency\", " +
+                    "p99_latency as \"p99Latency\", p99_latency as latency, " +
+                    "error_rate as \"errorRate\", request_rate as \"requestRate\", " +
+                    "pool_utilization as \"poolUtilization\", db_latency as \"dbLatency\", " +
+                    "anomaly_score as \"anomalyScore\", anomaly_score as anomaly, " +
                     "captured_at as timestamp " +
                     "from telemetry_snapshots " +
                     "where captured_at > now() - interval '2 minutes' " +
                     "order by captured_at");
 
-            log.info("[ANALYZE] incidentId={} telemetryRows={}", incidentId, telemetry.size());
+            log.info("[ANALYZE] incidentId={} mode={} telemetryRows={}", incidentId, selectedMode, telemetry.size());
 
-            Map<String, Object> payload = Map.of("topology", topology(), "telemetry", telemetry);
+            Map<String, Object> payload = Map.of(
+                    "topology", topology(),
+                    "telemetry", telemetry,
+                    "mode", selectedMode
+            );
 
             @SuppressWarnings("unchecked")
             Map<String, Object> result = aiPost("/analyze/root-cause", payload, Map.class);
@@ -429,16 +448,18 @@ public class CausalOpsService {
             }
 
             db.update("update incidents set status='RCA_IDENTIFIED' where id=?", incidentId);
-            log.info("[ANALYZE] RCA complete: incidentId={} rootCause={} confidence={}",
-                    incidentId, root.get("service"), root.get("confidence"));
+            log.info("[ANALYZE] RCA complete: incidentId={} mode={} rootCause={} confidence={}",
+                    incidentId, selectedMode, root.get("service"), root.get("confidence"));
             events.emit("rca.completed", incidentId, result);
             predict();
+            return result;
 
         } catch (Exception e) {
             db.update("update incidents set status='ANALYSIS_FAILED' where id=?", incidentId);
             log.error("[ANALYZE] AI RCA failed for incident={} url={}: {}",
                     incidentId, aiUrl + "/analyze/root-cause", e.getMessage(), e);
             events.emit("rca.failed", incidentId, Map.of("message", String.valueOf(e.getMessage())));
+            throw new RuntimeException("RCA analysis failed: " + e.getMessage(), e);
         }
     }
 
@@ -539,5 +560,10 @@ public class CausalOpsService {
         } catch (Exception e) {
             throw new IllegalStateException("AI engine unavailable: " + e.getMessage(), e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> causalCounterfactual(Map<String, Object> body) {
+        return aiPost("/causal/counterfactual", body, Map.class);
     }
 }

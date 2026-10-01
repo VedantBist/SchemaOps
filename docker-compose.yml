@@ -11,6 +11,9 @@ services:
   ai-engine:
     build: ./ai-engine
     ports: ["8000:8000"]
+    volumes:
+      - ./ml:/app/ml:ro
+      - ./dataset:/app/dataset:ro
     healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"], interval: 10s, timeout: 3s, retries: 10 }
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.119.0

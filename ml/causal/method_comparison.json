@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Causal Discovery Methodology Comparison & Strategy Selection",
+  "version": "1.0.0",
+  "phase": "3A",
+  "evaluated_approaches": [
+    {
+      "method_name": "PC Algorithm / PCMCI (Constraint-Based)",
+      "family": "Constraint-based conditional independence testing",
+      "core_principles": "Starts with complete undirected graph; deletes edges where X _||_ Y | Z; orients v-structures (colliders) and applies Meek orientation rules.",
+      "assumptions": [
+        "Causal Sufficiency (no unobserved common causes)",
+        "Causal Markov Condition",
+        "Causal Faithfulness (statistical independence implies absence of direct edge)",
+        "Stationarity of time series (for PCMCI)",
+        "Gaussianity or valid non-parametric kernel CI test"
+      ],
+      "strengths": [
+        "Non-parametric or parametric CI tests support non-linear relationships",
+        "Rigorous asymptotic statistical guarantees",
+        "PCMCI extension handles autocorrelated time series effectively"
+      ],
+      "weaknesses": [
+        "High sample-size requirement; fails on short sequences (38-40 steps per run)",
+        "High sensitivity to p-value significance threshold alpha (one false CI test error cascades across the entire graph)",
+        "Outputs CPDAGs with unoriented undirected edges in Markov equivalence classes",
+        "Cannot incorporate physical domain topology masks easily without breaking Meek completeness"
+      ],
+      "treatment_of_temporal_data": "Standard PC ignores temporal ordering. PCMCI uses lagged conditional independence tests but requires hundreds of timesteps.",
+      "treatment_of_latent_confounding": "Standard PC violates guarantees under latent confounding (FCI algorithm required, which produces PAGs with ambiguous circle marks).",
+      "computational_complexity": "O(N^q) where q is maximum conditioning set size; exponential in worst-case dense graphs.",
+      "interpretability": "Low-to-moderate; conditional independence p-values provide no quantitative structural equation or effect magnitude.",
+      "compatibility_with_interventions": "Poor; does not naturally output structural equation parameters required for Pearl's do-operator counterfactual simulation.",
+      "suitability_for_causalops": "UNSUITABLE for primary engine. 80 experiments x 40 steps is too small for high-power conditional independence tests on 50 variables."
+    },
+    {
+      "method_name": "DirectLiNGAM / VAR-LiNGAM (Functional Linear Non-Gaussian)",
+      "family": "Functional causal models via independent component analysis / residual regression",
+      "core_principles": "Assumes linear structural equation model X = B*X + e where noise terms e_i are non-Gaussian and independent. Exploits non-Gaussianity to uniquely orient all edges and identify B.",
+      "assumptions": [
+        "Causal Sufficiency",
+        "Linear structural equations: X = B*X + e",
+        "Acyclicity of contemporaneous effects B_0",
+        "Non-Gaussian continuous noise distributions",
+        "No unmeasured confounders"
+      ],
+      "strengths": [
+        "Uniquely identifies the full DAG and structural coefficients (no Markov equivalence ambiguity)",
+        "VAR-LiNGAM extends to autoregressive time series X(t) = sum B_k X(t-k) + e(t)",
+        "Closed-form structural equations immediately support counterfactual calculations"
+      ],
+      "weaknesses": [
+        "Strict linearity assumption may miss non-linear saturation thresholds (e.g. pool capacity limits)",
+        "Sensitive to noise outliers and near-Gaussian telemetry signals",
+        "Does not enforce physical microservice routing constraints unless manually post-thresholded",
+        "Unconstrained discovery can produce spurious cross-branch edges under correlated traffic"
+      ],
+      "treatment_of_temporal_data": "VAR-LiNGAM explicitly decomposes into contemporaneous (lag 0) and lagged (lag 1..p) structural matrices.",
+      "treatment_of_latent_confounding": "Latent confounding violates ICA independence, inducing spurious bidirectional edges.",
+      "computational_complexity": "O(N^4) for iterative regression / mutual information evaluations.",
+      "interpretability": "High; provides explicit numeric matrix of connection weights B.",
+      "compatibility_with_interventions": "High; structural matrix B allows direct algebraic evaluation of do(X_i = c) and counterfactual abduction.",
+      "suitability_for_causalops": "MODERATE-HIGH as a component, but requires hard topological priors to prevent impossible cross-service edges."
+    },
+    {
+      "method_name": "NOTEARS / DYNOTEARS (Continuous Optimization / Score-Based)",
+      "family": "Score-based structural learning via continuous acyclicity penalty",
+      "core_principles": "Formulates DAG learning as continuous optimization: min ||X - X*W||_F^2 + lambda*||W||_1 subject to smooth constraint h(W) = Tr(exp(W o W)) - d = 0.",
+      "assumptions": [
+        "Causal Sufficiency",
+        "Linear or smooth non-linear structural relations",
+        "Equal noise variances across nodes (or known scale)",
+        "Stationary noise"
+      ],
+      "strengths": [
+        "Replaces combinatorial search over super-exponential DAG space with smooth continuous optimization",
+        "DYNOTEARS naturally handles dynamic time series with intra-slice W_0 and inter-slice W_lag matrices",
+        "Naturally accommodates prior knowledge via binary mask matrices M (forcing W_ij = 0)"
+      ],
+      "weaknesses": [
+        "Non-convex optimization; can become trapped in local minima",
+        "Under equal noise variance assumption, can falsely invert edge directions if telemetry variances differ widely",
+        "Sensitive to hyperparameter tuning (lambda penalty vs rho penalty coefficient)",
+        "High compute overhead for large variable counts"
+      ],
+      "treatment_of_temporal_data": "DYNOTEARS separates contemporaneous W_0 (subject to h(W_0)=0) and lagged W_lag (unconstrained acyclic by temporal ordering).",
+      "treatment_of_latent_confounding": "Sensitive; unobserved confounders distort the score landscape.",
+      "computational_complexity": "O(k * d^3) where k is optimization steps and d is variable count.",
+      "interpretability": "High; outputs continuous weighted adjacency matrices.",
+      "compatibility_with_interventions": "High; learned weights W yield structural equation model for simulation.",
+      "suitability_for_causalops": "VIABLE candidate, but optimization stability and equal-variance assumptions pose reliability risks."
+    },
+    {
+      "method_name": "Topology-Constrained Time-Lagged SCM (Primary Selected Method)",
+      "family": "Structural Causal Model with Hard Topological Priors & Lagged Autoregressive Dynamics",
+      "core_principles": "Imposes system-knowledge graph constraints as a hard binary adjacency mask M in {0, 1}^(d x d). Formulates failure propagation as a Time-Lagged Structural Causal Model: X_i(t) = sum_{k=1}^P sum_{j in Parents(i)} A_{ij}^{(k)} X_j(t-k) + B_i X_i(t-1) + epsilon_i(t). Fits structural coefficients via regularized ridge/LASSO regression over topologically allowed pathways.",
+      "assumptions": [
+        "Inter-service propagation strictly follows physical invocation topology and backpressure paths",
+        "Temporal Arrow of Time: cause precedes effect by at least tau >= 0 discrete steps",
+        "Additive structural equations over operational perturbation ranges",
+        "Causal sufficiency within the monitored microservice cluster boundary"
+      ],
+      "strengths": [
+        "Zero physically implausible edges: impossible shortcuts and cross-branch edges are mathematically forbidden by construction",
+        "Acyclicity guaranteed by time-unfolding: unrolling across discrete time steps converts all lagged relations into a strictly acyclic DAG",
+        "Optimal sample efficiency: restricts parameter estimation to the sparse set of physically valid connections, eliminating overfitting on 80 experiments",
+        "Direct counterfactual engine: Pearl's 3-step abduction-action-prediction reduces to exact matrix algebra",
+        "Seamless integration with Phase 2 GNN: provides edge-weight priors and causal validation for neural attention"
+      ],
+      "weaknesses": [
+        "Requires accurate system call graph topology (readily available in microservice architectures from OpenTelemetry / service mesh)",
+        "Does not discover unknown hidden shadow services outside the telemetry boundary"
+      ],
+      "treatment_of_temporal_data": "Native discrete-time representation matching the 1.0-second telemetry snapshot cadence of CausalOps.",
+      "treatment_of_latent_confounding": "Exogenous noise abduction captures unobserved variance without biasing structural topology.",
+      "computational_complexity": "O(N * d_local * T), highly efficient convex quadratic programming per node.",
+      "interpretability": "Maximum; every non-zero coefficient corresponds to a verifiable physical service-to-service metric transfer function.",
+      "compatibility_with_interventions": "Perfect; directly models do(X_s = normal) and computes factual vs counterfactual trajectories.",
+      "suitability_for_causalops": "OPTIMAL. Selected as the primary causal inference methodology for Phase 3B."
+    }
+  ],
+  "selection_rationale": {
+    "primary_method": "Topology-Constrained Time-Lagged Structural Causal Model (SCM)",
+    "benchmark_comparison_methods": [
+      "Unconstrained DYNOTEARS (to demonstrate the necessity of topological constraints)",
+      "VAR-LiNGAM (to evaluate non-Gaussian orientation without priors)"
+    ],
+    "justification_summary": "In cloud microservice operations, the physical invocation topology is not an unknown black box—it is known engineering fact. Discarding this prior and running unconstrained discovery wastes sample complexity and produces physically nonsensical artifacts (such as database faults directly jumping to payment services). Constraining the lagged SCM with the verified call topology guarantees physical validity, prevents overfitting on the frozen 80-experiment dataset, and provides an exact mathematical engine for counterfactual remediation validation."
+  }
+}

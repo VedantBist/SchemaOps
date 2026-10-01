@@ -1,0 +1,4305 @@
+{
+  "api-gateway.p50_latency": {
+    "node": "api-gateway",
+    "feature": "p50_latency",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p50_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p50_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p50_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p50_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p50_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8882356238523534,
+      "mse": 0.1206414921970483,
+      "residual_std": 0.34733484161115813,
+      "intercept": 0.006008073936613706,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9632187207335955,
+        0.003981193841815829,
+        1.5897421080280535e-05,
+        -0.0001348736361272368,
+        -0.032648057660064775
+      ]
+    }
+  },
+  "api-gateway.p95_latency": {
+    "node": "api-gateway",
+    "feature": "p95_latency",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p95_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8882370487546946,
+      "mse": 0.12064102617577849,
+      "residual_std": 0.3473341707574688,
+      "intercept": 0.005997593465766643,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.4826362652320502,
+        0.48263825408863364,
+        0.0010016213911170366,
+        0.0010014696876549556,
+        2.08612408464851e-06,
+        1.929985163854098e-06,
+        -3.379704429314639e-05,
+        -3.395332682894693e-05,
+        -0.016326158757327344,
+        -0.016326387434123204
+      ]
+    }
+  },
+  "api-gateway.p99_latency": {
+    "node": "api-gateway",
+    "feature": "p99_latency",
+    "predictors_count": 35,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p50_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p95_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "p99_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8893717625522136,
+      "mse": 0.11941446763572294,
+      "residual_std": 0.3455639848649204,
+      "intercept": 0.01108689173231947,
+      "n_samples": 1924,
+      "n_features": 35,
+      "coefficients": [
+        0.24501284296351764,
+        0.2450139720377581,
+        0.24501212081503604,
+        0.0,
+        0.010611793200393333,
+        0.24501421062844023,
+        -0.03472012945173905,
+        0.000712873367362128,
+        0.0007129176763945952,
+        0.0007128107567630486,
+        0.0,
+        0.0029668227618990196,
+        0.0007128110802330219,
+        -0.004868080640853242,
+        -4.8980759060270465e-05,
+        -4.893985145459066e-05,
+        -4.904125900484737e-05,
+        0.0,
+        0.002655066616100192,
+        -4.9047516130918e-05,
+        -0.0024797070242054925,
+        -0.00010418338916464326,
+        -0.00010414266134041107,
+        -0.00010424390676561169,
+        0.0,
+        0.005986418976628312,
+        -0.0001042504467474009,
+        -0.0056402919571071465,
+        -0.004140271872915218,
+        -0.004140248856479852,
+        -0.004140322094603524,
+        0.0,
+        0.006425581538044172,
+        -0.004140362411994893,
+        -0.03288075259357516
+      ]
+    }
+  },
+  "api-gateway.error_rate": {
+    "node": "api-gateway",
+    "feature": "error_rate",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "api-gateway",
+        "target_variable": "error_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9108963633958486,
+      "mse": 0.10002212802676955,
+      "residual_std": 0.31626275156390066,
+      "intercept": 0.002722948682072422,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.48616657396311835,
+        0.4861670079714809,
+        0.0012251737869468004,
+        0.001225203468975953,
+        2.993408640057261e-06,
+        3.0220883966242185e-06,
+        -3.169163386447338e-05,
+        -3.1662987523487994e-05,
+        -0.012572960277571309,
+        -0.012572942101726619
+      ]
+    }
+  },
+  "api-gateway.request_rate": {
+    "node": "api-gateway",
+    "feature": "request_rate",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "request_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "api-gateway.pool_utilization": {
+    "node": "api-gateway",
+    "feature": "pool_utilization",
+    "predictors_count": 25,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "api-gateway",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8287197405007454,
+      "mse": 0.1678026119893859,
+      "residual_std": 0.409637171151967,
+      "intercept": 0.017571307268216207,
+      "n_samples": 1924,
+      "n_features": 25,
+      "coefficients": [
+        0.011838091976919105,
+        0.0,
+        0.8327178740239304,
+        0.011838207933817244,
+        0.089032182191328,
+        -0.006441843382569736,
+        0.0,
+        0.11790366600089532,
+        -0.006441902737292649,
+        -0.1058932689675396,
+        -0.0014448439783909968,
+        0.0,
+        0.035066612574420515,
+        -0.0014448651489870569,
+        -0.03250071201673072,
+        -0.00046957218645109607,
+        0.0,
+        0.015393883170535961,
+        -0.00046958609526233353,
+        -0.014582761005279506,
+        0.0035133020824500657,
+        0.0,
+        -0.007519013315454745,
+        0.0035133224621736003,
+        -0.05535297091898868
+      ]
+    }
+  },
+  "api-gateway.db_latency": {
+    "node": "api-gateway",
+    "feature": "db_latency",
+    "predictors_count": 0,
+    "predictors": [],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 0
+    }
+  },
+  "order-service.p50_latency": {
+    "node": "order-service",
+    "feature": "p50_latency",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p50_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p50_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p50_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p50_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p50_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8882356238382112,
+      "mse": 0.12064222991127377,
+      "residual_std": 0.34733590357357785,
+      "intercept": 0.006008157150441076,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9632187457339505,
+        0.003981169800163657,
+        1.589722865767032e-05,
+        -0.00013487281923145542,
+        -0.03264805772674455
+      ]
+    }
+  },
+  "order-service.p95_latency": {
+    "node": "order-service",
+    "feature": "p95_latency",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p95_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8882370489904883,
+      "mse": 0.120640023767057,
+      "residual_std": 0.3473327277511536,
+      "intercept": 0.005997061668059411,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.4826361433641525,
+        0.4826348931675527,
+        0.0010015014641430303,
+        0.001001584576374692,
+        1.965115952594562e-06,
+        2.0509873115986983e-06,
+        -3.3918077343867276e-05,
+        -3.38321225163494e-05,
+        -0.016326279460759475,
+        -0.016326148415675545
+      ]
+    }
+  },
+  "order-service.p99_latency": {
+    "node": "order-service",
+    "feature": "p99_latency",
+    "predictors_count": 45,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p50_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p95_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8893897164096644,
+      "mse": 0.1193971310262013,
+      "residual_std": 0.34553889943999255,
+      "intercept": 0.011178911108140316,
+      "n_samples": 1924,
+      "n_features": 45,
+      "coefficients": [
+        0.3241061985549136,
+        0.3241052871052602,
+        0.32410706987235566,
+        0.0,
+        -0.01750426307056189,
+        0.009474858165276465,
+        -0.009509285155939557,
+        0.005114507913553675,
+        -0.00669340957780057,
+        0.0024487498158854634,
+        0.0024487287907803286,
+        0.0024487209929962847,
+        0.0,
+        -0.005233683236123949,
+        -0.00402550321494622,
+        0.0033622797745667603,
+        -0.0024505795483023575,
+        0.002789679928029937,
+        9.188092689603935e-05,
+        9.186646931502538e-05,
+        9.184548130850492e-05,
+        0.0,
+        -0.0002853510274236069,
+        -0.0002442883892724706,
+        0.00029448882003768514,
+        -0.00012477851059960104,
+        0.00019281113456709784,
+        1.424364260826528e-05,
+        1.4229405796666303e-05,
+        1.4207978095146933e-05,
+        0.0,
+        -0.00023142702441515735,
+        0.00016214474845730736,
+        2.793647866772701e-05,
+        3.993216506853365e-05,
+        8.664641245850643e-05,
+        -0.006691664708535829,
+        -0.006691660370468317,
+        -0.006691719180048858,
+        0.0,
+        -0.022818531974584277,
+        0.005004996087235968,
+        -0.005842359018018397,
+        0.002484762760960435,
+        -0.0037790313773869437
+      ]
+    }
+  },
+  "order-service.error_rate": {
+    "node": "order-service",
+    "feature": "error_rate",
+    "predictors_count": 15,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "order-service",
+        "target_variable": "error_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9108940733835148,
+      "mse": 0.100024865505642,
+      "residual_std": 0.31626707938962284,
+      "intercept": 0.002740047655423003,
+      "n_samples": 1924,
+      "n_features": 15,
+      "coefficients": [
+        0.9664853684389442,
+        0.0011315696021443826,
+        0.005276817650761673,
+        0.008314433827423261,
+        -0.0015546331855066907,
+        -0.005358932029561654,
+        0.0001016508904108573,
+        -2.7830684325786036e-05,
+        -9.417406139402263e-05,
+        -0.0002107749526807411,
+        3.65893999954438e-05,
+        0.00013432649819282284,
+        -0.024879369591065268,
+        -0.0004898305153407312,
+        -0.00031862226070247156
+      ]
+    }
+  },
+  "order-service.request_rate": {
+    "node": "order-service",
+    "feature": "request_rate",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "api-gateway",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "request_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "order-service.pool_utilization": {
+    "node": "order-service",
+    "feature": "pool_utilization",
+    "predictors_count": 35,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "order-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.820859891285752,
+      "mse": 0.17339308420449315,
+      "residual_std": 0.4164049521853615,
+      "intercept": 0.018397807971651026,
+      "n_samples": 1924,
+      "n_features": 35,
+      "coefficients": [
+        0.01720454596007055,
+        0.0,
+        0.9193105368488365,
+        0.001889597170610421,
+        0.005633385714498192,
+        -0.0005195875497142713,
+        0.00598352426500809,
+        -0.013767295289772864,
+        0.0,
+        0.019642106972339115,
+        0.005891044407533811,
+        -0.013762141924473186,
+        0.003982512143999496,
+        -0.010779467709781169,
+        -0.000915574206981817,
+        0.0,
+        0.0009948893422482726,
+        0.0007195840171217493,
+        -0.0009555017166280381,
+        0.000378480582440318,
+        -0.0006513848916293857,
+        0.0005849657659622537,
+        0.0,
+        -0.000945018210453406,
+        5.219619218775047e-05,
+        0.0003994645633812083,
+        -8.805120863480504e-05,
+        0.00044375509898419437,
+        0.0017073069234459066,
+        0.0,
+        -0.058864089092876194,
+        0.008630832259076522,
+        -0.009719185878809114,
+        0.004025645197807558,
+        -0.006051153270232696
+      ]
+    }
+  },
+  "order-service.db_latency": {
+    "node": "order-service",
+    "feature": "db_latency",
+    "predictors_count": 0,
+    "predictors": [],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 0
+    }
+  },
+  "inventory-service.p50_latency": {
+    "node": "inventory-service",
+    "feature": "p50_latency",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p50_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p50_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p50_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p50_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p50_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9014307715227452,
+      "mse": 0.10886170461290443,
+      "residual_std": 0.32994197158425365,
+      "intercept": 0.004097956233422073,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9671904701167319,
+        0.004446379376689022,
+        1.9844722813189383e-05,
+        -0.0001296040953237561,
+        -0.02821231487020601
+      ]
+    }
+  },
+  "inventory-service.p95_latency": {
+    "node": "inventory-service",
+    "feature": "p95_latency",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p95_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.901432326651167,
+      "mse": 0.10885702896921645,
+      "residual_std": 0.3299348859536021,
+      "intercept": 0.004088762820428721,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.48473741129986836,
+        0.4847308014843338,
+        0.001119375971409995,
+        0.0011193369277962958,
+        2.521543011708566e-06,
+        2.4976729868044097e-06,
+        -3.256053561510675e-05,
+        -3.258393478245366e-05,
+        -0.014107979726589248,
+        -0.014107811886215222
+      ]
+    }
+  },
+  "inventory-service.p99_latency": {
+    "node": "inventory-service",
+    "feature": "p99_latency",
+    "predictors_count": 40,
+    "predictors": [
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9015487673156363,
+      "mse": 0.10872729046604089,
+      "residual_std": 0.32973821505254874,
+      "intercept": 0.004771903410148617,
+      "n_samples": 1924,
+      "n_features": 40,
+      "coefficients": [
+        0.3239339123569725,
+        0.3239295244132138,
+        0.32392780860879694,
+        0.0,
+        -0.0031472663310897924,
+        0.002314659607898178,
+        -0.004871877818121221,
+        0.0023146596078982913,
+        0.0022150213345417157,
+        0.0022150052394385544,
+        0.0022149791446640084,
+        0.0,
+        -0.005710973566377614,
+        -0.0016627005403162174,
+        0.003615716186919925,
+        -0.0016627005403162187,
+        6.928808254464716e-05,
+        6.930114599996435e-05,
+        6.928633547359546e-05,
+        0.0,
+        -0.00024597209917852423,
+        -0.0001039214086311507,
+        0.0002732650180970502,
+        -0.00010392140863114706,
+        2.183696273870988e-06,
+        2.1976714639277747e-06,
+        2.1832194744221433e-06,
+        0.0,
+        -8.003773472102628e-05,
+        1.4402878654770453e-05,
+        3.040338154112227e-05,
+        1.4402878654774724e-05,
+        -0.007111933763837784,
+        -0.007111823160603071,
+        -0.007111800190093951,
+        0.0,
+        -0.009046343459363572,
+        0.0005208190768624208,
+        -0.0009817225546809997,
+        0.0005208190768624221
+      ]
+    }
+  },
+  "inventory-service.error_rate": {
+    "node": "inventory-service",
+    "feature": "error_rate",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "inventory-service",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "inventory-service",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "inventory-service",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "inventory-service",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "error_rate",
+        "target_node": "inventory-service",
+        "target_variable": "error_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.923669303275154,
+      "mse": 0.08728861810683833,
+      "residual_std": 0.2954464724900914,
+      "intercept": 0.0006762270116526855,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9731006046644274,
+        0.005606727190404449,
+        3.1602688293108225e-05,
+        -0.00012160320638482403,
+        -0.02113767627084053
+      ]
+    }
+  },
+  "inventory-service.request_rate": {
+    "node": "inventory-service",
+    "feature": "request_rate",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "request_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "inventory-service.pool_utilization": {
+    "node": "inventory-service",
+    "feature": "pool_utilization",
+    "predictors_count": 30,
+    "predictors": [
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.8873383107081111,
+      "mse": 0.1214924490220583,
+      "residual_std": 0.34855766957859113,
+      "intercept": 0.006119695532743982,
+      "n_samples": 1924,
+      "n_features": 30,
+      "coefficients": [
+        0.01738649208467315,
+        0.0,
+        0.9437786130144685,
+        -0.0033870773227136276,
+        0.014220049032250277,
+        -0.0033870773227125017,
+        -0.015724743032749913,
+        0.0,
+        0.021358591739391992,
+        0.0034560516168192644,
+        -0.013823232156888215,
+        0.003456051616802829,
+        -0.0008470501806396492,
+        0.0,
+        0.0009731344943590615,
+        0.000373823819835042,
+        -0.0009985031757925233,
+        0.0003738238161982988,
+        0.0005011350115164912,
+        0.0,
+        -0.0006876505271509501,
+        -8.239699164612555e-05,
+        0.0003894998018059573,
+        -8.239699173916621e-05,
+        0.00014120162059591012,
+        0.0,
+        -0.033005807775937396,
+        0.0006105110942966047,
+        -0.0012112182385746603,
+        0.000610511094296504
+      ]
+    }
+  },
+  "inventory-service.db_latency": {
+    "node": "inventory-service",
+    "feature": "db_latency",
+    "predictors_count": 0,
+    "predictors": [],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 0
+    }
+  },
+  "payment-service.p50_latency": {
+    "node": "payment-service",
+    "feature": "p50_latency",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p50_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p50_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p50_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p50_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p50_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9204300132553431,
+      "mse": 0.09057669885116093,
+      "residual_std": 0.30095962993591174,
+      "intercept": 0.0013469023520778917,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9723120242246114,
+        0.005395585011354975,
+        2.9259654283035014e-05,
+        -0.0001226869381452479,
+        -0.022138738923492912
+      ]
+    }
+  },
+  "payment-service.p95_latency": {
+    "node": "payment-service",
+    "feature": "p95_latency",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p95_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9204318423754864,
+      "mse": 0.09057458269946059,
+      "residual_std": 0.3009561142416957,
+      "intercept": 0.0013433449097282717,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.48753424784019506,
+        0.4875341563038662,
+        0.001360238211749603,
+        0.0013602379632490938,
+        3.7089347215150865e-06,
+        3.7089391336831386e-06,
+        -3.087716770184292e-05,
+        -3.087715716787175e-05,
+        -0.011070733766631407,
+        -0.011070731682646792
+      ]
+    }
+  },
+  "payment-service.p99_latency": {
+    "node": "payment-service",
+    "feature": "p99_latency",
+    "predictors_count": 25,
+    "predictors": [
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p50_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p95_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "p99_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9204441572080412,
+      "mse": 0.09056059840177658,
+      "residual_std": 0.3009328802270974,
+      "intercept": 0.0015120024638566737,
+      "n_samples": 1924,
+      "n_features": 25,
+      "coefficients": [
+        0.3253933100125999,
+        0.32539324891426824,
+        0.3253933100126355,
+        0.0,
+        -0.000507913292928455,
+        0.0009790310711782625,
+        0.0009790308889458506,
+        0.0009790310711783492,
+        0.0,
+        -0.0017230820939532219,
+        5.8944576703113854e-06,
+        5.894457322460072e-06,
+        5.894457671823788e-06,
+        0.0,
+        -1.8963834989870362e-05,
+        -1.6809006071604707e-05,
+        -1.6809007702160176e-05,
+        -1.6809007878592853e-05,
+        0.0,
+        1.799148201175729e-05,
+        -0.006938059233332342,
+        -0.006938057933029958,
+        -0.006938059233234115,
+        0.0,
+        -0.002268809102736449
+      ]
+    }
+  },
+  "payment-service.error_rate": {
+    "node": "payment-service",
+    "feature": "error_rate",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "payment-service",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "payment-service",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "payment-service",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "payment-service",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "error_rate",
+        "target_node": "payment-service",
+        "target_variable": "error_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9182696879145539,
+      "mse": 0.09270732403511597,
+      "residual_std": 0.3044787743589296,
+      "intercept": 0.0017314819239649462,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9717688605363851,
+        0.005266377728266097,
+        2.787053024492724e-05,
+        -0.000123470860850611,
+        -0.022811762067338565
+      ]
+    }
+  },
+  "payment-service.request_rate": {
+    "node": "payment-service",
+    "feature": "request_rate",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "order-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "request_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "payment-service.pool_utilization": {
+    "node": "payment-service",
+    "feature": "pool_utilization",
+    "predictors_count": 15,
+    "predictors": [
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "p99_latency",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "request_rate",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "payment-service",
+        "source_variable": "pool_utilization",
+        "target_node": "payment-service",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9113569021162146,
+      "mse": 0.09939659028945746,
+      "residual_std": 0.31527224788975233,
+      "intercept": 0.002789589660190425,
+      "n_samples": 1924,
+      "n_features": 15,
+      "coefficients": [
+        0.005546110099219667,
+        0.0,
+        0.9667037716797576,
+        -0.0049973413337411005,
+        0.0,
+        0.007806667919112638,
+        -8.301901167253178e-05,
+        0.0,
+        8.699640522991227e-05,
+        0.00013318519607574816,
+        0.0,
+        -0.00020471365285128554,
+        0.0003254651150543211,
+        0.0,
+        -0.025190674814164846
+      ]
+    }
+  },
+  "payment-service.db_latency": {
+    "node": "payment-service",
+    "feature": "db_latency",
+    "predictors_count": 0,
+    "predictors": [],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 0
+    }
+  },
+  "inventory-db.p50_latency": {
+    "node": "inventory-db",
+    "feature": "p50_latency",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p50_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p50_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p50_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p50_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p50_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9120752989202812,
+      "mse": 0.09874266242161912,
+      "residual_std": 0.3142334521046719,
+      "intercept": 0.0026590406443481734,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9701525592681953,
+        0.004929719138829449,
+        2.4410364172074517e-05,
+        -0.00012571865164983097,
+        -0.02476605122474242
+      ]
+    }
+  },
+  "inventory-db.p95_latency": {
+    "node": "inventory-db",
+    "feature": "p95_latency",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p95_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9120769937978194,
+      "mse": 0.09874311799418756,
+      "residual_std": 0.31423417699891837,
+      "intercept": 0.0026526612533241123,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.48633861612533275,
+        0.48634442562716595,
+        0.0012419095047738612,
+        0.0012419243993372175,
+        3.0905425174645487e-06,
+        3.0906371507905286e-06,
+        -3.161710073154086e-05,
+        -3.1617418995430506e-05,
+        -0.012384588494463548,
+        -0.012384736372073223
+      ]
+    }
+  },
+  "inventory-db.p99_latency": {
+    "node": "inventory-db",
+    "feature": "p99_latency",
+    "predictors_count": 30,
+    "predictors": [
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p50_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p95_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "p99_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9120937327271741,
+      "mse": 0.09872551142728803,
+      "residual_std": 0.31420616070867874,
+      "intercept": 0.0027792658174666043,
+      "n_samples": 1924,
+      "n_features": 30,
+      "coefficients": [
+        0.24328745014684405,
+        0.2432903564589752,
+        0.243291825443778,
+        0.0,
+        0.0006841618088675636,
+        0.24329182544389114,
+        0.0013826556912921693,
+        0.0013826724038084432,
+        0.0013826806312592544,
+        0.0,
+        -0.004753620415547466,
+        0.0013826806311592332,
+        3.105705503858723e-05,
+        3.1057623408366044e-05,
+        3.1057694413966526e-05,
+        0.0,
+        -0.00013001632621179715,
+        3.1057698508412404e-05,
+        -8.644579525411408e-06,
+        -8.644529557600291e-06,
+        -8.644671552177778e-06,
+        0.0,
+        8.506822479849718e-06,
+        -8.644671580037042e-06,
+        -0.005286790578559634,
+        -0.005286853577179133,
+        -0.005286885592669032,
+        0.0,
+        -0.004215979102412548,
+        -0.005286885592666288
+      ]
+    }
+  },
+  "inventory-db.error_rate": {
+    "node": "inventory-db",
+    "feature": "error_rate",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "inventory-db",
+        "source_variable": "error_rate",
+        "target_node": "inventory-db",
+        "target_variable": "error_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "error_rate",
+        "target_node": "inventory-db",
+        "target_variable": "error_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "error_rate",
+        "target_node": "inventory-db",
+        "target_variable": "error_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "error_rate",
+        "target_node": "inventory-db",
+        "target_variable": "error_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "error_rate",
+        "target_node": "inventory-db",
+        "target_variable": "error_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 1.9721522630525295e-31,
+      "residual_std": 0.0,
+      "intercept": -1.000001060457507,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        3.471895173013456e-26,
+        3.471895173013456e-26,
+        3.471895173013456e-26,
+        3.471895173013456e-26,
+        3.471895173013456e-26
+      ]
+    }
+  },
+  "inventory-db.request_rate": {
+    "node": "inventory-db",
+    "feature": "request_rate",
+    "predictors_count": 10,
+    "predictors": [
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-service",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "request_rate",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 1.0,
+      "mse": 0.0,
+      "residual_std": 0.0,
+      "intercept": 0.0,
+      "n_samples": 1924,
+      "n_features": 10,
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "inventory-db.pool_utilization": {
+    "node": "inventory-db",
+    "feature": "pool_utilization",
+    "predictors_count": 20,
+    "predictors": [
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "p99_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "request_rate",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "pool_utilization",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "pool_utilization",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9080320344257169,
+      "mse": 0.10262141396007757,
+      "residual_std": 0.32034577250227225,
+      "intercept": 0.0032153086550979273,
+      "n_samples": 1924,
+      "n_features": 20,
+      "coefficients": [
+        0.009716060749113214,
+        0.0,
+        0.9523396802690024,
+        0.009716060749057485,
+        -0.009120826925522513,
+        0.0,
+        0.020342813901694755,
+        -0.009120826925518298,
+        -0.00029164826436779527,
+        0.0,
+        0.0005983481088900945,
+        -0.00029164826437106577,
+        0.00024390538927691302,
+        0.0,
+        -0.0005440922469434975,
+        0.00024390538927638252,
+        2.3231991184585646e-05,
+        0.0,
+        -0.026100484768295452,
+        2.323199118494327e-05
+      ]
+    }
+  },
+  "inventory-db.db_latency": {
+    "node": "inventory-db",
+    "feature": "db_latency",
+    "predictors_count": 5,
+    "predictors": [
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "db_latency",
+        "lag": 1
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "db_latency",
+        "lag": 2
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "db_latency",
+        "lag": 3
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "db_latency",
+        "lag": 4
+      },
+      {
+        "source_node": "inventory-db",
+        "source_variable": "db_latency",
+        "target_node": "inventory-db",
+        "target_variable": "db_latency",
+        "lag": 5
+      }
+    ],
+    "fit_metrics": {
+      "r2": 0.9120752990817433,
+      "mse": 0.09874621383144042,
+      "residual_std": 0.3142391029637152,
+      "intercept": 0.0026590884584290417,
+      "n_samples": 1924,
+      "n_features": 5,
+      "coefficients": [
+        0.9701527399576779,
+        0.004929544543401696,
+        2.440863067300406e-05,
+        -0.00012571418582329295,
+        -0.02476605144906767
+      ]
+    }
+  }
+}

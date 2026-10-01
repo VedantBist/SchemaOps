@@ -1,0 +1,33 @@
+flowchart TD
+    subgraph Step1["Step 1: Abduction (Exogenous Noise Reconstruction)"]
+        OBS["Factual Telemetry Trajectory<br/>Y_obs(t) for t &isin; [t0, t_current]"]
+        DAG["Topology DAG G = (V, E)<br/>api-gateway &rarr; order &rarr; inventory &rarr; db<br/>api-gateway &rarr; order &rarr; payment"]
+        FIT["Fitted Structural Equations<br/>Y_i(t) = &Sigma; &beta;_j Y_j(t) + &Sigma; &Phi;_p Y_i(t-p) + U_i(t)"]
+        OBS & DAG & FIT --> ABD["Noise Estimation (Abduction)<br/>U_i(t) = Y_obs,i(t) - f_i(PA_i(t), Lags(t))"]
+    end
+
+    subgraph Step2["Step 2: Action / Graph Mutilation (Intervention)"]
+        INT["Selected Candidate Remediation<br/>e.g. ACT-INV-01 (Restart Pod / Flush Pool)<br/>Target: X = inventory-service, Variable: p99_latency"]
+        MUT["Graph Mutilation: do(X = x*)<br/>1. Sever all incoming parental edges PA_X &rarr; X<br/>2. Force X(t) = x*(t) = baseline_normal"]
+        ABD & INT --> MUT
+    end
+
+    subgraph Step3["Step 3: Prediction (Counterfactual Rollout)"]
+        FWD["Forward Temporal Rollout (t0 &rarr; t0 + H)<br/>Evaluate downstream nodes along topologically sorted DAG<br/>Y_cf,i(t) = f_mutilated,i(PA_i(t), Lags_cf(t)) + U_i(t)"]
+        MUT --> FWD
+    end
+
+    subgraph Impact["Step 4: Avoided Impact Quantification"]
+        FWD --> CMP["Comparative Delta Evaluation<br/>&Delta;Y(t) = Y_factual(t) - Y_counterfactual(t)"]
+        CMP --> MET1["Avoided Gateway Latency<br/>Peak: 166.83 ms | Mean: 113.49 ms | Cumulative: 3,972 ms-s"]
+        CMP --> MET2["Avoided Error Exposure<br/>Cumulative Avoided Failed Requests: 0.0"]
+        CMP --> MET3["Axiomatic Validation Check<br/>1. Zero-Intervention Identity (&Delta;=0)<br/>2. Branch Isolation (payment &Delta;=0)<br/>3. Temporal Pre-Intervention Invariance"]
+    end
+
+    classDef stage fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4;
+    classDef highlight fill:#181825,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
+    classDef metric fill:#313244,stroke:#f9e2af,stroke-width:2px,color:#cdd6f4;
+
+    class ABD,MUT,FWD stage;
+    class CMP highlight;
+    class MET1,MET2,MET3 metric;

@@ -1,0 +1,42 @@
+flowchart TD
+    subgraph Ingestion["Anomaly Ingestion & Deduplication"]
+        RAW[Incoming Telemetry Anomaly Events] --> DEDUP{Deduplication Engine}
+        DEDUP -->|Matching Fingerprint within TTL| AGG[Increment repetition_count<br/>Update last_seen_at]
+        DEDUP -->|New Anomaly Fingerprint| CORR{Causal Correlation Engine}
+    end
+
+    subgraph Correlation["Topology Causal Correlation"]
+        CORR -->|DAG Upstream Active Root Found| SYM[Mark as Downstream Symptom<br/>Set parent_incident_id<br/>State: CORRELATED]
+        CORR -->|Independent Root Anomaly| ROOT[Create Root IncidentRecord<br/>Assign Correlation Group<br/>State: DETECTED]
+    end
+
+    subgraph Lifecycle["Incident State Machine"]
+        ROOT --> S_INV[INVESTIGATING]
+        S_INV --> S_RCA[RCA_COMPLETE]
+        S_RCA --> S_REC[REMEDIATION_RECOMMENDED]
+        S_REC --> S_APP[APPROVAL_PENDING]
+        
+        SCHED{Prioritized Scheduler &<br/>Conflict Detector}
+        S_APP --> SCHED
+
+        SCHED -->|Conflict Detected / Locked| WAIT[Queue in SCHEDULED / WAITING]
+        SCHED -->|No Conflict & Lock Acquired| S_EXEC[REMEDIATION_EXECUTING]
+
+        S_EXEC --> S_VERIF[VERIFYING]
+        S_VERIF -->|Telemetry Healthy| S_REC_OK[RECOVERED / CLOSED]
+        S_VERIF -->|Verification Failed| S_RB[ROLLBACK]
+        S_RB -->|Rollback Double Fault| S_MAN[MANUAL_INTERVENTION]
+    end
+
+    subgraph Persistence["Journal Persistence & Replay Engine"]
+        ROOT & SYM & S_EXEC & S_REC_OK & S_RB & S_MAN -->|JSON Event Line| JRN[(orchestration_journal.jsonl<br/>Append-Only Log)]
+        JRN -.->|Cold Start Replay| REPLAY[Deterministic Replay Engine<br/>Reconstructs In-Memory State]
+    end
+
+    classDef stage fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4;
+    classDef state fill:#181825,stroke:#f38ba8,stroke-width:2px,color:#cdd6f4;
+    classDef success fill:#1e293b,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
+
+    class RAW,DEDUP,CORR stage;
+    class S_INV,S_RCA,S_REC,S_APP,S_EXEC,S_VERIF,S_RB,S_MAN state;
+    class S_REC_OK success;

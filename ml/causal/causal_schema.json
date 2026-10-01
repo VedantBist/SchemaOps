@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CausalOps Causal Schema Specification",
+  "version": "1.0.0",
+  "phase": "3A",
+  "source_dataset_version": "tg_v1",
+  "causal_unit": {
+    "entity": "Microservice System Architecture",
+    "spatial_granularity": "Per-service telemetry snapshot",
+    "temporal_granularity_seconds": 1.0,
+    "observation_window_steps": 40,
+    "formal_unit_definition": "A multivariate temporal trajectory U = {X_i(t) | i in Nodes, t in [0, T-1]} representing system behavior under an experimental condition"
+  },
+  "nodes": [
+    "api-gateway",
+    "order-service",
+    "inventory-service",
+    "payment-service",
+    "inventory-db"
+  ],
+  "node_count": 5,
+  "node_indices": {
+    "api-gateway": 0,
+    "order-service": 1,
+    "inventory-service": 2,
+    "payment-service": 3,
+    "inventory-db": 4
+  },
+  "service_dependency_graph": {
+    "edge_count": 4,
+    "edge_semantics": "SYNCHRONOUS_HTTP_OR_JDBC_CALL (caller -> callee)",
+    "directed_edges": [
+      ["api-gateway", "order-service"],
+      ["order-service", "inventory-service"],
+      ["order-service", "payment-service"],
+      ["inventory-service", "inventory-db"]
+    ],
+    "edge_index": [
+      [0, 1, 1, 2],
+      [1, 2, 3, 4]
+    ]
+  },
+  "node_variables": [
+    "p50_latency",
+    "p95_latency",
+    "p99_latency",
+    "error_rate",
+    "request_rate",
+    "pool_utilization",
+    "db_latency",
+    "anomaly_score",
+    "p99_latency_delta",
+    "error_rate_delta"
+  ],
+  "variable_count_per_node": 10,
+  "total_causal_variables": 50,
+  "variable_types": {
+    "p50_latency": {
+      "data_type": "float64",
+      "measurement_scale": "ratio",
+      "unit": "milliseconds",
+      "support": "[0.0, inf)",
+      "category": "latency"
+    },
+    "p95_latency": {
+      "data_type": "float64",
+      "measurement_scale": "ratio",
+      "unit": "milliseconds",
+      "support": "[0.0, inf)",
+      "category": "latency"
+    },
+    "p99_latency": {
+      "data_type": "float64",
+      "measurement_scale": "ratio",
+      "unit": "milliseconds",
+      "support": "[0.0, inf)",
+      "category": "latency"
+    },
+    "error_rate": {
+      "data_type": "float64",
+      "measurement_scale": "percentage",
+      "unit": "percent",
+      "support": "[0.0, 100.0]",
+      "category": "reliability"
+    },
+    "request_rate": {
+      "data_type": "float64",
+      "measurement_scale": "ratio",
+      "unit": "requests_per_minute",
+      "support": "[0.0, inf)",
+      "category": "traffic"
+    },
+    "pool_utilization": {
+      "data_type": "float64",
+      "measurement_scale": "percentage",
+      "unit": "percent",
+      "support": "[0.0, 100.0]",
+      "category": "resource"
+    },
+    "db_latency": {
+      "data_type": "float64",
+      "measurement_scale": "ratio",
+      "unit": "milliseconds",
+      "support": "[0.0, inf)",
+      "category": "database"
+    },
+    "anomaly_score": {
+      "data_type": "float64",
+      "measurement_scale": "normalized_index",
+      "unit": "unitless_score",
+      "support": "[0.0, 1.0]",
+      "category": "derived_heuristic"
+    },
+    "p99_latency_delta": {
+      "data_type": "float64",
+      "measurement_scale": "difference",
+      "unit": "milliseconds",
+      "support": "(-inf, inf)",
+      "category": "derived_temporal_difference"
+    },
+    "error_rate_delta": {
+      "data_type": "float64",
+      "measurement_scale": "difference",
+      "unit": "percent",
+      "support": "(-100.0, 100.0)",
+      "category": "derived_temporal_difference"
+    }
+  },
+  "temporal_semantics": {
+    "sampling_rate_hz": 1.0,
+    "delta_t_seconds": 1.0,
+    "discrete_time_steps": "t in {0, 1, ..., T-1}, T <= 40",
+    "causal_arrow_of_time": "Strictly forward in time: past variables X(t-k) (k >= 1) can cause present variables Y(t), but Y(t) can never cause X(t-k)",
+    "maximum_propagation_lag": 3,
+    "intra_slice_semantics": "Contemporaneous dependencies within the same 1.0s window are modeled as instantaneous linear structural equations or acyclic recursive paths",
+    "inter_slice_semantics": "Autoregressive transitions X_i(t-1) -> X_i(t) and cross-node lagged influences X_j(t-k) -> X_i(t)"
+  },
+  "observed_variables": [
+    "api-gateway.p50_latency",
+    "api-gateway.p95_latency",
+    "api-gateway.p99_latency",
+    "api-gateway.error_rate",
+    "api-gateway.request_rate",
+    "api-gateway.pool_utilization",
+    "api-gateway.db_latency",
+    "api-gateway.anomaly_score",
+    "api-gateway.p99_latency_delta",
+    "api-gateway.error_rate_delta",
+    "order-service.p50_latency",
+    "order-service.p95_latency",
+    "order-service.p99_latency",
+    "order-service.error_rate",
+    "order-service.request_rate",
+    "order-service.pool_utilization",
+    "order-service.db_latency",
+    "order-service.anomaly_score",
+    "order-service.p99_latency_delta",
+    "order-service.error_rate_delta",
+    "inventory-service.p50_latency",
+    "inventory-service.p95_latency",
+    "inventory-service.p99_latency",
+    "inventory-service.error_rate",
+    "inventory-service.request_rate",
+    "inventory-service.pool_utilization",
+    "inventory-service.db_latency",
+    "inventory-service.anomaly_score",
+    "inventory-service.p99_latency_delta",
+    "inventory-service.error_rate_delta",
+    "payment-service.p50_latency",
+    "payment-service.p95_latency",
+    "payment-service.p99_latency",
+    "payment-service.error_rate",
+    "payment-service.request_rate",
+    "payment-service.pool_utilization",
+    "payment-service.db_latency",
+    "payment-service.anomaly_score",
+    "payment-service.p99_latency_delta",
+    "payment-service.error_rate_delta",
+    "inventory-db.p50_latency",
+    "inventory-db.p95_latency",
+    "inventory-db.p99_latency",
+    "inventory-db.error_rate",
+    "inventory-db.request_rate",
+    "inventory-db.pool_utilization",
+    "inventory-db.db_latency",
+    "inventory-db.anomaly_score",
+    "inventory-db.p99_latency_delta",
+    "inventory-db.error_rate_delta"
+  ],
+  "latent_variables": [
+    "network_socket_buffer_queue_depth",
+    "tcp_retransmission_count",
+    "jvm_garbage_collection_pause_time",
+    "database_row_lock_contention_wait_ms",
+    "client_http_retry_attempt_count",
+    "container_cpu_throttling_delay",
+    "disk_io_write_queue_wait_ms",
+    "external_client_traffic_spikes"
+  ],
+  "intervention_variables": [
+    {
+      "node": "inventory-db",
+      "variable": "db_latency",
+      "fault_type": "DB_LATENCY",
+      "mechanism": "Artificial sleep delay added to PostgreSQL query handler"
+    },
+    {
+      "node": "order-service",
+      "variable": "p99_latency",
+      "fault_type": "SERVICE_LATENCY",
+      "mechanism": "Thread sleep injected into order processing pipeline"
+    },
+    {
+      "node": "inventory-service",
+      "variable": "p99_latency",
+      "fault_type": "SERVICE_LATENCY",
+      "mechanism": "Thread sleep injected into inventory verification pipeline"
+    },
+    {
+      "node": "inventory-service",
+      "variable": "p99_latency",
+      "fault_type": "NETWORK_LATENCY",
+      "mechanism": "Interface transmission delay between order-service and inventory-service"
+    },
+    {
+      "node": "payment-service",
+      "variable": "p99_latency",
+      "fault_type": "NETWORK_LATENCY",
+      "mechanism": "Interface transmission delay between order-service and payment-service"
+    },
+    {
+      "node": "payment-service",
+      "variable": "error_rate",
+      "fault_type": "ERROR_RATE",
+      "mechanism": "Probabilistic HTTP 500 error injection on payment charge route"
+    },
+    {
+      "node": "order-service",
+      "variable": "error_rate",
+      "fault_type": "ERROR_RATE",
+      "mechanism": "Probabilistic HTTP 500 error injection on order submission route"
+    },
+    {
+      "node": "payment-service",
+      "variable": "error_rate",
+      "fault_type": "SERVICE_FAILURE",
+      "mechanism": "Service crash simulation with 100% failure / connection refused on payment-service"
+    }
+  ],
+  "target_variables": {
+    "system_root_cause_attribution": {
+      "candidate_nodes": [
+        "inventory-db",
+        "inventory-service",
+        "order-service",
+        "payment-service"
+      ],
+      "candidate_indices": [4, 2, 1, 3],
+      "task": "Identify node s in candidate_nodes whose atomic intervention do(I_s) produced observed cascade"
+    },
+    "user_facing_impact": {
+      "gateway_nodes": ["api-gateway"],
+      "primary_sla_metrics": [
+        "api-gateway.p99_latency",
+        "api-gateway.error_rate"
+      ],
+      "task": "Quantify end-user SLA degradation resulting from upstream propagation"
+    }
+  },
+  "leakage_isolation_rules": {
+    "strictly_forbidden_from_causal_discovery": [
+      "fault_target",
+      "fault_type",
+      "ground_truth_root_cause",
+      "detected_root_cause",
+      "detected_confidence",
+      "rca_match",
+      "heuristic_rca_scores",
+      "classical_ml_predictions",
+      "classical_ml_probabilities",
+      "spatiotemporal_gnn_predictions",
+      "incident_gate_prediction",
+      "future_telemetry_indices"
+    ],
+    "enforcement": "Causal discovery algorithms receive purely continuous telemetry matrices X in R^[T, N, F] without any target label columns or ground truth annotations"
+  }
+}

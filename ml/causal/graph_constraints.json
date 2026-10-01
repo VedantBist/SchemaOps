@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CausalOps Graph Constraints & Structural Priors",
+  "version": "1.0.0",
+  "phase": "3A",
+  "description": "System-knowledge constraints defining allowed, forbidden, and uncertain causal edges across microservices and variables. Prevents statistical causal discovery from generating physically implausible relationships.",
+  "nodes": [
+    "api-gateway",
+    "order-service",
+    "inventory-service",
+    "payment-service",
+    "inventory-db"
+  ],
+  "node_level_constraints": {
+    "allowed_directed_edges": [
+      {
+        "source": "api-gateway",
+        "target": "order-service",
+        "type": "CALL_ALIGNED_FORWARD",
+        "mechanism": "HTTP client requests propagate downstream load and traffic surges",
+        "primary_variable_pathways": ["request_rate -> request_rate"]
+      },
+      {
+        "source": "order-service",
+        "target": "inventory-service",
+        "type": "CALL_ALIGNED_FORWARD",
+        "mechanism": "Synchronous HTTP order verification calls propagate load",
+        "primary_variable_pathways": ["request_rate -> request_rate"]
+      },
+      {
+        "source": "order-service",
+        "target": "payment-service",
+        "type": "CALL_ALIGNED_FORWARD",
+        "mechanism": "Synchronous HTTP payment processing calls propagate load",
+        "primary_variable_pathways": ["request_rate -> request_rate"]
+      },
+      {
+        "source": "inventory-service",
+        "target": "inventory-db",
+        "type": "CALL_ALIGNED_FORWARD",
+        "mechanism": "JDBC SQL queries propagate load to database engine",
+        "primary_variable_pathways": ["request_rate -> request_rate"]
+      },
+      {
+        "source": "inventory-db",
+        "target": "inventory-service",
+        "type": "BACKPRESSURE_REVERSE",
+        "mechanism": "Database query latency delays JDBC client completion, elevating inventory latency and connection pool use",
+        "primary_variable_pathways": [
+          "db_latency -> p99_latency",
+          "db_latency -> pool_utilization"
+        ]
+      },
+      {
+        "source": "inventory-service",
+        "target": "order-service",
+        "type": "BACKPRESSURE_REVERSE",
+        "mechanism": "Inventory processing latency or errors cause order service caller to block or receive 500 error",
+        "primary_variable_pathways": [
+          "p99_latency -> p99_latency",
+          "error_rate -> error_rate"
+        ]
+      },
+      {
+        "source": "payment-service",
+        "target": "order-service",
+        "type": "BACKPRESSURE_REVERSE",
+        "mechanism": "Payment failure or latency causes order service caller to block or fail order transaction",
+        "primary_variable_pathways": [
+          "p99_latency -> p99_latency",
+          "error_rate -> error_rate"
+        ]
+      },
+      {
+        "source": "order-service",
+        "target": "api-gateway",
+        "type": "BACKPRESSURE_REVERSE",
+        "mechanism": "Order service delay or failure elevates gateway client-facing latency and error rates",
+        "primary_variable_pathways": [
+          "p99_latency -> p99_latency",
+          "error_rate -> error_rate"
+        ]
+      }
+    ],
+    "forbidden_directed_edges": [
+      {
+        "source": "inventory-db",
+        "target": "payment-service",
+        "reason": "ORTHOGONAL_BRANCH: No network connectivity, shared process, or application dependency exists between database and payment service."
+      },
+      {
+        "source": "payment-service",
+        "target": "inventory-db",
+        "reason": "ORTHOGONAL_BRANCH: Payment service has zero access or interaction with inventory database."
+      },
+      {
+        "source": "inventory-service",
+        "target": "payment-service",
+        "reason": "ORTHOGONAL_BRANCH: Sibling branches beneath order-service do not communicate directly."
+      },
+      {
+        "source": "payment-service",
+        "target": "inventory-service",
+        "reason": "ORTHOGONAL_BRANCH: Sibling branches beneath order-service do not communicate directly."
+      },
+      {
+        "source": "inventory-db",
+        "target": "order-service",
+        "reason": "SKIP_LEVEL_SHORTCUT: Order service does not connect to database directly; all interactions mediate through inventory-service."
+      },
+      {
+        "source": "inventory-db",
+        "target": "api-gateway",
+        "reason": "SKIP_LEVEL_SHORTCUT: Physical architecture requires mediation through inventory-service and order-service."
+      },
+      {
+        "source": "inventory-service",
+        "target": "api-gateway",
+        "reason": "SKIP_LEVEL_SHORTCUT: Gateway communicates only with order-service; inventory-service is an internal tier-2 dependency."
+      },
+      {
+        "source": "payment-service",
+        "target": "api-gateway",
+        "reason": "SKIP_LEVEL_SHORTCUT: Gateway communicates only with order-service; payment-service is an internal tier-2 dependency."
+      },
+      {
+        "source": "api-gateway",
+        "target": "inventory-service",
+        "reason": "SKIP_LEVEL_SHORTCUT: Direct downstream calls from gateway bypass order orchestration logic."
+      },
+      {
+        "source": "api-gateway",
+        "target": "payment-service",
+        "reason": "SKIP_LEVEL_SHORTCUT: Direct downstream calls from gateway bypass order orchestration logic."
+      },
+      {
+        "source": "api-gateway",
+        "target": "inventory-db",
+        "reason": "SKIP_LEVEL_SHORTCUT: Gateway has no database connection pool."
+      }
+    ],
+    "uncertain_directed_edges": [
+      {
+        "source": "order-service",
+        "target": "inventory-service",
+        "uncertainty_type": "CASCADE_FEEDBACK",
+        "description": "Whether severe order-service queue backup creates connection pool backpressure into inventory-service under heavy retry loops"
+      },
+      {
+        "source": "order-service",
+        "target": "payment-service",
+        "uncertainty_type": "CASCADE_FEEDBACK",
+        "description": "Whether severe order-service timeouts trigger repetitive client retries flooding payment-service"
+      }
+    ]
+  },
+  "variable_level_constraints": {
+    "forbidden_edge_rules": [
+      {
+        "rule_id": "NO_ANTI_CAUSAL_DERIVED_TO_RAW",
+        "pattern": "anomaly_score -> *",
+        "reason": "anomaly_score is a deterministic mathematical transformation of latency and error_rate; it cannot causally affect raw telemetry."
+      },
+      {
+        "rule_id": "NO_ANTI_CAUSAL_DELTA_TO_SOURCE",
+        "pattern": "*_delta -> source_variable",
+        "reason": "Temporal delta x(t) - x(t-1) is a mathematical difference, not an exogenous driver of the underlying level."
+      },
+      {
+        "rule_id": "NO_BACKWARD_TIME_EDGES",
+        "pattern": "X(t) -> Y(t-k) for k >= 1",
+        "reason": "Physical causality respects the thermodynamic arrow of time; future states cannot cause past states."
+      },
+      {
+        "rule_id": "NO_NON_DB_DB_LATENCY_SOURCES",
+        "pattern": "node.db_latency -> * where node != inventory-db",
+        "reason": "db_latency is strictly zero/null on non-database microservices in CausalOps."
+      }
+    ],
+    "allowed_intra_node_pathways": [
+      "request_rate -> pool_utilization",
+      "p99_latency -> pool_utilization",
+      "p50_latency -> p95_latency",
+      "p95_latency -> p99_latency",
+      "db_latency -> p99_latency",
+      "p99_latency(t-1) -> p99_latency(t)",
+      "error_rate(t-1) -> error_rate(t)",
+      "pool_utilization(t-1) -> pool_utilization(t)"
+    ]
+  },
+  "epistemological_status": {
+    "engineering_priors": [
+      "Service dependency graph topology",
+      "Network routing isolation between orthogonal branches",
+      "Derived metric functional definitions"
+    ],
+    "experimentally_validated_relations": [
+      "inventory-db.db_latency -> inventory-service.p99_latency (attenuation 0.62)",
+      "inventory-service.p99_latency -> order-service.p99_latency (attenuation 0.62)",
+      "order-service.p99_latency -> api-gateway.p99_latency (attenuation 0.62)",
+      "payment-service.error_rate -> order-service.error_rate (attenuation 0.70)",
+      "order-service.error_rate -> api-gateway.error_rate (attenuation 0.70)"
+    ],
+    "learned_observational_relations": [
+      "Cross-service time-lag coefficients discovered during Phase 3B discovery algorithms"
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "environment": "Local Docker / Host Benchmark (Development Workstation)",
+  "operation_latencies": {
+    "failure_prediction_predict_ms": {
+      "iterations": 30,
+      "mean_ms": 5.2,
+      "median_ms (p50)": 5.16,
+      "p95_ms": 5.49,
+      "p99_ms": 5.63
+    },
+    "rca_classification_ms": {
+      "iterations": 30,
+      "mean_ms": 0.0,
+      "median_ms (p50)": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.01
+    },
+    "counterfactual_rollout_ms": {
+      "iterations": 15,
+      "mean_ms": 4.52,
+      "median_ms (p50)": 4.5,
+      "p95_ms": 4.7,
+      "p99_ms": 4.77
+    },
+    "remediation_recommendation_ms": {
+      "iterations": 15,
+      "mean_ms": 8.95,
+      "median_ms (p50)": 8.95,
+      "p95_ms": 9.05,
+      "p99_ms": 9.11
+    },
+    "orchestration_anomaly_ingest_ms": {
+      "iterations": 30,
+      "mean_ms": 0.04,
+      "median_ms (p50)": 0.01,
+      "p95_ms": 0.22,
+      "p99_ms": 0.29
+    }
+  },
+  "container_profile": {
+    "architecture": "11 Docker containers across 2 isolated bridge networks",
+    "containers": [
+      "postgres (5432)",
+      "ai-engine (8000)",
+      "causalops-api (8080)",
+      "api-gateway (8081)",
+      "order-service",
+      "inventory-service",
+      "payment-service",
+      "otel-collector (4317/4318)",
+      "prometheus (9090)",
+      "loki (3100)",
+      "tempo (3200)"
+    ],
+    "steady_state_ram_mb": 1850,
+    "steady_state_cpu_pct": 4.5
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "model_name": "Topology-Constrained Lagged SCM",
+  "fit_summary": {
+    "lag_order": 5,
+    "alpha": 1.0,
+    "solver": "ridge",
+    "total_targets": 35,
+    "mean_r2": 0.9275937809788193,
+    "median_r2": 0.9120752990817433,
+    "mean_mse": 0.07883545330080043,
+    "total_candidate_edges": 465,
+    "retained_candidate_edges": 48,
+    "allow_all_topology": false
+  },
+  "candidate_edge_count": 465,
+  "stable_edge_count": 48
+}

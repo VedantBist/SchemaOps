@@ -1,0 +1,1496 @@
+{
+  "phase": "2C",
+  "dataset_version": "tg_v1",
+  "random_seed": 42,
+  "primary_models": {
+    "temporal_only": {
+      "stage": "Stage 2C-1",
+      "model_name": "temporal_only",
+      "checkpoint_name": "temporal_only_v1",
+      "feature_set": "all",
+      "parameter_count": 24292,
+      "training_time_sec": 1.48,
+      "best_epoch": 120,
+      "random_seed": 42,
+      "checkpoint_path": "ml/models/temporal_gnn/temporal_only_v1.pt",
+      "val_metrics": {
+        "sample_count": 11,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9999853345100115,
+        "min_confidence": 0.9999546480887633,
+        "max_confidence": 0.9999976778216266
+      },
+      "test_metrics": {
+        "sample_count": 10,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9999890440782748,
+        "min_confidence": 0.9999551674468246,
+        "max_confidence": 0.9999976778216266
+      },
+      "control_analysis": {
+        "control_count": 10,
+        "prediction_distribution": {
+          "inventory-db": 0,
+          "inventory-service": 0,
+          "order-service": 10,
+          "payment-service": 0
+        },
+        "mean_confidence": 1.0
+      }
+    },
+    "temporal_gat": {
+      "stage": "Stage 2C-2",
+      "model_name": "temporal_gat",
+      "checkpoint_name": "temporal_gat_v1",
+      "feature_set": "all",
+      "parameter_count": 22372,
+      "training_time_sec": 3.356,
+      "best_epoch": 41,
+      "random_seed": 42,
+      "checkpoint_path": "ml/models/temporal_gnn/temporal_gat_v1.pt",
+      "val_metrics": {
+        "sample_count": 11,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9024070678253806,
+        "min_confidence": 0.6027448657050957,
+        "max_confidence": 0.9997592067537253
+      },
+      "test_metrics": {
+        "sample_count": 10,
+        "accuracy": 0.9,
+        "macro_precision": 0.9375,
+        "macro_recall": 0.875,
+        "macro_f1": 0.8809523809523809,
+        "weighted_precision": 0.925,
+        "weighted_recall": 0.9,
+        "weighted_f1": 0.8904761904761905,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571428571428571,
+            "support": 3
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 2
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9078481447056509,
+        "min_confidence": 0.6000546745578249,
+        "max_confidence": 0.9994649550182348
+      },
+      "control_analysis": {
+        "control_count": 10,
+        "prediction_distribution": {
+          "inventory-db": 0,
+          "inventory-service": 0,
+          "order-service": 10,
+          "payment-service": 0
+        },
+        "mean_confidence": 0.8163
+      }
+    },
+    "spatiotemporal": {
+      "stage": "Stage 2C-3",
+      "model_name": "spatiotemporal",
+      "checkpoint_name": "spatiotemporal_v1",
+      "feature_set": "all",
+      "parameter_count": 14900,
+      "training_time_sec": 7.074,
+      "best_epoch": 120,
+      "random_seed": 42,
+      "checkpoint_path": "ml/models/temporal_gnn/spatiotemporal_v1.pt",
+      "val_metrics": {
+        "sample_count": 11,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.997328722522941,
+        "min_confidence": 0.9886919041439168,
+        "max_confidence": 0.9998162641879007
+      },
+      "test_metrics": {
+        "sample_count": 10,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9972601252766718,
+        "min_confidence": 0.9885594962762486,
+        "max_confidence": 0.9998734947510606
+      },
+      "control_analysis": {
+        "control_count": 10,
+        "prediction_distribution": {
+          "inventory-db": 0,
+          "inventory-service": 0,
+          "order-service": 10,
+          "payment-service": 0
+        },
+        "mean_confidence": 0.9196
+      }
+    }
+  },
+  "ablation_a_no_deltas": {
+    "temporal_only": {
+      "stage": "Stage 2C-1-AblationA",
+      "model_name": "temporal_only",
+      "checkpoint_name": "temporal_only_v1_no_deltas",
+      "feature_set": "no_deltas",
+      "parameter_count": 22372,
+      "training_time_sec": 1.434,
+      "best_epoch": 120,
+      "random_seed": 42,
+      "checkpoint_path": null,
+      "val_metrics": {
+        "sample_count": 11,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9999879276604884,
+        "min_confidence": 0.9999619536727415,
+        "max_confidence": 0.9999984750667006
+      },
+      "test_metrics": {
+        "sample_count": 10,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9999856142068939,
+        "min_confidence": 0.9999620207539808,
+        "max_confidence": 0.9999984685211161
+      },
+      "control_analysis": {
+        "control_count": 10,
+        "prediction_distribution": {
+          "inventory-db": 0,
+          "inventory-service": 0,
+          "order-service": 10,
+          "payment-service": 0
+        },
+        "mean_confidence": 1.0
+      }
+    },
+    "temporal_gat": {
+      "stage": "Stage 2C-2-AblationA",
+      "model_name": "temporal_gat",
+      "checkpoint_name": "temporal_gat_v1_no_deltas",
+      "feature_set": "no_deltas",
+      "parameter_count": 22308,
+      "training_time_sec": 5.39,
+      "best_epoch": 119,
+      "random_seed": 42,
+      "checkpoint_path": null,
+      "val_metrics": {
+        "sample_count": 11,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9993748359739478,
+        "min_confidence": 0.9986823622765929,
+        "max_confidence": 0.9999988867964664
+      },
+      "test_metrics": {
+        "sample_count": 10,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9992546422935685,
+        "min_confidence": 0.9982593925400237,
+        "max_confidence": 0.9999920221356187
+      },
+      "control_analysis": {
+        "control_count": 10,
+        "prediction_distribution": {
+          "inventory-db": 0,
+          "inventory-service": 0,
+          "order-service": 10,
+          "payment-service": 0
+        },
+        "mean_confidence": 0.861
+      }
+    },
+    "spatiotemporal": {
+      "stage": "Stage 2C-3-AblationA",
+      "model_name": "spatiotemporal",
+      "checkpoint_name": "spatiotemporal_v1_no_deltas",
+      "feature_set": "no_deltas",
+      "parameter_count": 14836,
+      "training_time_sec": 7.06,
+      "best_epoch": 120,
+      "random_seed": 42,
+      "checkpoint_path": null,
+      "val_metrics": {
+        "sample_count": 11,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            2,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9897374433400372,
+        "min_confidence": 0.9360505101510838,
+        "max_confidence": 0.9990853904188867
+      },
+      "test_metrics": {
+        "sample_count": 10,
+        "accuracy": 1.0,
+        "macro_precision": 1.0,
+        "macro_recall": 1.0,
+        "macro_f1": 1.0,
+        "weighted_precision": 1.0,
+        "weighted_recall": 1.0,
+        "weighted_f1": 1.0,
+        "per_class": {
+          "inventory-db": {
+            "class_index": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "inventory-service": {
+            "class_index": 1,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          },
+          "order-service": {
+            "class_index": 2,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 2
+          },
+          "payment-service": {
+            "class_index": 3,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 3
+          }
+        },
+        "confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            3
+          ]
+        ],
+        "mean_confidence": 0.9916191780458972,
+        "min_confidence": 0.9579360315380101,
+        "max_confidence": 0.9997187197331069
+      },
+      "control_analysis": {
+        "control_count": 10,
+        "prediction_distribution": {
+          "inventory-db": 0,
+          "inventory-service": 0,
+          "order-service": 10,
+          "payment-service": 0
+        },
+        "mean_confidence": 0.568
+      }
+    }
+  },
+  "propagation_analysis": {
+    "inventory-db": {
+      "experiment_id": "EXP-015",
+      "ground_truth_service": "inventory-db",
+      "target_class": 0,
+      "fault_type": "DB_LATENCY",
+      "sequence_length": 40,
+      "timeline": [
+        {
+          "timestep": 5,
+          "relative_sec": 5.0,
+          "predicted_class": "order-service",
+          "confidence": 0.6847,
+          "probabilities": {
+            "inventory-db": 0.0015,
+            "inventory-service": 0.2618,
+            "order-service": 0.6847,
+            "payment-service": 0.052
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 10,
+          "relative_sec": 10.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.5647,
+          "probabilities": {
+            "inventory-db": 0.5647,
+            "inventory-service": 0.3639,
+            "order-service": 0.0128,
+            "payment-service": 0.0586
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 15,
+          "relative_sec": 15.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.9558,
+          "probabilities": {
+            "inventory-db": 0.9558,
+            "inventory-service": 0.0439,
+            "order-service": 0.0,
+            "payment-service": 0.0003
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 20,
+          "relative_sec": 20.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.9805,
+          "probabilities": {
+            "inventory-db": 0.9805,
+            "inventory-service": 0.0194,
+            "order-service": 0.0,
+            "payment-service": 0.0001
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 25,
+          "relative_sec": 25.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.9861,
+          "probabilities": {
+            "inventory-db": 0.9861,
+            "inventory-service": 0.0138,
+            "order-service": 0.0,
+            "payment-service": 0.0001
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 30,
+          "relative_sec": 30.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.9882,
+          "probabilities": {
+            "inventory-db": 0.9882,
+            "inventory-service": 0.0117,
+            "order-service": 0.0,
+            "payment-service": 0.0001
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 35,
+          "relative_sec": 35.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.999,
+          "probabilities": {
+            "inventory-db": 0.999,
+            "inventory-service": 0.0009,
+            "order-service": 0.0,
+            "payment-service": 0.0
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 40,
+          "relative_sec": 40.0,
+          "predicted_class": "inventory-db",
+          "confidence": 0.9991,
+          "probabilities": {
+            "inventory-db": 0.9991,
+            "inventory-service": 0.0008,
+            "order-service": 0.0,
+            "payment-service": 0.0001
+          },
+          "matches_ground_truth": true
+        }
+      ]
+    },
+    "inventory-service": {
+      "experiment_id": "EXP-043",
+      "ground_truth_service": "inventory-service",
+      "target_class": 1,
+      "fault_type": "SERVICE_FAILURE",
+      "sequence_length": 40,
+      "timeline": [
+        {
+          "timestep": 5,
+          "relative_sec": 5.0,
+          "predicted_class": "order-service",
+          "confidence": 0.6847,
+          "probabilities": {
+            "inventory-db": 0.0015,
+            "inventory-service": 0.2618,
+            "order-service": 0.6847,
+            "payment-service": 0.052
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 10,
+          "relative_sec": 10.0,
+          "predicted_class": "order-service",
+          "confidence": 0.8498,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.1402,
+            "order-service": 0.8498,
+            "payment-service": 0.01
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 15,
+          "relative_sec": 15.0,
+          "predicted_class": "order-service",
+          "confidence": 0.8715,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.1226,
+            "order-service": 0.8715,
+            "payment-service": 0.0059
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 20,
+          "relative_sec": 20.0,
+          "predicted_class": "order-service",
+          "confidence": 0.8833,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.1125,
+            "order-service": 0.8833,
+            "payment-service": 0.0042
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 25,
+          "relative_sec": 25.0,
+          "predicted_class": "order-service",
+          "confidence": 0.8954,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.1013,
+            "order-service": 0.8954,
+            "payment-service": 0.0033
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 30,
+          "relative_sec": 30.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9057,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0915,
+            "order-service": 0.9057,
+            "payment-service": 0.0028
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 35,
+          "relative_sec": 35.0,
+          "predicted_class": "inventory-service",
+          "confidence": 0.9927,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.9927,
+            "order-service": 0.0073,
+            "payment-service": 0.0
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 40,
+          "relative_sec": 40.0,
+          "predicted_class": "inventory-service",
+          "confidence": 0.9886,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.9886,
+            "order-service": 0.0114,
+            "payment-service": 0.0
+          },
+          "matches_ground_truth": true
+        }
+      ]
+    },
+    "order-service": {
+      "experiment_id": "EXP-047",
+      "ground_truth_service": "order-service",
+      "target_class": 2,
+      "fault_type": "SERVICE_LATENCY",
+      "sequence_length": 39,
+      "timeline": [
+        {
+          "timestep": 5,
+          "relative_sec": 5.0,
+          "predicted_class": "order-service",
+          "confidence": 0.6847,
+          "probabilities": {
+            "inventory-db": 0.0015,
+            "inventory-service": 0.2618,
+            "order-service": 0.6847,
+            "payment-service": 0.052
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 10,
+          "relative_sec": 10.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9634,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.03,
+            "order-service": 0.9634,
+            "payment-service": 0.0065
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 15,
+          "relative_sec": 15.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9564,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0388,
+            "order-service": 0.9564,
+            "payment-service": 0.0048
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 20,
+          "relative_sec": 20.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9674,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0274,
+            "order-service": 0.9674,
+            "payment-service": 0.0052
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 25,
+          "relative_sec": 25.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9707,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0231,
+            "order-service": 0.9707,
+            "payment-service": 0.0062
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 30,
+          "relative_sec": 30.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9738,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0187,
+            "order-service": 0.9738,
+            "payment-service": 0.0075
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 35,
+          "relative_sec": 35.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9839,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0124,
+            "order-service": 0.9839,
+            "payment-service": 0.0036
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 39,
+          "relative_sec": 39.0,
+          "predicted_class": "order-service",
+          "confidence": 0.994,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0043,
+            "order-service": 0.994,
+            "payment-service": 0.0017
+          },
+          "matches_ground_truth": true
+        }
+      ]
+    },
+    "payment-service": {
+      "experiment_id": "EXP-064",
+      "ground_truth_service": "payment-service",
+      "target_class": 3,
+      "fault_type": "SERVICE_FAILURE",
+      "sequence_length": 40,
+      "timeline": [
+        {
+          "timestep": 5,
+          "relative_sec": 5.0,
+          "predicted_class": "order-service",
+          "confidence": 0.6847,
+          "probabilities": {
+            "inventory-db": 0.0015,
+            "inventory-service": 0.2618,
+            "order-service": 0.6847,
+            "payment-service": 0.052
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 10,
+          "relative_sec": 10.0,
+          "predicted_class": "order-service",
+          "confidence": 0.9154,
+          "probabilities": {
+            "inventory-db": 0.0001,
+            "inventory-service": 0.0054,
+            "order-service": 0.9154,
+            "payment-service": 0.079
+          },
+          "matches_ground_truth": false
+        },
+        {
+          "timestep": 15,
+          "relative_sec": 15.0,
+          "predicted_class": "payment-service",
+          "confidence": 0.9781,
+          "probabilities": {
+            "inventory-db": 0.0025,
+            "inventory-service": 0.0001,
+            "order-service": 0.0193,
+            "payment-service": 0.9781
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 20,
+          "relative_sec": 20.0,
+          "predicted_class": "payment-service",
+          "confidence": 0.9954,
+          "probabilities": {
+            "inventory-db": 0.001,
+            "inventory-service": 0.0,
+            "order-service": 0.0035,
+            "payment-service": 0.9954
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 25,
+          "relative_sec": 25.0,
+          "predicted_class": "payment-service",
+          "confidence": 0.9978,
+          "probabilities": {
+            "inventory-db": 0.0007,
+            "inventory-service": 0.0,
+            "order-service": 0.0015,
+            "payment-service": 0.9978
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 30,
+          "relative_sec": 30.0,
+          "predicted_class": "payment-service",
+          "confidence": 0.9984,
+          "probabilities": {
+            "inventory-db": 0.0007,
+            "inventory-service": 0.0,
+            "order-service": 0.001,
+            "payment-service": 0.9984
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 35,
+          "relative_sec": 35.0,
+          "predicted_class": "payment-service",
+          "confidence": 0.9996,
+          "probabilities": {
+            "inventory-db": 0.0001,
+            "inventory-service": 0.0,
+            "order-service": 0.0003,
+            "payment-service": 0.9996
+          },
+          "matches_ground_truth": true
+        },
+        {
+          "timestep": 40,
+          "relative_sec": 40.0,
+          "predicted_class": "payment-service",
+          "confidence": 0.9991,
+          "probabilities": {
+            "inventory-db": 0.0,
+            "inventory-service": 0.0,
+            "order-service": 0.0009,
+            "payment-service": 0.9991
+          },
+          "matches_ground_truth": true
+        }
+      ]
+    }
+  },
+  "unified_comparison_table": [
+    {
+      "model": "Random Forest (Classical)",
+      "family": "Tabular Baseline",
+      "parameter_count": 100,
+      "accuracy": 0.8,
+      "macro_precision": 0.8125,
+      "macro_recall": 0.8333,
+      "macro_f1": 0.7778,
+      "weighted_f1": 0.7619,
+      "best_epoch": "N/A"
+    },
+    {
+      "model": "MLP (Static Aggregation)",
+      "family": "Static Spatial Baseline",
+      "parameter_count": 21476,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "best_epoch": 150
+    },
+    {
+      "model": "GCN (Static Aggregation)",
+      "family": "Static Spatial Baseline",
+      "parameter_count": 3140,
+      "accuracy": 0.8,
+      "macro_precision": 0.625,
+      "macro_recall": 0.75,
+      "macro_f1": 0.6785714285714286,
+      "weighted_f1": 0.7142857142857142,
+      "best_epoch": 146
+    },
+    {
+      "model": "GAT (Static Aggregation)",
+      "family": "Static Spatial Baseline",
+      "parameter_count": 3268,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "best_epoch": 150
+    },
+    {
+      "model": "Temporal-Only (GRU)",
+      "family": "Sequence Baseline",
+      "parameter_count": 24292,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "best_epoch": 120
+    },
+    {
+      "model": "Temporal + GAT",
+      "family": "Graph-Seq Hybrid",
+      "parameter_count": 22372,
+      "accuracy": 0.9,
+      "macro_precision": 0.9375,
+      "macro_recall": 0.875,
+      "macro_f1": 0.8809523809523809,
+      "weighted_f1": 0.8904761904761905,
+      "best_epoch": 41
+    },
+    {
+      "model": "Spatio-Temporal GNN",
+      "family": "Joint Spatio-Temporal",
+      "parameter_count": 14900,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "weighted_f1": 1.0,
+      "best_epoch": 120
+    }
+  ]
+}
