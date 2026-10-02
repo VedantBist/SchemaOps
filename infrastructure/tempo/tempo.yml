@@ -11,6 +11,16 @@ distributor:
         http:
           endpoint: 0.0.0.0:4318
 
+ingester:
+  lifecycler:
+    # Single binary with no peers: pin the ring address and report ready immediately.
+    address: 127.0.0.1
+    min_ready_duration: 0s
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
 storage:
   trace:
     backend: local

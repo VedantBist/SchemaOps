@@ -14,6 +14,8 @@ x-otel-agent: &otel-agent
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
   OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
   OTEL_METRIC_EXPORT_INTERVAL: "5000"
+  # Export spans every second so span-derived counters advance smoothly between scrapes.
+  OTEL_BSP_SCHEDULE_DELAY: "1000"
   OTEL_LOGS_EXPORTER: otlp
   # Internal timers (chaos expiry) are not business work; keep them out of traces.
   OTEL_INSTRUMENTATION_SPRING_SCHEDULING_ENABLED: "false"
@@ -99,11 +101,17 @@ services:
       PAYMENT_SERVICE_URL: http://payment-service:8080
       TOXIPROXY_URL: http://toxiproxy:8474
       CHAOS_TOKEN: "${CHAOS_TOKEN:-}"
-      DEMO_MODE: "${DEMO_MODE:-true}"
-      TELEMETRY_COLLECTION_INTERVAL_MS: "${TELEMETRY_COLLECTION_INTERVAL_MS:-1000}"
+      # Where the bootstrap environment reads its telemetry (any OTel/Prometheus stack works).
+      PROMETHEUS_URL: http://prometheus:9090
+      TEMPO_URL: http://tempo:3200
+      LOKI_URL: http://loki:3100
+      OTEL_COLLECTOR_HEALTH_URL: http://otel-collector:13133
+      TELEMETRY_INGEST_INTERVAL_MS: "${TELEMETRY_INGEST_INTERVAL_MS:-5000}"
+      CAUSALOPS_CORS_ORIGINS: "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}"
       LOG_LEVEL: "${LOG_LEVEL:-INFO}"
     ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
-    networks: [causalops-internal]
+    # Needs the observability network to read Tempo and Loki.
+    networks: [causalops-internal, causalops-observability]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health | grep -q UP || exit 1"]
       interval: 15s

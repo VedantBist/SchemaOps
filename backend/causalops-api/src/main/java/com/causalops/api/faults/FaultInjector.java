@@ -1,6 +1,5 @@
-package com.causalops.api.service;
+package com.causalops.api.faults;
 
-import com.causalops.api.dto.FaultRequest;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;

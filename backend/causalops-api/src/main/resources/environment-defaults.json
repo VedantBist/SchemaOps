@@ -1,0 +1,31 @@
+{
+  "_comment": "Default configuration for a new environment that sends OpenTelemetry to the CausalOps collector. Endpoints are filled from application properties at bootstrap; every value can be changed per environment through PUT /api/environments/{id}/config.",
+  "telemetry": {
+    "rateWindow": "1m",
+    "topologyWindow": "5m",
+    "staleAfterSeconds": 120,
+    "topologyQuery": "sum by (client, server, connection_type, failed) (rate(traces_service_graph_request_total[${window}]))",
+    "serviceMetrics": {
+      "requestRate":  { "label": "service_name", "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[${window}]))" },
+      "errorRatePct": { "label": "service_name", "query": "100 * sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[${window}])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[${window}]))" },
+      "latencyP50":   { "label": "service_name", "query": "histogram_quantile(0.50, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[${window}])))" },
+      "latencyP95":   { "label": "service_name", "query": "histogram_quantile(0.95, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[${window}])))" },
+      "latencyP99":   { "label": "service_name", "query": "histogram_quantile(0.99, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[${window}])))" },
+      "dbLatencyP95": { "label": "service_name", "query": "histogram_quantile(0.95, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_CLIENT\",db_system!=\"\"}[${window}])))" },
+      "poolUtilizationPct": { "label": "service_name", "query": "100 * sum by (service_name) (db_client_connections_usage{state=\"used\"}) / sum by (service_name) (db_client_connections_max)" },
+      "poolPending":  { "label": "service_name", "query": "sum by (service_name) (db_client_connections_pending_requests)" }
+    },
+    "dependencyNodeMetrics": {
+      "requestRate":  { "label": "server", "query": "sum by (server) (rate(traces_service_graph_request_total{connection_type=\"database\"}[${window}]))" },
+      "errorRatePct": { "label": "server", "query": "100 * sum by (server) (rate(traces_service_graph_request_failed_total{connection_type=\"database\"}[${window}])) / sum by (server) (rate(traces_service_graph_request_total{connection_type=\"database\"}[${window}]))" },
+      "latencyP50":   { "label": "server", "scale": 1000, "query": "histogram_quantile(0.50, sum by (server, le) (rate(traces_service_graph_request_client_seconds_bucket{connection_type=\"database\"}[${window}])))" },
+      "latencyP95":   { "label": "server", "scale": 1000, "query": "histogram_quantile(0.95, sum by (server, le) (rate(traces_service_graph_request_client_seconds_bucket{connection_type=\"database\"}[${window}])))" },
+      "latencyP99":   { "label": "server", "scale": 1000, "query": "histogram_quantile(0.99, sum by (server, le) (rate(traces_service_graph_request_client_seconds_bucket{connection_type=\"database\"}[${window}])))" }
+    }
+  },
+  "slo": { "latencyP99Ms": 500, "errorRatePct": 5, "criticalMultiplier": 2 },
+  "serviceSlos": {},
+  "detection": { "breachSamples": 3, "recoverySamples": 6 },
+  "externalNodes": ["user", "unknown"],
+  "calibration": { "learningWindowHours": 24, "retrainIntervalDays": 7 }
+}

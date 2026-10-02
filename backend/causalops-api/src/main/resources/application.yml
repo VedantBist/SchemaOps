@@ -6,12 +6,37 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${POSTGRES_DB:causalops}
     username: ${POSTGRES_USER:causalops}
     password: ${POSTGRES_PASSWORD:causalops}
-  jpa: { hibernate: { ddl-auto: validate }, open-in-view: false }
   flyway: { enabled: true, baseline-on-migrate: true, baseline-version: 0 }
+  task:
+    scheduling:
+      pool:
+        # Ingestion, topology sync and fault expiry run independently.
+        size: 4
 management.endpoints.web.exposure.include: health,info,prometheus
+
 causalops:
   ai-url: ${AI_ENGINE_URL:http://ai-engine:8000}
-  demo-mode: ${DEMO_MODE:true}
+  cors:
+    # Comma-separated browser origins allowed to call /api/**. Empty means no cross-origin access.
+    allowed-origins: ${CAUSALOPS_CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+  http:
+    connect-timeout-ms: ${CAUSALOPS_HTTP_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${CAUSALOPS_HTTP_READ_TIMEOUT_MS:30000}
+  # First environment created on a fresh install (only when the environments table is empty).
+  environment:
+    bootstrap:
+      enabled: ${CAUSALOPS_BOOTSTRAP_ENVIRONMENT:true}
+      name: ${CAUSALOPS_ENVIRONMENT_NAME:reference}
+      prometheus-url: ${PROMETHEUS_URL:http://prometheus:9090}
+      tempo-url: ${TEMPO_URL:http://tempo:3200}
+      loki-url: ${LOKI_URL:http://loki:3100}
+      collector-health-url: ${OTEL_COLLECTOR_HEALTH_URL:http://otel-collector:13133}
+  telemetry:
+    # Matches the Prometheus scrape interval; reading faster only repeats samples.
+    ingest-interval-ms: ${TELEMETRY_INGEST_INTERVAL_MS:5000}
+    retention-days: ${TELEMETRY_RETENTION_DAYS:14}
+  topology:
+    sync-interval-ms: ${TOPOLOGY_SYNC_INTERVAL_MS:15000}
   # Fault injection against the reference system (real mechanisms, see FaultInjector).
   chaos:
     token: ${CHAOS_TOKEN:}
@@ -32,5 +57,3 @@ causalops:
       inventory-service: order-service-to-inventory-service
       payment-service: order-service-to-payment-service
       inventory-db: inventory-db
-telemetry:
-  collection-interval-ms: ${TELEMETRY_COLLECTION_INTERVAL_MS:1000}

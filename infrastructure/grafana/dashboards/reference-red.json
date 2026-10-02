@@ -52,14 +52,14 @@
         "expr": "histogram_quantile(0.95, sum by (service_name, db_system, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_CLIENT\",db_system!=\"\"}[1m])))" }]
     },
     {
-      "id": 6, "type": "timeseries", "title": "HikariCP connection pool (inventory-service)",
+      "id": 6, "type": "timeseries", "title": "DB connection pools (OTel db.client.connections.*)",
       "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
       "targets": [
-        { "refId": "A", "legendFormat": "active", "expr": "sum(hikaricp_connections_active{application=\"inventory-service\"})" },
-        { "refId": "B", "legendFormat": "pending", "expr": "sum(hikaricp_connections_pending{application=\"inventory-service\"})" },
-        { "refId": "C", "legendFormat": "max", "expr": "sum(hikaricp_connections_max{application=\"inventory-service\"})" }
+        { "refId": "A", "legendFormat": "{{service_name}} used", "expr": "sum by (service_name) (db_client_connections_usage{state=\"used\"})" },
+        { "refId": "B", "legendFormat": "{{service_name}} pending", "expr": "sum by (service_name) (db_client_connections_pending_requests)" },
+        { "refId": "C", "legendFormat": "{{service_name}} max", "expr": "sum by (service_name) (db_client_connections_max)" }
       ]
     },
     {

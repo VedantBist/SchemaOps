@@ -33,6 +33,15 @@ processors:
       span:
         - 'attributes["url.path"] != nil and IsMatch(attributes["url.path"], "^/(actuator|internal|metrics|health|ready)(/|$)")'
 
+  # Give every metric data point a service_name label taken from its resource, so
+  # agent metrics (connection pools, runtimes) group by service like the span metrics do.
+  transform/service-name:
+    error_mode: ignore
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(attributes["service.name"], resource.attributes["service.name"]) where resource.attributes["service.name"] != nil
+
 connectors:
   spanmetrics:
     histogram:
@@ -73,7 +82,7 @@ service:
       exporters: [otlp/tempo, spanmetrics, servicegraph]
     metrics:
       receivers: [otlp, spanmetrics, servicegraph]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, transform/service-name, batch]
       exporters: [prometheus]
     logs:
       receivers: [otlp]
