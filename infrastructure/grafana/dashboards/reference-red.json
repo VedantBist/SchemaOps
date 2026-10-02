@@ -1,0 +1,74 @@
+{
+  "uid": "causalops-red",
+  "title": "CausalOps - Service RED and Dependencies",
+  "tags": ["causalops"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Request rate (server spans, req/s)",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "targets": [{ "refId": "A", "legendFormat": "{{service_name}}",
+        "expr": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[1m]))" }]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Error rate (% of server spans)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "targets": [{ "refId": "A", "legendFormat": "{{service_name}}",
+        "expr": "100 * sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[1m])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[1m]))" }]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "p99 latency (server spans)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "targets": [{ "refId": "A", "legendFormat": "{{service_name}}",
+        "expr": "histogram_quantile(0.99, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[1m])))" }]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "p50 / p95 / p99 latency by service",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{service_name}} p50",
+          "expr": "histogram_quantile(0.50, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[1m])))" },
+        { "refId": "B", "legendFormat": "{{service_name}} p95",
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[1m])))" }
+      ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Database client latency p95 (CLIENT spans with db.system)",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "targets": [{ "refId": "A", "legendFormat": "{{service_name}} -> {{db_system}}",
+        "expr": "histogram_quantile(0.95, sum by (service_name, db_system, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_CLIENT\",db_system!=\"\"}[1m])))" }]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "HikariCP connection pool (inventory-service)",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "active", "expr": "sum(hikaricp_connections_active{application=\"inventory-service\"})" },
+        { "refId": "B", "legendFormat": "pending", "expr": "sum(hikaricp_connections_pending{application=\"inventory-service\"})" },
+        { "refId": "C", "legendFormat": "max", "expr": "sum(hikaricp_connections_max{application=\"inventory-service\"})" }
+      ]
+    },
+    {
+      "id": 7, "type": "table", "title": "Discovered dependencies (service graph, req/s over 1m)",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "format": "table", "instant": true,
+        "expr": "sum by (client, server, connection_type) (rate(traces_service_graph_request_total[1m]))" }],
+      "transformations": [{ "id": "organize", "options": { "excludeByName": { "Time": true } } }]
+    }
+  ]
+}

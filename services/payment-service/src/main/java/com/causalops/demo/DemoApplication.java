@@ -1,3 +1,33 @@
 package com.causalops.demo;
-import org.springframework.boot.*;import org.springframework.boot.autoconfigure.*;import org.springframework.web.bind.annotation.*;import java.util.*;
-@SpringBootApplication @RestController public class DemoApplication {static volatile int latency=0;static volatile boolean failure=false;public static void main(String[]x){SpringApplication.run(DemoApplication.class,x);}@PostMapping("/payments") Object pay(@RequestBody Map<String,Object>x)throws Exception{if(failure)throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,"injected service failure");if(latency>0)Thread.sleep(latency);return Map.of("paymentId",UUID.randomUUID().toString(),"status","AUTHORIZED");}@PostMapping("/internal/fault") Object fault(@RequestBody Map<String,Object>x){latency=((Number)x.getOrDefault("latencyMs",0)).intValue();failure=Boolean.TRUE.equals(x.get("failure"));return Map.of("latencyMs",latency,"failure",failure);}@GetMapping("/business") Object business()throws Exception{return Map.of("status","ready");}}
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
+
+/** Payment authorization endpoint of the reference system. */
+@SpringBootApplication
+@EnableScheduling
+@RestController
+public class DemoApplication {
+
+    private final ChaosState chaos;
+
+    public DemoApplication(ChaosState chaos) {
+        this.chaos = chaos;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+
+    @PostMapping("/payments")
+    public Map<String, Object> pay(@RequestBody Map<String, Object> request) throws InterruptedException {
+        chaos.beforeRequest();
+        return Map.of("paymentId", UUID.randomUUID().toString(), "orderId", String.valueOf(request.get("orderId")),
+                "status", "AUTHORIZED");
+    }
+}

@@ -1,0 +1,17 @@
+# Keep machine-checked artifacts and scripts byte-identical across platforms.
+# Without this, core.autocrlf=true on Windows rewrites JSON line endings on checkout
+# and every SHA-256 recorded in artifacts/ stops matching.
+*.json   text eol=lf
+*.jsonl  text eol=lf
+*.csv    text eol=lf
+*.py     text eol=lf
+*.sh     text eol=lf
+*.sql    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+Dockerfile text eol=lf
+
+*.joblib binary
+*.pkl    binary
+*.pt     binary
+*.npy    binary

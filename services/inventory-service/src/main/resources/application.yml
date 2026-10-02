@@ -1,0 +1,26 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: inventory-service
+  datasource:
+    # Host inventory-db resolves to the Toxiproxy link in front of PostgreSQL, so DB latency faults are real
+    # network delay. The database is also named inventory-db, which OTel reports as db.name and the
+    # collector's service graph uses as the database node name.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://inventory-db:5432/inventory-db}
+    username: ${SPRING_DATASOURCE_USERNAME:causalops}
+    password: ${SPRING_DATASOURCE_PASSWORD:causalops}
+    hikari:
+      pool-name: inventory-db-pool
+      maximum-pool-size: 10
+      connection-timeout: 3000
+chaos:
+  token: ${CHAOS_TOKEN:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

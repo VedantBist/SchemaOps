@@ -1,5 +1,26 @@
-global: { scrape_interval: 10s }
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
 scrape_configs:
-  - job_name: causalops
+  # RED metrics and the service graph derived from traces, plus OTLP metrics from the agents.
+  - job_name: otel-collector
+    static_configs:
+      - targets: ['otel-collector:8889']
+
+  # Spring Boot Micrometer metrics of the reference services (JVM, HikariCP pool, HTTP server).
+  - job_name: reference-services
     metrics_path: /actuator/prometheus
-    static_configs: [{ targets: ['causalops-api:8080','api-gateway:8080','order-service:8080','inventory-service:8080','payment-service:8080'] }]
+    static_configs:
+      - targets: ['api-gateway:8080', 'order-service:8080', 'inventory-service:8080', 'payment-service:8080']
+
+  # The CausalOps platform itself.
+  - job_name: causalops-api
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['causalops-api:8080']
+
+  - job_name: causalops-ai-engine
+    metrics_path: /metrics/prometheus
+    static_configs:
+      - targets: ['ai-engine:8000']

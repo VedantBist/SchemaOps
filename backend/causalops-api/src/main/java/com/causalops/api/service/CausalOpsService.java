@@ -34,6 +34,7 @@ public class CausalOpsService {
     private final EventBus events;
     private final ObjectMapper json;
     private final HttpClient javaHttp;
+    private final FaultInjector faults;
 
     @Value("${causalops.ai-url}")
     String aiUrl;
@@ -41,23 +42,13 @@ public class CausalOpsService {
     @Value("${causalops.demo-mode}")
     boolean demo;
 
-    @Value("${causalops.service-urls.inventory-service}")
-    String inventoryUrl;
-
-    @Value("${causalops.service-urls.order-service}")
-    String orderUrl;
-
-    @Value("${causalops.service-urls.payment-service}")
-    String paymentUrl;
-
-    @Value("${causalops.service-urls.api-gateway}")
-    String gatewayUrl;
-
     @Value("${causalops.rca.mode:classical_ml}")
     String defaultRcaMode = "classical_ml";
 
-    public CausalOpsService(JdbcTemplate d, ServiceRepository s, RestClient h, EventBus e, ObjectMapper mapper) {
+    public CausalOpsService(JdbcTemplate d, ServiceRepository s, RestClient h, EventBus e, ObjectMapper mapper,
+                            FaultInjector faultInjector) {
         db = d;
+        faults = faultInjector;
         services = s;
         http = h;
         events = e;
@@ -201,10 +192,10 @@ public class CausalOpsService {
                 "insert into fault_injections(id,type,target,severity,duration_seconds,parameters) values(?,?,?,?,?,cast(? as jsonb))",
                 id, r.type(), r.target(), r.severity(), r.durationSeconds(), p);
         try {
-            applyLiveFault(r, false);
+            faults.inject(id, r);
         } catch (RuntimeException e) {
             db.update("update fault_injections set status='FAILED',stopped_at=now() where id=?", id);
-            log.error("Live fault {} could not be applied to {}", id, r.target(), e);
+            log.error("Fault {} could not be applied to {}", id, r.target(), e);
             throw e;
         }
         events.emit("fault.started", id, Map.of("target", r.target(), "type", r.type()));
@@ -219,57 +210,46 @@ public class CausalOpsService {
     }
 
     public Map<String, Object> fault(UUID id) {
-        return faults().stream()
-                .filter(x -> id.toString().equals(String.valueOf(x.get("id"))))
-                .findFirst().orElseThrow();
+        var rows = db.queryForList(
+                "select id, type, target, severity, duration_seconds as \"durationSeconds\", " +
+                "parameters::text as parameters, status, started_at as \"startedAt\", stopped_at as \"stoppedAt\" " +
+                "from fault_injections where id=?", id);
+        if (rows.isEmpty()) throw new NoSuchElementException("Unknown fault " + id);
+        return rows.get(0);
     }
 
     public void stop(UUID id) {
         var f = fault(id);
-        db.update("update fault_injections set status='STOPPED',stopped_at=now() where id=?", id);
-        applyLiveFault(
-                new FaultRequest("SERVICE_LATENCY", String.valueOf(f.get("target")), "LOW", 1, Map.of("latencyMs", 0)),
-                true);
-        events.emit("fault.stopped", id, Map.of());
+        if (!"ACTIVE".equals(f.get("status"))) return;
+        endFault(id, String.valueOf(f.get("type")), String.valueOf(f.get("target")), "STOPPED");
     }
 
     public void clear() {
-        List<Map<String, Object>> active = faults().stream()
-                .filter(f -> "ACTIVE".equals(f.get("status"))).toList();
-        for (var f : active) {
-            applyLiveFault(
-                    new FaultRequest(String.valueOf(f.get("type")), String.valueOf(f.get("target")),
-                            "LOW", 1, Map.of("latencyMs", 0)),
-                    true);
+        for (var f : db.queryForList("select id, type, target from fault_injections where status='ACTIVE'")) {
+            endFault((UUID) f.get("id"), String.valueOf(f.get("type")), String.valueOf(f.get("target")), "STOPPED");
         }
-        db.update("update fault_injections set status='STOPPED',stopped_at=now() where status='ACTIVE'");
         events.emit("faults.cleared", "all", Map.of());
     }
 
-    private void applyLiveFault(FaultRequest r, boolean stop) {
-        String url = switch (r.target()) {
-            case "inventory-db", "inventory-service" -> inventoryUrl;
-            case "order-service" -> orderUrl;
-            case "payment-service" -> paymentUrl;
-            case "api-gateway", "auth-gateway" -> gatewayUrl;
-            default -> throw new IllegalArgumentException("No live controller for target " + r.target());
-        };
-        try {
-            Object latencyVal = (r.parameters() != null && r.parameters().containsKey("latencyMs"))
-                    ? r.parameters().get("latencyMs") : 800;
-            http.post()
-                    .uri(url + "/internal/fault")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of(
-                            "type", r.type(),
-                            "latencyMs", stop ? 0 : latencyVal,
-                            "failure", !stop && "SERVICE_FAILURE".equals(r.type())
-                    ))
-                    .retrieve()
-                    .toBodilessEntity();
-        } catch (Exception e) {
-            throw new IllegalStateException("Live fault controller failed for " + r.target() + " at " + url, e);
+    /** Faults expire on their own after durationSeconds (the services also enforce this locally). */
+    @Scheduled(fixedDelay = 1000)
+    public void expireFaults() {
+        var due = db.queryForList(
+                "select id, type, target from fault_injections where status='ACTIVE' " +
+                "and started_at + make_interval(secs => duration_seconds) < now()");
+        for (var f : due) {
+            endFault((UUID) f.get("id"), String.valueOf(f.get("type")), String.valueOf(f.get("target")), "EXPIRED");
         }
+    }
+
+    private void endFault(UUID id, String type, String target, String finalStatus) {
+        try {
+            faults.stop(id, type, target);
+        } catch (RuntimeException e) {
+            log.error("Could not remove fault {} ({} on {}); marking it {} anyway", id, type, target, finalStatus, e);
+        }
+        db.update("update fault_injections set status=?, stopped_at=now() where id=? and status='ACTIVE'", finalStatus, id);
+        events.emit("fault.stopped", id, Map.of("status", finalStatus));
     }
 
     // ─── Scheduled telemetry collection ───────────────────────────────────────

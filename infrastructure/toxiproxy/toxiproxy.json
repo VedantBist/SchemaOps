@@ -1,0 +1,32 @@
+[
+  {
+    "name": "inventory-db",
+    "listen": "0.0.0.0:5432",
+    "upstream": "postgres:5432",
+    "enabled": true
+  },
+  {
+    "name": "edge-to-api-gateway",
+    "listen": "0.0.0.0:18081",
+    "upstream": "api-gateway:8080",
+    "enabled": true
+  },
+  {
+    "name": "api-gateway-to-order-service",
+    "listen": "0.0.0.0:18082",
+    "upstream": "order-service:8080",
+    "enabled": true
+  },
+  {
+    "name": "order-service-to-inventory-service",
+    "listen": "0.0.0.0:18083",
+    "upstream": "inventory-service:8080",
+    "enabled": true
+  },
+  {
+    "name": "order-service-to-payment-service",
+    "listen": "0.0.0.0:18084",
+    "upstream": "payment-service:8080",
+    "enabled": true
+  }
+]

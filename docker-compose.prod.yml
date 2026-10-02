@@ -1,11 +1,32 @@
 # ==============================================================================
-# CausalOps — Production Docker Compose
-# Phase 7: Production-Grade Deployment
+# CausalOps — production-style Docker Compose
 #
-# Start:   docker compose -f docker-compose.prod.yml up -d
+# Start:    docker compose -f docker-compose.prod.yml up -d
 # Shutdown: docker compose -f docker-compose.prod.yml down
-# Logs:    docker compose -f docker-compose.prod.yml logs -f <service>
+#
+# Host-exposed ports: causalops-api (8080), Grafana (3001), OTLP ingest (4317/4318).
+# Prometheus, Loki, Tempo, PostgreSQL and the AI engine are reachable only inside
+# the compose networks. The reference system (services, Toxiproxy, loadgen) is the
+# bundled demo target; external systems send OTLP to the collector instead.
 # ==============================================================================
+
+x-otel-agent: &otel-agent
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_METRIC_EXPORT_INTERVAL: "5000"
+  OTEL_LOGS_EXPORTER: otlp
+  # Internal timers (chaos expiry) are not business work; keep them out of traces.
+  OTEL_INSTRUMENTATION_SPRING_SCHEDULING_ENABLED: "false"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=reference,service.namespace=causalops-reference"
+  # Leave CHAOS_TOKEN unset to disable fault injection entirely.
+  CHAOS_TOKEN: "${CHAOS_TOKEN:-}"
+
+x-service-health: &service-health
+  test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
+  interval: 15s
+  timeout: 5s
+  retries: 10
+  start_period: 45s
 
 networks:
   causalops-internal:
@@ -14,16 +35,11 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data:
-    driver: local
-  prometheus-data:
-    driver: local
-  loki-data:
-    driver: local
-  tempo-data:
-    driver: local
-  ml-models:
-    driver: local
+  postgres-data: {}
+  prometheus-data: {}
+  loki-data: {}
+  tempo-data: {}
+  grafana-data: {}
 
 services:
 
@@ -34,192 +50,154 @@ services:
     environment:
       POSTGRES_DB:       "${POSTGRES_DB:-causalops}"
       POSTGRES_USER:     "${POSTGRES_USER:-causalops}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-    networks:
-      - causalops-internal
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-reference-system.sql:ro
+    networks: [causalops-internal]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 20
       start_period: 15s
-    # No external port exposure in production; access via causalops-api only
-    expose:
-      - "5432"
 
-  # ── AI Engine (FastAPI / Python) ─────────────────────────────────────────────
+  # ── CausalOps platform ────────────────────────────────────────────────────────
   ai-engine:
-    build:
-      context: ./ai-engine
-      dockerfile: Dockerfile
+    build: { context: ./ai-engine }
     restart: unless-stopped
     environment:
-      LOG_LEVEL:                          "${LOG_LEVEL:-INFO}"
-      AI_ENGINE_SIMULATION_RATE_LIMIT:   "${AI_ENGINE_SIMULATION_RATE_LIMIT:-10}"
-      AI_ENGINE_PREDICTION_RATE_LIMIT:   "${AI_ENGINE_PREDICTION_RATE_LIMIT:-30}"
-      AI_ENGINE_SIMULATION_TIMEOUT:      "${AI_ENGINE_SIMULATION_TIMEOUT_SECONDS:-60}"
-      CAUSALOPS_CORS_ORIGINS:            "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000}"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      CAUSALOPS_CORS_ORIGINS: "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000}"
     volumes:
       - ./ml:/app/ml:ro
       - ./dataset:/app/dataset:ro
-    networks:
-      - causalops-internal
-    expose:
-      - "8000"
+    networks: [causalops-internal]
+    expose: ["8000"]
     healthcheck:
-      test: ["CMD", "python", "-c",
-             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 30s
     depends_on:
-      postgres:
-        condition: service_healthy
+      postgres: { condition: service_healthy }
 
-  # ── CausalOps API (Spring Boot) ──────────────────────────────────────────────
   causalops-api:
-    build:
-      context: ./backend/causalops-api
-      dockerfile: Dockerfile
+    build: { context: ./backend/causalops-api }
     restart: unless-stopped
     environment:
-      POSTGRES_HOST:                    "postgres"
-      POSTGRES_PORT:                    "${POSTGRES_PORT:-5432}"
-      POSTGRES_DB:                      "${POSTGRES_DB:-causalops}"
-      POSTGRES_USER:                    "${POSTGRES_USER:-causalops}"
-      POSTGRES_PASSWORD:                "${POSTGRES_PASSWORD}"
-      AI_ENGINE_URL:                    "http://ai-engine:8000"
-      API_GATEWAY_URL:                  "http://api-gateway:8080"
-      ORDER_SERVICE_URL:                "http://order-service:8080"
-      INVENTORY_SERVICE_URL:            "http://inventory-service:8080"
-      PAYMENT_SERVICE_URL:              "http://payment-service:8080"
-      DEMO_MODE:                        "${DEMO_MODE:-true}"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "${POSTGRES_DB:-causalops}"
+      POSTGRES_USER: "${POSTGRES_USER:-causalops}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      AI_ENGINE_URL: http://ai-engine:8000
+      API_GATEWAY_URL: http://api-gateway:8080
+      ORDER_SERVICE_URL: http://order-service:8080
+      INVENTORY_SERVICE_URL: http://inventory-service:8080
+      PAYMENT_SERVICE_URL: http://payment-service:8080
+      TOXIPROXY_URL: http://toxiproxy:8474
+      CHAOS_TOKEN: "${CHAOS_TOKEN:-}"
+      DEMO_MODE: "${DEMO_MODE:-true}"
       TELEMETRY_COLLECTION_INTERVAL_MS: "${TELEMETRY_COLLECTION_INTERVAL_MS:-1000}"
-      CAUSALOPS_CORS_ORIGINS:           "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000}"
-      LOG_LEVEL:                        "${LOG_LEVEL:-INFO}"
-    ports:
-      - "${CAUSALOPS_API_PORT:-8080}:8080"
-    networks:
-      - causalops-internal
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
+    networks: [causalops-internal]
     healthcheck:
-      test: ["CMD-SHELL",
-             "curl -sf http://localhost:8080/actuator/health | grep -q UP || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health | grep -q UP || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 15
       start_period: 60s
     depends_on:
-      postgres:
-        condition: service_healthy
-      ai-engine:
-        condition: service_healthy
+      postgres: { condition: service_healthy }
+      ai-engine: { condition: service_healthy }
 
-  # ── Monitored microservices ───────────────────────────────────────────────────
+  # ── Reference system ──────────────────────────────────────────────────────────
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.11.0
+    restart: unless-stopped
+    command: ["-host=0.0.0.0", "-config=/config/toxiproxy.json"]
+    volumes: ["./infrastructure/toxiproxy/toxiproxy.json:/config/toxiproxy.json:ro"]
+    networks:
+      causalops-internal:
+        aliases: [inventory-db]
+    depends_on:
+      postgres: { condition: service_healthy }
+
   inventory-service:
-    build:
-      context: ./services/inventory-service
-      dockerfile: Dockerfile
+    build: { context: ./services/inventory-service }
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL:      "jdbc:postgresql://postgres:5432/${POSTGRES_DB:-causalops}"
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: inventory-service
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://inventory-db:5432/inventory-db"
       SPRING_DATASOURCE_USERNAME: "${POSTGRES_USER:-causalops}"
-      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD}"
-    networks:
-      - causalops-internal
-    expose:
-      - "8080"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 45s
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+    networks: [causalops-internal]
+    healthcheck: *service-health
+    depends_on: [toxiproxy, otel-collector]
 
   payment-service:
-    build:
-      context: ./services/payment-service
-      dockerfile: Dockerfile
+    build: { context: ./services/payment-service }
     restart: unless-stopped
-    networks:
-      - causalops-internal
-    expose:
-      - "8080"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 45s
+    environment:
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: payment-service
+    networks: [causalops-internal]
+    healthcheck: *service-health
+    depends_on: [otel-collector]
 
   order-service:
-    build:
-      context: ./services/order-service
-      dockerfile: Dockerfile
+    build: { context: ./services/order-service }
     restart: unless-stopped
     environment:
-      INVENTORY_URL: "http://inventory-service:8080"
-      PAYMENT_URL:   "http://payment-service:8080"
-    networks:
-      - causalops-internal
-    expose:
-      - "8080"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 45s
-    depends_on:
-      - inventory-service
-      - payment-service
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: order-service
+      INVENTORY_URL: http://toxiproxy:18083
+      PAYMENT_URL: http://toxiproxy:18084
+    networks: [causalops-internal]
+    healthcheck: *service-health
+    depends_on: [inventory-service, payment-service, toxiproxy]
 
   api-gateway:
-    build:
-      context: ./services/api-gateway
-      dockerfile: Dockerfile
+    build: { context: ./services/api-gateway }
     restart: unless-stopped
     environment:
-      ORDER_URL: "http://order-service:8080"
-    ports:
-      - "8081:8080"
-    networks:
-      - causalops-internal
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 45s
-    depends_on:
-      - order-service
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: api-gateway
+      ORDER_URL: http://toxiproxy:18082
+    networks: [causalops-internal]
+    healthcheck: *service-health
+    depends_on: [order-service, toxiproxy]
 
-  # ── Observability: OTel Collector ─────────────────────────────────────────────
+  loadgen:
+    image: python:3.12-slim
+    restart: unless-stopped
+    command: ["python", "-u", "/loadgen/loadgen.py"]
+    environment:
+      LOADGEN_TARGET: http://toxiproxy:18081
+      LOADGEN_RPS: "${LOADGEN_RPS:-5}"
+      LOADGEN_VARIATION: "${LOADGEN_VARIATION:-0.3}"
+      LOADGEN_PERIOD_S: "${LOADGEN_PERIOD_S:-600}"
+    volumes: ["./infrastructure/loadgen:/loadgen:ro"]
+    networks: [causalops-internal]
+    depends_on: [api-gateway]
+
+  # ── Observability ─────────────────────────────────────────────────────────────
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.119.0
     restart: unless-stopped
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     volumes:
       - ./infrastructure/otel/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
-    ports:
-      - "4317:4317"
-      - "4318:4318"
-    networks:
-      - causalops-internal
-      - causalops-observability
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+    # The contrib image is distroless (no shell, curl or wget), so it has no in-container
+    # healthcheck. Its health_check extension serves http://otel-collector:13133/ for monitors.
+    ports: ["4317:4317", "4318:4318"]
+    networks: [causalops-internal, causalops-observability]
+    depends_on: [tempo, loki]
 
-  # ── Observability: Prometheus ─────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:v3.1.0
     restart: unless-stopped
@@ -227,22 +205,16 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=15d"
-      - "--web.enable-lifecycle"
     volumes:
       - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
-    networks:
-      - causalops-observability
-      - causalops-internal
+    networks: [causalops-observability, causalops-internal]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
       interval: 10s
       timeout: 3s
       retries: 5
 
-  # ── Observability: Loki ───────────────────────────────────────────────────────
   loki:
     image: grafana/loki:3.3.2
     restart: unless-stopped
@@ -250,30 +222,38 @@ services:
     volumes:
       - ./infrastructure/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
-    ports:
-      - "${LOKI_PORT:-3100}:3100"
-    networks:
-      - causalops-observability
+    networks: [causalops-observability]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
       interval: 10s
       timeout: 3s
       retries: 5
 
-  # ── Observability: Tempo ──────────────────────────────────────────────────────
   tempo:
     image: grafana/tempo:2.6.1
     restart: unless-stopped
+    user: "0"
     command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - ./infrastructure/tempo/tempo.yml:/etc/tempo.yaml:ro
       - tempo-data:/var/tempo
-    ports:
-      - "${TEMPO_PORT:-3200}:3200"
-    networks:
-      - causalops-observability
+    networks: [causalops-observability]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
       interval: 10s
       timeout: 3s
       retries: 5
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}"
+    volumes:
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["${GRAFANA_PORT:-3001}:3000"]
+    networks: [causalops-observability]
+    depends_on: [prometheus, tempo, loki]

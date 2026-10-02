@@ -1,3 +1,50 @@
 package com.causalops.demo;
-import org.springframework.boot.*;import org.springframework.boot.autoconfigure.*;import org.springframework.web.bind.annotation.*;import org.springframework.web.client.RestClient;import java.util.*;
-@SpringBootApplication @RestController public class DemoApplication {final RestClient http=RestClient.create();static volatile int latency=0;static volatile boolean failure=false;public static void main(String[]x){SpringApplication.run(DemoApplication.class,x);}@GetMapping("/orders/{id}") Object order(@PathVariable String id)throws Exception{if(failure)throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,"injected service failure");delay();var inv=http.get().uri(System.getenv().getOrDefault("INVENTORY_URL","http://inventory-service:8080")+"/inventory/sku-demo").retrieve().body(Map.class);var pay=http.post().uri(System.getenv().getOrDefault("PAYMENT_URL","http://payment-service:8080")+"/payments").body(Map.of("orderId",id)).retrieve().body(Map.class);return Map.of("id",id,"inventory",inv,"payment",pay);}@PostMapping("/internal/fault") Object fault(@RequestBody Map<String,Object>x){latency=((Number)x.getOrDefault("latencyMs",0)).intValue();failure=Boolean.TRUE.equals(x.get("failure"));return Map.of("latencyMs",latency,"failure",failure);}@GetMapping("/business") Object business()throws Exception{return order("demo");}void delay()throws Exception{if(latency>0)Thread.sleep(latency);}}
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClient;
+
+import java.util.Map;
+
+/** Order orchestration: checks stock in inventory-service, then authorizes payment. */
+@SpringBootApplication
+@EnableScheduling
+@RestController
+public class DemoApplication {
+
+    private final RestClient inventory;
+    private final RestClient payments;
+    private final ChaosState chaos;
+
+    public DemoApplication(RestClient.Builder builder, ChaosState chaos,
+                           @Value("${downstream.inventory-url}") String inventoryUrl,
+                           @Value("${downstream.payment-url}") String paymentUrl) {
+        SimpleClientHttpRequestFactory timeouts = new SimpleClientHttpRequestFactory();
+        timeouts.setConnectTimeout(2_000);
+        timeouts.setReadTimeout(8_000);
+        this.inventory = builder.clone().baseUrl(inventoryUrl).requestFactory(timeouts).build();
+        this.payments = builder.clone().baseUrl(paymentUrl).requestFactory(timeouts).build();
+        this.chaos = chaos;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+
+    @GetMapping("/orders/{id}")
+    public Map<String, Object> order(@PathVariable String id) throws InterruptedException {
+        chaos.beforeRequest();
+        Map<?, ?> stock = inventory.get().uri("/inventory/{sku}", "sku-demo").retrieve().body(Map.class);
+        Map<?, ?> payment = payments.post().uri("/payments").body(Map.of("orderId", id)).retrieve().body(Map.class);
+        return Map.of("id", id, "inventory", stock, "payment", payment);
+    }
+
+    @GetMapping("/business")
+    public Map<String, Object> business() throws InterruptedException {
+        return order("demo");
+    }
+}

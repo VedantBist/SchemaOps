@@ -12,10 +12,25 @@ management.endpoints.web.exposure.include: health,info,prometheus
 causalops:
   ai-url: ${AI_ENGINE_URL:http://ai-engine:8000}
   demo-mode: ${DEMO_MODE:true}
-  service-urls:
-    api-gateway: ${API_GATEWAY_URL:http://api-gateway:8080}
-    order-service: ${ORDER_SERVICE_URL:http://order-service:8080}
-    inventory-service: ${INVENTORY_SERVICE_URL:http://inventory-service:8080}
-    payment-service: ${PAYMENT_SERVICE_URL:http://payment-service:8080}
+  # Fault injection against the reference system (real mechanisms, see FaultInjector).
+  chaos:
+    token: ${CHAOS_TOKEN:}
+    toxiproxy-url: ${TOXIPROXY_URL:http://toxiproxy:8474}
+    # In-process faults: SERVICE_LATENCY, ERROR_RATE, SERVICE_FAILURE, CONNECTION_POOL_SATURATION.
+    service-urls:
+      api-gateway: ${API_GATEWAY_URL:http://api-gateway:8080}
+      order-service: ${ORDER_SERVICE_URL:http://order-service:8080}
+      inventory-service: ${INVENTORY_SERVICE_URL:http://inventory-service:8080}
+      payment-service: ${PAYMENT_SERVICE_URL:http://payment-service:8080}
+    # DB_LATENCY: Toxiproxy link in front of each database.
+    db-links:
+      inventory-db: inventory-db
+    # NETWORK_LATENCY: Toxiproxy link carrying traffic into each target.
+    inbound-links:
+      api-gateway: edge-to-api-gateway
+      order-service: api-gateway-to-order-service
+      inventory-service: order-service-to-inventory-service
+      payment-service: order-service-to-payment-service
+      inventory-db: inventory-db
 telemetry:
   collection-interval-ms: ${TELEMETRY_COLLECTION_INTERVAL_MS:1000}

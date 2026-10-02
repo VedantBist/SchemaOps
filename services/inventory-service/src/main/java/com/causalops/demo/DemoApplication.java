@@ -1,3 +1,46 @@
 package com.causalops.demo;
-import org.springframework.boot.*;import org.springframework.boot.autoconfigure.*;import org.springframework.web.bind.annotation.*;import org.springframework.jdbc.core.JdbcTemplate;import java.util.*;
-@SpringBootApplication @RestController public class DemoApplication {static volatile int latency=0;static volatile boolean failure=false;final JdbcTemplate db;DemoApplication(JdbcTemplate d){db=d;}public static void main(String[]x){SpringApplication.run(DemoApplication.class,x);}@GetMapping("/inventory/{sku}") Object inventory(@PathVariable String sku)throws Exception{if(failure)throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,"injected service failure");if(latency>0)Thread.sleep(latency);Integer available=db.queryForObject("select quantity from inventory where sku=?",Integer.class,sku);return Map.of("sku",sku,"available",available==null?0:available);}@PostMapping("/internal/fault") Object fault(@RequestBody Map<String,Object>x){latency=((Number)x.getOrDefault("latencyMs",0)).intValue();failure=Boolean.TRUE.equals(x.get("failure"));return Map.of("latencyMs",latency,"failure",failure);}@GetMapping("/business") Object business()throws Exception{return inventory("sku-demo");}}
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Map;
+
+/** Stock lookups backed by the inventory-db PostgreSQL database. */
+@SpringBootApplication
+@EnableScheduling
+@RestController
+public class DemoApplication {
+
+    private final JdbcTemplate db;
+    private final ChaosState chaos;
+
+    public DemoApplication(JdbcTemplate db, ChaosState chaos) {
+        this.db = db;
+        this.chaos = chaos;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+
+    @GetMapping("/inventory/{sku}")
+    public Map<String, Object> inventory(@PathVariable String sku) throws InterruptedException {
+        chaos.beforeRequest();
+        List<Integer> rows = db.queryForList("select quantity from inventory where sku = ?", Integer.class, sku);
+        if (rows.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "unknown sku " + sku);
+        }
+        return Map.of("sku", sku, "available", rows.get(0));
+    }
+
+    @GetMapping("/business")
+    public Map<String, Object> business() throws InterruptedException {
+        return inventory("sku-demo");
+    }
+}

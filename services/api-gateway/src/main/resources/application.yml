@@ -1,0 +1,17 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+downstream:
+  order-url: ${ORDER_URL:http://order-service:8080}
+chaos:
+  token: ${CHAOS_TOKEN:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

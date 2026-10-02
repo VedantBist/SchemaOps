@@ -1,3 +1,81 @@
-receivers: { otlp: { protocols: { grpc: {}, http: {} } } }
-exporters: { debug: {} }
-service: { pipelines: { traces: { receivers: [otlp], exporters: [debug] } } }
+# OpenTelemetry Collector for CausalOps.
+#
+# Contract with any target system: send OTLP (traces, metrics, logs) to this collector.
+# From traces alone the connectors derive language-agnostic signals CausalOps relies on:
+#   spanmetrics  -> RED metrics per service/operation (traces_span_metrics_*)
+#   servicegraph -> the real call graph between services and databases (traces_service_graph_*)
+# Everything metric-shaped is exposed on :8889 for Prometheus to scrape.
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 400
+    spike_limit_mib: 100
+  batch:
+    timeout: 2s
+  # Drop spans produced by monitoring and control traffic (metrics scrapes, health
+  # probes, chaos control) so RED metrics and the service graph reflect business traffic only.
+  filter/non-business:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["url.path"] != nil and IsMatch(attributes["url.path"], "^/(actuator|internal|metrics|health|ready)(/|$)")'
+
+connectors:
+  spanmetrics:
+    histogram:
+      unit: ms
+      explicit:
+        buckets: [2ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 750ms, 1s, 1500ms, 2s, 3s, 5s, 10s]
+    dimensions:
+      - name: http.response.status_code
+      - name: http.request.method
+      - name: db.system
+    metrics_flush_interval: 5s
+    aggregation_temporality: AGGREGATION_TEMPORALITY_CUMULATIVE
+  servicegraph:
+    latency_histogram_buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s, 10s]
+    store:
+      ttl: 10s
+      max_items: 10000
+    metrics_flush_interval: 5s
+
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: false
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/non-business, batch]
+      exporters: [otlp/tempo, spanmetrics, servicegraph]
+    metrics:
+      receivers: [otlp, spanmetrics, servicegraph]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/loki]

@@ -1,3 +1,22 @@
+# CausalOps development stack: the platform, its observability pipeline, and an
+# instrumented reference system that produces real telemetry.
+#
+#   Reference system:  loadgen -> toxiproxy -> api-gateway -> order-service -> inventory-service -> inventory-db
+#                                                              order-service -> payment-service
+#   Telemetry:         services (OTel Java agent) -> otel-collector -> Prometheus / Tempo / Loki -> Grafana
+#
+# Toxiproxy sits on every real network path so DB and network latency faults are genuine delays.
+
+x-otel-agent: &otel-agent
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_METRIC_EXPORT_INTERVAL: "5000"
+  OTEL_LOGS_EXPORTER: otlp
+  # Internal timers (chaos expiry) are not business work; keep them out of traces.
+  OTEL_INSTRUMENTATION_SPRING_SCHEDULING_ENABLED: "false"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=reference,service.namespace=causalops-reference"
+  CHAOS_TOKEN: "${CHAOS_TOKEN:-dev-chaos-token}"
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -6,8 +25,105 @@ services:
       POSTGRES_USER: "${POSTGRES_USER:-causalops}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
     ports: ["${POSTGRES_PORT:-5432}:5432"]
-    volumes: ["postgres-data:/var/lib/postgresql/data", "./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-business.sql"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-reference-system.sql:ro
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"], interval: 5s, timeout: 3s, retries: 20 }
+
+  # ── Reference system network paths (fault injection points) ──────────────────
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.11.0
+    command: ["-host=0.0.0.0", "-config=/config/toxiproxy.json"]
+    volumes: ["./infrastructure/toxiproxy/toxiproxy.json:/config/toxiproxy.json:ro"]
+    networks:
+      default:
+        # inventory-service connects to "inventory-db", which is this proxy in front of PostgreSQL.
+        aliases: [inventory-db]
+    depends_on: { postgres: { condition: service_healthy } }
+
+  # ── Reference system (instrumented with the OpenTelemetry Java agent) ────────
+  inventory-service:
+    build: ./services/inventory-service
+    environment:
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: inventory-service
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://inventory-db:5432/inventory-db"
+      SPRING_DATASOURCE_USERNAME: "${POSTGRES_USER:-causalops}"
+      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
+    depends_on: [toxiproxy, otel-collector]
+  payment-service:
+    build: ./services/payment-service
+    environment:
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: payment-service
+    depends_on: [otel-collector]
+  order-service:
+    build: ./services/order-service
+    environment:
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: order-service
+      INVENTORY_URL: http://toxiproxy:18083
+      PAYMENT_URL: http://toxiproxy:18084
+    depends_on: [inventory-service, payment-service, toxiproxy]
+  api-gateway:
+    build: ./services/api-gateway
+    environment:
+      <<: *otel-agent
+      OTEL_SERVICE_NAME: api-gateway
+      ORDER_URL: http://toxiproxy:18082
+    # Not published on the host: business traffic comes from loadgen inside the network,
+    # and the token-protected /internal/chaos endpoint stays unreachable from outside.
+    depends_on: [order-service, toxiproxy]
+  loadgen:
+    image: python:3.12-slim
+    command: ["python", "-u", "/loadgen/loadgen.py"]
+    environment:
+      LOADGEN_TARGET: http://toxiproxy:18081
+      LOADGEN_RPS: "${LOADGEN_RPS:-5}"
+      LOADGEN_VARIATION: "${LOADGEN_VARIATION:-0.3}"
+      LOADGEN_PERIOD_S: "${LOADGEN_PERIOD_S:-600}"
+    volumes: ["./infrastructure/loadgen:/loadgen:ro"]
+    depends_on: [api-gateway]
+
+  # ── Observability pipeline ────────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.119.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes: ["./infrastructure/otel/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro"]
+    # 4317/4318: OTLP ingest from external systems; 13133: collector health endpoint.
+    ports: ["4317:4317", "4318:4318", "13133:13133"]
+    depends_on: [tempo, loki]
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d", "--web.enable-lifecycle"]
+    volumes: ["./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro", "prometheus-data:/prometheus"]
+    ports: ["9090:9090"]
+  loki:
+    image: grafana/loki:3.3.2
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes: ["./infrastructure/loki/loki-config.yml:/etc/loki/local-config.yaml:ro", "loki-data:/loki"]
+    ports: ["3100:3100"]
+  tempo:
+    image: grafana/tempo:2.6.1
+    # Runs as root in dev so it can write to the named volume created by Docker.
+    user: "0"
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes: ["./infrastructure/tempo/tempo.yml:/etc/tempo.yaml:ro", "tempo-data:/var/tempo"]
+    ports: ["3200:3200"]
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["${GRAFANA_PORT:-3001}:3000"]
+    depends_on: [prometheus, tempo, loki]
+
+  # ── CausalOps platform ────────────────────────────────────────────────────────
   ai-engine:
     build: ./ai-engine
     ports: ["8000:8000"]
@@ -15,26 +131,6 @@ services:
       - ./ml:/app/ml:ro
       - ./dataset:/app/dataset:ro
     healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"], interval: 10s, timeout: 3s, retries: 10 }
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.119.0
-    command: ["--config=/etc/otelcol-contrib/config.yaml"]
-    volumes: ["./infrastructure/otel/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml"]
-    ports: ["4317:4317", "4318:4318"]
-  prometheus:
-    image: prom/prometheus:v3.1.0
-    command: ["--config.file=/etc/prometheus/prometheus.yml"]
-    volumes: ["./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"]
-    ports: ["9090:9090"]
-  loki:
-    image: grafana/loki:3.3.2
-    command: ["-config.file=/etc/loki/local-config.yaml"]
-    volumes: ["./infrastructure/loki/loki-config.yml:/etc/loki/local-config.yaml"]
-    ports: ["3100:3100"]
-  tempo:
-    image: grafana/tempo:2.6.1
-    command: ["-config.file=/etc/tempo.yaml"]
-    volumes: ["./infrastructure/tempo/tempo.yml:/etc/tempo.yaml"]
-    ports: ["3200:3200"]
   causalops-api:
     build: ./backend/causalops-api
     environment:
@@ -47,25 +143,15 @@ services:
       ORDER_SERVICE_URL: http://order-service:8080
       INVENTORY_SERVICE_URL: http://inventory-service:8080
       PAYMENT_SERVICE_URL: http://payment-service:8080
+      TOXIPROXY_URL: http://toxiproxy:8474
+      CHAOS_TOKEN: "${CHAOS_TOKEN:-dev-chaos-token}"
       DEMO_MODE: "${DEMO_MODE:-true}"
       TELEMETRY_COLLECTION_INTERVAL_MS: "${TELEMETRY_COLLECTION_INTERVAL_MS:-1000}"
     ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
     depends_on: { postgres: { condition: service_healthy }, ai-engine: { condition: service_healthy } }
-  inventory-service:
-    build: ./services/inventory-service
-    environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/${POSTGRES_DB:-causalops}"
-      SPRING_DATASOURCE_USERNAME: "${POSTGRES_USER:-causalops}"
-      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
-    depends_on: { postgres: { condition: service_healthy } }
-  payment-service: { build: ./services/payment-service }
-  order-service:
-    build: ./services/order-service
-    environment: { INVENTORY_URL: "http://inventory-service:8080", PAYMENT_URL: "http://payment-service:8080" }
-    depends_on: [inventory-service, payment-service]
-  api-gateway:
-    build: ./services/api-gateway
-    environment: { ORDER_URL: "http://order-service:8080" }
-    ports: ["8081:8080"]
-    depends_on: [order-service]
-volumes: { postgres-data: {} }
+
+volumes:
+  postgres-data: {}
+  prometheus-data: {}
+  loki-data: {}
+  tempo-data: {}
