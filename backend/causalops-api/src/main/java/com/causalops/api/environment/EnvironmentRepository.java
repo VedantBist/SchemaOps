@@ -15,7 +15,7 @@ import java.util.UUID;
 public class EnvironmentRepository {
 
     private static final String COLUMNS =
-            "id, name, status, config::text AS config, learning_started_at, created_at, updated_at";
+            "id, name, status, status_reason, config::text AS config, learning_started_at, calibrated_at, created_at, updated_at";
 
     private final JdbcTemplate db;
     private final ObjectMapper json;
@@ -28,8 +28,10 @@ public class EnvironmentRepository {
                 rs.getObject("id", UUID.class),
                 rs.getString("name"),
                 rs.getString("status"),
+                rs.getString("status_reason"),
                 read(rs.getString("config")),
                 rs.getTimestamp("learning_started_at").toInstant(),
+                rs.getTimestamp("calibrated_at") == null ? null : rs.getTimestamp("calibrated_at").toInstant(),
                 rs.getTimestamp("created_at").toInstant(),
                 rs.getTimestamp("updated_at").toInstant());
     }
@@ -68,6 +70,22 @@ public class EnvironmentRepository {
         int n = db.update("UPDATE environments SET status = ?, updated_at = now() WHERE id = ?", status, id);
         if (n == 0) throw new java.util.NoSuchElementException("Unknown environment " + id);
         return findById(id).orElseThrow();
+    }
+
+    /** Records the outcome of a calibration run on the environment's lifecycle. */
+    public void restartLearning(UUID id, String reason) {
+        db.update("""
+                UPDATE environments SET status = 'LEARNING', learning_started_at = now(), status_reason = ?, updated_at = now()
+                WHERE id = ?
+                """, reason, id);
+    }
+
+    public void updateLifecycle(UUID id, String status, Timestamp calibratedAt, String reason) {
+        db.update("""
+                UPDATE environments SET status = ?, calibrated_at = COALESCE(?, calibrated_at), status_reason = ?,
+                                        updated_at = now()
+                WHERE id = ?
+                """, status, calibratedAt, reason, id);
     }
 
     public Optional<Timestamp> lastSampleAt(UUID environmentId) {

@@ -42,6 +42,7 @@ volumes:
   loki-data: {}
   tempo-data: {}
   grafana-data: {}
+  engine-models: {}
 
 services:
 
@@ -71,9 +72,20 @@ services:
     environment:
       LOG_LEVEL: "${LOG_LEVEL:-INFO}"
       CAUSALOPS_CORS_ORIGINS: "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000}"
+      ENGINE_DB_HOST: postgres
+      ENGINE_DB_NAME: "${POSTGRES_DB:-causalops}"
+      ENGINE_DB_USER: "${POSTGRES_USER:-causalops}"
+      ENGINE_DB_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      ENGINE_MODEL_DIR: /var/lib/causalops/models
+      ENGINE_INTERNAL_TOKEN: "${ENGINE_INTERNAL_TOKEN:?Set ENGINE_INTERNAL_TOKEN in .env (32+ random characters)}"
+      CAUSALOPS_WEBHOOK_SECRET: "${CAUSALOPS_WEBHOOK_SECRET:-}"
     volumes:
       - ./ml:/app/ml:ro
       - ./dataset:/app/dataset:ro
+      - engine-models:/var/lib/causalops/models
+      # Docker executor. It only touches containers of CAUSALOPS_DOCKER_PROJECT; remove this
+      # mount when remediation runs through Kubernetes or webhooks only.
+      - /var/run/docker.sock:/var/run/docker.sock
     networks: [causalops-internal]
     expose: ["8000"]
     healthcheck:
@@ -109,6 +121,9 @@ services:
       TELEMETRY_INGEST_INTERVAL_MS: "${TELEMETRY_INGEST_INTERVAL_MS:-5000}"
       CAUSALOPS_CORS_ORIGINS: "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}"
       LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      ENGINE_INTERNAL_TOKEN: "${ENGINE_INTERNAL_TOKEN:?Set ENGINE_INTERNAL_TOKEN in .env (32+ random characters)}"
+      CAUSALOPS_BOOTSTRAP_DOCKER_PROJECT: "${CAUSALOPS_DOCKER_PROJECT:-}"
+      CAUSALOPS_REMEDIATION_KILL_SWITCH: "${CAUSALOPS_REMEDIATION_KILL_SWITCH:-false}"
     ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
     # Needs the observability network to read Tempo and Loki.
     networks: [causalops-internal, causalops-observability]

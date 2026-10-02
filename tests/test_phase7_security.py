@@ -190,25 +190,24 @@ class TestMetrics:
 
 # ── Model Artifact Verification Tests ─────────────────────────────────────────
 
-class TestArtifactVerification:
-    """Verify startup artifact checks catch missing files."""
+class TestDependencyVerification:
+    """Readiness must fail closed when the engine cannot use its database or model store."""
 
-    def test_artifact_verification_passes_with_all_files(self, tmp_path):
-        """Verification passes when all required files exist."""
-        from app.phase7_hardening import verify_model_artifacts, _REQUIRED_ARTIFACTS
-        for rel_path, name in _REQUIRED_ARTIFACTS:
-            full = tmp_path / rel_path
-            full.parent.mkdir(parents=True, exist_ok=True)
-            full.write_bytes(b'{"test": true}')
-        result = verify_model_artifacts(tmp_path)
-        ok_count = sum(1 for v in result.values() if v.get("status") == "OK")
-        assert ok_count == len(_REQUIRED_ARTIFACTS)
+    def test_ready_when_dependencies_available(self, tmp_path, monkeypatch):
+        from app import phase7_hardening as h
+        monkeypatch.setenv("ENGINE_MODEL_DIR", str(tmp_path))
+        monkeypatch.setattr(h, "_database_ok", lambda: True)
+        ready, body = h.build_readiness_status()
+        assert ready and body["status"] == "READY"
 
-    def test_artifact_verification_raises_on_missing_required(self, tmp_path):
-        """Verification raises RuntimeError if required artifacts are absent."""
-        from app.phase7_hardening import verify_model_artifacts
-        with pytest.raises(RuntimeError, match="Required model artifacts missing"):
-            verify_model_artifacts(tmp_path)
+    def test_not_ready_when_model_store_unwritable(self, tmp_path, monkeypatch):
+        from app import phase7_hardening as h
+        blocker = tmp_path / "file"
+        blocker.write_text("x")
+        monkeypatch.setenv("ENGINE_MODEL_DIR", str(blocker / "models"))
+        monkeypatch.setattr(h, "_database_ok", lambda: True)
+        ready, body = h.build_readiness_status()
+        assert not ready and body["failed_components"] == ["model_store"]
 
 
 # ── Secret Non-Disclosure Tests ───────────────────────────────────────────────
@@ -237,10 +236,13 @@ class TestSecretNonDisclosure:
         for forbidden in ["POSTGRES_PASSWORD", "JWT_SECRET", "CHANGE_ME"]:
             assert forbidden not in snapshot_str
 
-    def test_health_response_no_connection_string(self, tmp_path):
+    def test_health_response_no_connection_string(self, tmp_path, monkeypatch):
         """Health status response must not contain database connection strings."""
-        from app.phase7_hardening import build_health_status
-        status = build_health_status(tmp_path)
+        from app import phase7_hardening as h
+        monkeypatch.setenv("ENGINE_MODEL_DIR", str(tmp_path))
+        monkeypatch.setenv("ENGINE_DB_PASSWORD", "s3cret-password")
+        monkeypatch.setattr(h, "_database_ok", lambda: False)
+        status = h.build_health_status()
         status_str = json.dumps(status)
         assert "postgresql://" not in status_str
         assert "jdbc:" not in status_str

@@ -125,10 +125,10 @@ class TokenBucketRateLimiter:
 
     # endpoint_pattern -> (capacity, refill_per_second)
     LIMITS: dict[str, tuple[int, float]] = {
-        "/causal/counterfactual":    (10,  10 / 60.0),
-        "/causal/recommendation":   (15,  15 / 60.0),
-        "/predict/failure-v2":      (30,  30 / 60.0),
-        "/analyze/root-cause":      (30,  30 / 60.0),
+        # /pipeline/evaluate is called by the platform every ingestion cycle and is not limited.
+        "/pipeline/rca":            (30,  30 / 60.0),
+        "/counterfactual":          (20,  20 / 60.0),
+        "/calibration/run":         (5,   5  / 60.0),
         "/remediation/execute":     (5,   5  / 60.0),
         "/remediation/rollback":    (5,   5  / 60.0),
     }
@@ -250,208 +250,48 @@ class Phase7Middleware(BaseHTTPMiddleware):
         return response
 
 
-# ── Model artifact verification ────────────────────────────────────────────────
+# ── Health and readiness ───────────────────────────────────────────────────────
 
-_REQUIRED_ARTIFACTS: list[tuple[str, str]] = [
-    # (relative path from repo_root, friendly name)
-    ("ml/models/causal_scm/model.json",        "Causal SCM topology"),
-    ("ml/models/causal_scm/coefficients.json", "Causal SCM coefficients"),
-    ("ml/models/failure_prediction/manifest.json", "Failure prediction manifest"),
-]
-
-_RECOMMENDED_ARTIFACTS: list[tuple[str, str]] = [
-    ("ml/models/failure_prediction/rf_within_5s.pkl",  "RF failure_within_5s"),
-    ("ml/models/failure_prediction/rf_within_10s.pkl", "RF failure_within_10s"),
-    ("ml/models/failure_prediction/rf_within_30s.pkl", "RF failure_within_30s"),
-    ("ml/models/failure_prediction/lr_within_5s.pkl",  "LR failure_within_5s"),
-    ("ml/models/failure_prediction/lr_within_10s.pkl", "LR failure_within_10s"),
-    ("ml/models/failure_prediction/lr_within_30s.pkl", "LR failure_within_30s"),
-    ("ml/models/classical_rca_rf_v1.joblib",           "Classical RCA Random Forest"),
-]
-
-
-def verify_model_artifacts(repo_root: Path) -> dict[str, Any]:
-    """
-    Verifies required model artifacts exist at startup.
-    Returns a status dict; raises RuntimeError if any REQUIRED artifact is missing.
-    """
-    results: dict[str, dict] = {}
-    missing_required: list[str] = []
-
-    for rel_path, name in _REQUIRED_ARTIFACTS:
-        full = repo_root / rel_path
-        exists = full.exists()
-        checksum = None
-        if exists:
-            try:
-                checksum = hashlib.sha256(full.read_bytes()).hexdigest()[:16]
-            except Exception:
-                checksum = "unreadable"
-        results[name] = {"path": rel_path, "status": "OK" if exists else "MISSING", "checksum_prefix": checksum}
-        if not exists:
-            missing_required.append(name)
-
-    for rel_path, name in _RECOMMENDED_ARTIFACTS:
-        full = repo_root / rel_path
-        exists = full.exists()
-        results[name] = {"path": rel_path, "status": "OK" if exists else "OPTIONAL_MISSING"}
-
-    if missing_required:
-        raise RuntimeError(
-            f"CRITICAL: Required model artifacts missing — {missing_required}. "
-            "Do NOT retrain in production. Restore frozen artifacts and restart."
-        )
-
-    return results
-
-
-# ── Model version registry ─────────────────────────────────────────────────────
-
-def build_model_registry(repo_root: Path) -> list[dict[str, Any]]:
-    """Returns structured model version info for GET /models endpoint."""
-    registry = []
-
-    # Classical RCA
-    rca_path = repo_root / "ml" / "models" / "classical_rca_rf_v1.joblib"
-    registry.append({
-        "model_name": "classical_rca_rf_v1",
-        "version": "1.0.0",
-        "type": "RCA",
-        "algorithm": "Random Forest",
-        "dataset_version": "ml_v1",
-        "feature_schema_version": "ml_v1",
-        "artifact_path": "ml/models/classical_rca_rf_v1.joblib",
-        "artifact_present": rca_path.exists(),
-        "artifact_checksum_prefix": _file_checksum(rca_path),
-        "description": "Topology-aware Random Forest for root-cause classification (Phase 2)",
-    })
-
-    # Causal SCM
-    scm_model = repo_root / "ml" / "models" / "causal_scm" / "model.json"
-    scm_coef = repo_root / "ml" / "models" / "causal_scm" / "coefficients.json"
-    scm_present = scm_model.exists() and scm_coef.exists()
-    scm_config_path = repo_root / "ml" / "causal" / "config.json"
-    scm_config: dict = {}
-    if scm_config_path.exists():
-        try:
-            scm_config = json.loads(scm_config_path.read_text())
-        except Exception:
-            pass
-    registry.append({
-        "model_name": "causal_scm_v1",
-        "version": "1.0.0",
-        "type": "CausalSCM",
-        "algorithm": "Topology-Constrained Lagged Ridge SCM",
-        "dataset_version": "tg_v1",
-        "lag_order": scm_config.get("lag_order", 5),
-        "ridge_alpha": scm_config.get("ridge_alpha", 1.0),
-        "bootstrap_resamples": scm_config.get("n_bootstrap", 50),
-        "stable_edges": 48,
-        "artifact_path": "ml/models/causal_scm/",
-        "artifact_present": scm_present,
-        "artifact_checksum_prefix": _file_checksum(scm_model),
-        "description": "Phase 3B Topology-Constrained Lagged SCM for counterfactual simulation",
-    })
-
-    # Failure prediction
-    fp_manifest_path = repo_root / "ml" / "models" / "failure_prediction" / "manifest.json"
-    fp_manifest: dict = {}
-    if fp_manifest_path.exists():
-        try:
-            fp_manifest = json.loads(fp_manifest_path.read_text())
-        except Exception:
-            pass
-    registry.append({
-        "model_name": "failure_prediction_v1",
-        "version": "1.0.0",
-        "type": "FailurePrediction",
-        "algorithm": "Random Forest + Logistic Regression (multi-horizon)",
-        "dataset_version": "failure_prediction_v1",
-        "horizons": ["within_5s", "within_10s", "within_30s"],
-        "training_seed": 42,
-        "artifact_path": "ml/models/failure_prediction/",
-        "artifact_present": fp_manifest_path.exists(),
-        "evaluation_summary": fp_manifest.get("evaluation_summary", {}),
-        "description": "Phase 6A pre-failure prediction engine (VALIDATED_WITH_LIMITATIONS)",
-        "known_limitations": [
-            "30% target-service pre-onset accuracy",
-            "40% fault-type pre-onset accuracy",
-            "4-5s realized lead time on tg_v1 benchmark",
-            "Fixed rolling buffer required in production streaming",
-        ],
-    })
-
-    # Temporal GNN
-    gnn_results = repo_root / "ml" / "temporal_gnn" / "results.json"
-    registry.append({
-        "model_name": "temporal_gnn_v1",
-        "version": "1.0.0",
-        "type": "TemporalGNN",
-        "algorithm": "Spatio-Temporal Graph Neural Network",
-        "dataset_version": "tg_v1",
-        "artifact_path": "ml/models/temporal_gnn/",
-        "artifact_present": (repo_root / "ml" / "models" / "temporal_gnn").exists(),
-        "description": "Phase 2D Temporal GNN for spatio-temporal RCA",
-    })
-
-    return registry
-
-
-def _file_checksum(path: Path) -> Optional[str]:
-    if not path or not path.exists():
-        return None
+def _database_ok() -> bool:
     try:
-        return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+        from ml.engine.store import Store
+        with Store().connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT 1")
+        return True
     except Exception:
-        return None
+        return False
 
 
-# ── Health status builder ──────────────────────────────────────────────────────
+def _model_store_ok() -> bool:
+    from ml.engine.model import model_root
+    root = model_root()
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+        probe = root / ".write-probe"
+        probe.write_text("ok")
+        probe.unlink()
+        return True
+    except OSError:
+        return False
 
-def build_health_status(repo_root: Path) -> dict[str, Any]:
-    """Build a detailed health/liveness status for GET /health."""
-    scm_path = repo_root / "ml" / "models" / "causal_scm"
-    scm_ok = (scm_path / "model.json").exists() and (scm_path / "coefficients.json").exists()
 
-    fp_manifest = repo_root / "ml" / "models" / "failure_prediction" / "manifest.json"
-    fp_ok = fp_manifest.exists()
-
-    rca_ok = (repo_root / "ml" / "models" / "classical_rca_rf_v1.joblib").exists()
-
-    dataset_ok = (repo_root / "dataset" / "tg_v1").exists()
-
-    overall = "UP" if (scm_ok and fp_ok and rca_ok) else "DEGRADED"
-    cf_status = "HEALTHY" if scm_ok else "UNAVAILABLE"
-
+def build_health_status() -> dict[str, Any]:
+    """Liveness plus the state of each dependency the engine needs to calibrate and serve."""
+    db_ok, store_ok = _database_ok(), _model_store_ok()
     return {
-        "status": overall,
-        # Top-level counterfactual_engine for backwards compatibility with existing tests
-        "counterfactual_engine": cf_status,
+        "status": "UP" if db_ok and store_ok else "DEGRADED",
         "service": "causalops-ai-engine",
-        "version": "7.0.0",
+        "version": "8.0.0",
         "components": {
-            "rca_model":             "HEALTHY" if rca_ok else "UNAVAILABLE",
-            "causal_scm":            "HEALTHY" if scm_ok else "UNAVAILABLE",
-            "counterfactual_engine": cf_status,
-            "failure_prediction":    "HEALTHY" if fp_ok else "UNAVAILABLE",
-            "dataset":               "HEALTHY" if dataset_ok else "UNAVAILABLE",
+            "database": "HEALTHY" if db_ok else "UNAVAILABLE",
+            "model_store": "HEALTHY" if store_ok else "UNAVAILABLE",
         },
     }
 
 
-def build_readiness_status(repo_root: Path) -> tuple[bool, dict[str, Any]]:
-    """
-    Build readiness check. Returns (is_ready, response_dict).
-    Service is NOT ready if any critical component is missing.
-    """
-    health = build_health_status(repo_root)
-    comps = health["components"]
-    critical = ["rca_model", "causal_scm", "counterfactual_engine"]
-    failed = [c for c in critical if comps.get(c) != "HEALTHY"]
-    ready = len(failed) == 0
-    return ready, {
-        "ready": ready,
-        "status": "READY" if ready else "NOT_READY",
-        "failed_components": failed,
-        "components": comps,
-    }
+def build_readiness_status() -> tuple[bool, dict[str, Any]]:
+    health = build_health_status()
+    failed = [c for c, state in health["components"].items() if state != "HEALTHY"]
+    ready = not failed
+    return ready, {"ready": ready, "status": "READY" if ready else "NOT_READY",
+                   "failed_components": failed, "components": health["components"]}

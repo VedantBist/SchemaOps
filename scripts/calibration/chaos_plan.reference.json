@@ -1,0 +1,23 @@
+{
+  "_comment": "Staging chaos campaign for the bundled reference system. Each episode is injected through the CausalOps API, which records it in fault_injections; calibration uses those records as labelled ground truth (target, type, timing). A 'ramp' episode raises latency step by step to model gradual degradation, the case where failure forecasting can work.",
+  "faultSeconds": 90,
+  "recoverySeconds": 150,
+  "episodes": [
+    { "type": "DB_LATENCY",        "target": "inventory-db",      "parameters": { "latencyMs": 350 } },
+    { "type": "SERVICE_LATENCY",   "target": "order-service",     "parameters": { "latencyMs": 650 } },
+    { "type": "ERROR_RATE",        "target": "payment-service",   "parameters": { "errorRatePct": 30 } },
+    { "type": "SERVICE_FAILURE",   "target": "inventory-service", "parameters": {} },
+    { "type": "NETWORK_LATENCY",   "target": "payment-service",   "parameters": { "latencyMs": 450 } },
+    { "type": "CONNECTION_POOL_SATURATION", "target": "inventory-service", "parameters": {} },
+    { "type": "SERVICE_LATENCY",   "target": "payment-service",   "parameters": { "latencyMs": 550 }, "ramp": [100, 200, 300, 400, 550, 700] },
+    { "type": "ERROR_RATE",        "target": "inventory-service", "parameters": { "errorRatePct": 25 } },
+    { "type": "NETWORK_LATENCY",   "target": "inventory-service", "parameters": { "latencyMs": 400 } },
+    { "type": "DB_LATENCY",        "target": "inventory-db",      "parameters": { "latencyMs": 600 }, "ramp": [100, 200, 350, 500, 650, 800] },
+    { "type": "SERVICE_FAILURE",   "target": "payment-service",   "parameters": {} },
+    { "type": "SERVICE_LATENCY",   "target": "inventory-service", "parameters": { "latencyMs": 500 } },
+    { "type": "ERROR_RATE",        "target": "order-service",     "parameters": { "errorRatePct": 20 } },
+    { "type": "SERVICE_LATENCY",   "target": "order-service",     "parameters": { "latencyMs": 600 }, "ramp": [100, 200, 300, 450, 600, 750] },
+    { "type": "SERVICE_LATENCY",   "target": "api-gateway",       "parameters": { "latencyMs": 550 } },
+    { "type": "NETWORK_LATENCY",   "target": "order-service",     "parameters": { "latencyMs": 450 } }
+  ]
+}

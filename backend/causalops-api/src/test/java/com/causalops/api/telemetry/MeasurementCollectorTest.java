@@ -42,9 +42,9 @@ class MeasurementCollectorTest {
                         Map.of("requestRate", new MetricTemplate("rps[${window}]", "service_name", null),
                                "errorRatePct", new MetricTemplate("err[${window}]", "service_name", null)),
                         Map.of("latencyP99", new MetricTemplate("dbp99[${window}]", "server", 1000.0)),
-                        "graph"),
+                        null, "graph"),
                 new EnvironmentConfig.Slo(500, 5, 2), Map.of(), new EnvironmentConfig.Detection(3, 6),
-                List.of("user"), new EnvironmentConfig.Calibration(24, 7));
+                List.of("user"), new EnvironmentConfig.Calibration(24, 7, 30), null);
     }
 
     @Test

@@ -24,8 +24,22 @@ public class TelemetryRepository {
                     p99_latency, error_rate, request_rate, db_latency, pool_utilization, pool_pending)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, env, m.name(), Timestamp.from(at), m.get("latencyP50"), m.get("latencyP95"), m.get("latencyP99"),
-                m.get("errorRatePct"), m.get("requestRate"), m.get("dbLatencyP95"),
+                m.get("errorRatePct"), m.get("requestRate"), m.get("dbLatencyP99"),
                 m.get("poolUtilizationPct"), m.get("poolPending"));
+    }
+
+    public void insertEdgeSnapshot(UUID env, Instant at, EdgeMeasurement e) {
+        db.update("""
+                INSERT INTO edge_snapshots (environment_id, client, server, captured_at, client_p95, server_p95,
+                                            request_rate, error_rate)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, env, e.client(), e.server(), Timestamp.from(at), e.get("clientLatencyP95"), e.get("serverLatencyP95"),
+                e.get("requestRate"), e.get("errorRatePct"));
+    }
+
+    public void setAnomalyScore(UUID env, String service, Instant at, double score) {
+        db.update("UPDATE telemetry_snapshots SET anomaly_score = ? WHERE environment_id = ? AND service_name = ? AND captured_at = ?",
+                score, env, service, Timestamp.from(at));
     }
 
     public void updateServiceState(UUID env, String name, NodeMeasurement m, String status, Instant at) {
@@ -67,6 +81,9 @@ public class TelemetryRepository {
 
     /** Deletes raw snapshots older than the retention period. */
     public int purgeOlderThan(int days) {
-        return db.update("DELETE FROM telemetry_snapshots WHERE captured_at < now() - make_interval(days => ?)", days);
+        int n = db.update("DELETE FROM telemetry_snapshots WHERE captured_at < now() - make_interval(days => ?)", days);
+        n += db.update("DELETE FROM edge_snapshots WHERE captured_at < now() - make_interval(days => ?)", days);
+        n += db.update("DELETE FROM predictions WHERE created_at < now() - make_interval(days => ?)", days);
+        return n;
     }
 }

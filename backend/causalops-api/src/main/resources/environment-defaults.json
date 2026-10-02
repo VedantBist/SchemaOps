@@ -11,7 +11,7 @@
       "latencyP50":   { "label": "service_name", "query": "histogram_quantile(0.50, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[${window}])))" },
       "latencyP95":   { "label": "service_name", "query": "histogram_quantile(0.95, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[${window}])))" },
       "latencyP99":   { "label": "service_name", "query": "histogram_quantile(0.99, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[${window}])))" },
-      "dbLatencyP95": { "label": "service_name", "query": "histogram_quantile(0.95, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_CLIENT\",db_system!=\"\"}[${window}])))" },
+      "dbLatencyP99": { "label": "service_name", "query": "histogram_quantile(0.99, sum by (service_name, le) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_CLIENT\",db_system!=\"\"}[${window}])))" },
       "poolUtilizationPct": { "label": "service_name", "query": "100 * sum by (service_name) (db_client_connections_usage{state=\"used\"}) / sum by (service_name) (db_client_connections_max)" },
       "poolPending":  { "label": "service_name", "query": "sum by (service_name) (db_client_connections_pending_requests)" }
     },
@@ -21,11 +21,69 @@
       "latencyP50":   { "label": "server", "scale": 1000, "query": "histogram_quantile(0.50, sum by (server, le) (rate(traces_service_graph_request_client_seconds_bucket{connection_type=\"database\"}[${window}])))" },
       "latencyP95":   { "label": "server", "scale": 1000, "query": "histogram_quantile(0.95, sum by (server, le) (rate(traces_service_graph_request_client_seconds_bucket{connection_type=\"database\"}[${window}])))" },
       "latencyP99":   { "label": "server", "scale": 1000, "query": "histogram_quantile(0.99, sum by (server, le) (rate(traces_service_graph_request_client_seconds_bucket{connection_type=\"database\"}[${window}])))" }
+    },
+    "edgeMetrics": {
+      "requestRate":      { "query": "sum by (client, server) (rate(traces_service_graph_request_total[${window}]))" },
+      "errorRatePct":     { "query": "100 * sum by (client, server) (rate(traces_service_graph_request_failed_total[${window}])) / sum by (client, server) (rate(traces_service_graph_request_total[${window}]))" },
+      "clientLatencyP95": { "scale": 1000, "query": "histogram_quantile(0.95, sum by (client, server, le) (rate(traces_service_graph_request_client_seconds_bucket[${window}])))" },
+      "serverLatencyP95": { "scale": 1000, "query": "histogram_quantile(0.95, sum by (client, server, le) (rate(traces_service_graph_request_server_seconds_bucket[${window}])))" }
     }
   },
   "slo": { "latencyP99Ms": 500, "errorRatePct": 5, "criticalMultiplier": 2 },
   "serviceSlos": {},
   "detection": { "breachSamples": 3, "recoverySamples": 6 },
   "externalNodes": ["user", "unknown"],
-  "calibration": { "learningWindowHours": 24, "retrainIntervalDays": 7 }
+  "calibration": { "learningWindowHours": 24, "retrainIntervalDays": 7, "minLearningMinutes": 30 },
+  "analysis": {
+    "forecastHorizonsSeconds": [30, 60],
+    "anomalyZFloor": 4.0,
+    "gateConsecutiveSamples": 3,
+    "lagOrder": 3,
+    "ridgeAlpha": 1.0,
+    "bootstrapModels": 20,
+    "maxGateFalsePositiveRate": 0.01,
+    "rcaDelaySeconds": 30,
+    "rcaWeights": { "counterfactual": 0.6, "residual": 0.05, "anomaly": 0.1, "precedence": 0.1, "graph": 0.15 }
+  },
+  "remediation": {
+    "dryRun": false,
+    "killSwitch": false,
+    "autoExecuteMaxTier": 1,
+    "minRcaConfidence": 0.3,
+    "maxTelemetryAgeSeconds": 30,
+    "maxAutoActionsPerHour": 4,
+    "cooldownMinutes": 10,
+    "recommendationTtlMinutes": 30,
+    "maxAutoBlastRadius": 0.5,
+    "verification": { "settleSeconds": 20, "windowSeconds": 180, "healthySamples": 4 },
+    "executors": {
+      "docker": { "enabled": false, "project": null },
+      "kubernetes": { "enabled": false, "namespace": null, "apiUrl": null, "tokenEnv": null, "maxReplicas": 10 },
+      "webhook": { "enabled": false, "url": null, "secretEnv": "CAUSALOPS_WEBHOOK_SECRET" }
+    },
+    "targets": {},
+    "actions": [
+      { "id": "docker-restart", "name": "Restart the service's containers", "executor": "docker", "operation": "restart",
+        "tier": 1, "appliesTo": ["service"], "signals": ["error", "latency", "pool_util", "pool_pending"],
+        "description": "Clears a wedged process, leaked connections or bad in-memory state. Brief unavailability of that service." },
+      { "id": "docker-raise-limits", "name": "Raise CPU and memory limits", "executor": "docker", "operation": "update_resources",
+        "tier": 2, "appliesTo": ["service"], "signals": ["latency", "error"], "params": { "cpuFactor": 1.5, "memoryFactor": 1.5 },
+        "description": "Gives a resource-starved service more headroom; rolled back if it does not help." },
+      { "id": "k8s-rollout-restart", "name": "Rollout restart of the deployment", "executor": "kubernetes", "operation": "rollout_restart",
+        "tier": 1, "appliesTo": ["service"], "signals": ["error", "latency", "pool_util", "pool_pending"],
+        "description": "Replaces pods one by one; no downtime when the deployment has more than one replica." },
+      { "id": "k8s-scale-out", "name": "Add a replica", "executor": "kubernetes", "operation": "scale",
+        "tier": 1, "appliesTo": ["service"], "signals": ["latency", "pool_util", "pool_pending"], "params": { "delta": 1 },
+        "description": "Spreads load over one more replica; rolled back to the previous count if it does not help." },
+      { "id": "k8s-raise-limits", "name": "Raise container resources", "executor": "kubernetes", "operation": "update_resources",
+        "tier": 2, "appliesTo": ["service"], "signals": ["latency", "error"], "params": { "cpuFactor": 1.5, "memoryFactor": 1.5 },
+        "description": "Raises limits and requests (triggers a rollout); rolled back if it does not help." },
+      { "id": "runbook-database", "name": "Database degradation runbook", "executor": "webhook", "operation": "runbook",
+        "tier": 3, "appliesTo": ["database"], "signals": ["latency", "db_latency", "error"], "params": { "runbook": "database-degradation" },
+        "description": "Hands over to your database runbook automation (failover, kill long queries, ...)." },
+      { "id": "runbook-network", "name": "Network path runbook", "executor": "webhook", "operation": "runbook",
+        "tier": 3, "appliesTo": ["link"], "signals": ["gap", "latency", "error"], "params": { "runbook": "network-path" },
+        "description": "Hands over to your network runbook automation for a degraded call path." }
+    ]
+  }
 }

@@ -61,14 +61,12 @@ public class IncidentController {
         return analysis.stored(id);
     }
 
-    public record AnalyzeRequest(String mode, Integer lookbackMinutes) {
+    public record AnalyzeRequest(Integer lookbackMinutes) {
     }
 
-    /** Runs root-cause analysis on the incident's measured telemetry window. */
+    /** Runs root-cause analysis now on the incident's measured telemetry window. */
     @PostMapping("/{id}/rca")
     public Map<String, Object> analyze(@PathVariable UUID id, @RequestBody(required = false) AnalyzeRequest body) {
-        String mode = body == null ? null : body.mode();
-        int lookback = body == null || body.lookbackMinutes() == null ? 10 : Math.min(Math.max(body.lookbackMinutes(), 1), 120);
-        return analysis.analyze(id, mode, lookback);
+        return analysis.analyze(id, body == null ? null : body.lookbackMinutes());
     }
 }

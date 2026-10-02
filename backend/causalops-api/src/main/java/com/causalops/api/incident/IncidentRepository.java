@@ -70,9 +70,10 @@ public class IncidentRepository {
                 """, title, severity, summary, write(affected), write(evidence), id);
     }
 
+    /** Status changes are not content changes, so updated_at (used to decide when to re-run RCA) is left alone. */
     public void setStatus(UUID id, String status) {
         db.update("""
-                UPDATE incidents SET status = ?, updated_at = now(),
+                UPDATE incidents SET status = ?,
                        resolved_at = CASE WHEN ? = 'RESOLVED' THEN now() ELSE resolved_at END
                 WHERE id = ?
                 """, status, status, id);

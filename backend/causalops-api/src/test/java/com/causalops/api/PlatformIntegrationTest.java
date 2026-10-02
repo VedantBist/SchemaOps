@@ -1,6 +1,8 @@
 package com.causalops.api;
 
+import com.causalops.api.engine.AiEngineClient;
 import com.causalops.api.environment.Environment;
+import com.causalops.api.environment.EnvironmentConfig;
 import com.causalops.api.environment.EnvironmentService;
 import com.causalops.api.incident.IncidentRepository;
 import com.causalops.api.telemetry.PrometheusClient;
@@ -23,7 +25,9 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
@@ -47,12 +51,14 @@ class PlatformIntegrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @MockitoBean PrometheusClient prometheus;
+    @MockitoBean AiEngineClient engine;
     @Autowired EnvironmentService environments;
     @Autowired TopologySync topologySync;
     @Autowired TelemetryIngestor ingestor;
     @Autowired IncidentRepository incidents;
     @Autowired JdbcTemplate db;
     @Autowired MockMvc mvc;
+    @Autowired com.causalops.api.incident.IncidentAnalysisService analysis;
 
     /** Current fake measurements: first key contained in the query wins (insertion order). */
     private final Map<String, List<PrometheusClient.Sample>> answers = new LinkedHashMap<>();
@@ -137,6 +143,7 @@ class PlatformIntegrationTest {
         Map<String, Object> incident = open.get(0);
         assertTrue(((String) incident.get("incidentKey")).matches("INC-\\d+"));
         assertEquals("CRITICAL", incident.get("severity"), "1400 ms exceeds 2x the 500 ms SLO");
+        assertEquals("slo_breach", incident.get("detectionSource"), "a learning environment detects from SLOs only");
         var evidence = new com.fasterxml.jackson.databind.ObjectMapper().readTree((String) incident.get("evidence"));
         assertTrue(java.util.stream.StreamSupport.stream(evidence.spliterator(), false)
                         .anyMatch(e -> "orders".equals(e.path("service").asText()) && e.path("observed").asDouble() == 1400.0),
@@ -170,5 +177,116 @@ class PlatformIntegrationTest {
         mvc.perform(options("/api/services").header("Origin", "http://allowed.example")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://allowed.example"));
+    }
+
+    @Test
+    void calibratedEnvironmentDetectsFromAnomalyGateBeforeAnSloBreach() throws Exception {
+        Environment env = env();
+        topologySync.sync(env);
+        environments.updateStatus(env.id(), "ACTIVE");
+        try {
+            // The engine flags orders as anomalous against its learned baseline; latency is still within SLO.
+            when(engine.post(eq("/pipeline/evaluate"), any())).thenReturn(Map.of(
+                    "model_version", "test-model",
+                    "services", Map.of(
+                            "orders", Map.of("anomaly", 0.97, "flagged", true, "signals", List.of(Map.of(
+                                    "variable", "orders|latency", "value", 180.0, "baseline", 30.0, "z", 9.5))),
+                            "gateway", Map.of("anomaly", 0.1, "flagged", false, "signals", List.of())),
+                    "forecasts", List.of(Map.of("service", "orders", "horizon_seconds", 30, "probability", 0.62,
+                            "risk_level", "HIGH", "method", "trend_extrapolation", "factors", List.of()))));
+            Instant at = Instant.now();
+            ingestor.ingest(environments.get(env.id()), at);
+
+            var open = incidents.list(env.id(), IncidentRepository.Filter.ACTIVE, 10);
+            assertEquals(1, open.size());
+            assertEquals("anomaly_gate", open.get(0).get("detectionSource"));
+            assertEquals("MEDIUM", open.get(0).get("severity"), "an anomaly without an SLO breach is an early warning");
+            Double score = db.queryForObject("SELECT anomaly_score FROM telemetry_snapshots WHERE service_name = 'orders' "
+                    + "AND captured_at = ?", Double.class, java.sql.Timestamp.from(at));
+            assertEquals(0.97, score, 1e-9, "the engine's score is stored on the measured snapshot");
+            assertEquals(1, db.queryForObject("SELECT count(*) FROM predictions WHERE method = 'trend_extrapolation' "
+                    + "AND model_version = 'test-model'", Integer.class));
+
+            ordersSlow();
+            for (int i = 0; i < env.config().detection().breachSamples(); i++) {
+                ingestor.ingest(environments.get(env.id()), Instant.now());
+            }
+            var escalated = incidents.get((UUID) open.get(0).get("id"));
+            assertEquals("CRITICAL", escalated.get("severity"), "the SLO breach that follows escalates it");
+            var events = incidents.timeline((UUID) open.get(0).get("id")).stream().map(e -> e.get("eventType")).toList();
+            assertTrue(events.contains("DETECTED"));
+            assertTrue(events.stream().anyMatch(e -> e.equals("SERVICES_AFFECTED") || e.equals("ESCALATED")
+                    || e.equals("SLO_BREACH_CONFIRMED")), events.toString());
+        } finally {
+            environments.updateStatus(env.id(), "LEARNING");
+            db.update("DELETE FROM predictions");
+        }
+    }
+
+    @Test
+    void storesEngineRootCauseWithLinkCandidateAndCounterfactual() {
+        Environment env = env();
+        topologySync.sync(env);
+        environments.updateStatus(env.id(), "ACTIVE");
+        try {
+            UUID id = incidents.create(env.id(), "t", "HIGH", "DETECTED", "slo_breach", "s", List.of("orders"), List.of());
+            String methodology = "Topology-constrained lagged SCM residuals + learned baselines + onset order + "
+                    + "personalized PageRank (calibrated on this environment)";
+            when(engine.post(eq("/pipeline/rca"), any())).thenReturn(Map.of(
+                    "model_version", "test-model", "methodology", methodology,
+                    "candidates", List.of(
+                            Map.of("service", "orders->payments-with-a-long-service-name", "kind", "link",
+                                   "target", "payments-with-a-long-service-name", "score", 0.91, "confidence", 0.6),
+                            Map.of("service", "orders", "kind", "service", "target", "orders", "score", 0.4, "confidence", 0.3)),
+                    "evidence", List.of(Map.of("type", "root_cause")),
+                    "counterfactual", Map.of("intervention", Map.of("unit", "orders->payments-with-a-long-service-name"),
+                            "validity", Map.of("status", "PASS"))));
+            Map<String, Object> stored = analysis.analyze(id, null);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> a = (Map<String, Object>) stored.get("analysis");
+            assertEquals(methodology, a.get("methodology"), "methodology longer than 120 characters is stored intact");
+            assertEquals("link", a.get("rootCauseKind"));
+            assertNotNull(stored.get("counterfactual"));
+            // Remediation planning starts right after the analysis is stored; with no executor enabled
+            // in this environment it escalates, so either status is valid here.
+            assertTrue(Set.of("RCA_IDENTIFIED", "MANUAL_INTERVENTION").contains(incidents.get(id).get("status")));
+            assertTrue(incidents.timeline(id).stream().anyMatch(e -> "RCA_COMPLETED".equals(e.get("eventType"))));
+        } finally {
+            environments.updateStatus(env.id(), "LEARNING");
+        }
+    }
+
+    @Test
+    void changingMetricDefinitionsRestartsLearningAndLegacyDbTemplateIsUpgraded() throws Exception {
+        Environment env = env();
+        var cfg = env.config();
+        var t = cfg.telemetry();
+        var legacy = new java.util.LinkedHashMap<>(t.serviceMetrics());
+        var p99 = legacy.remove("dbLatencyP99");
+        legacy.put("dbLatencyP95", new EnvironmentConfig.MetricTemplate(
+                p99.query().replace("histogram_quantile(0.99", "histogram_quantile(0.95"), p99.label(), p99.scale()));
+        db.update("UPDATE environments SET status = 'ACTIVE', learning_started_at = now() - interval '2 days' WHERE id = ?", env.id());
+        try {
+            // Same definitions: the environment keeps its models.
+            assertEquals("ACTIVE", environments.updateConfig(env.id(), cfg).status());
+
+            var oldStyle = new EnvironmentConfig(cfg.endpoints(), new EnvironmentConfig.Telemetry(t.rateWindow(),
+                    t.topologyWindow(), t.staleAfterSeconds(), legacy, t.dependencyNodeMetrics(), t.edgeMetrics(),
+                    t.topologyQuery()), cfg.slo(), cfg.serviceSlos(), cfg.detection(), cfg.externalNodes(),
+                    cfg.calibration(), cfg.analysis());
+            db.update("UPDATE environments SET config = CAST(? AS jsonb) WHERE id = ?",
+                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(oldStyle), env.id());
+            Environment upgraded = environments.updateConfig(env.id(), oldStyle);
+            var metrics = upgraded.config().telemetry().serviceMetrics();
+            assertFalse(metrics.containsKey("dbLatencyP95"));
+            assertTrue(metrics.get("dbLatencyP99").query().startsWith("histogram_quantile(0.99"),
+                    "database latency is measured at the same quantile as service latency");
+            // The stored definition was p95, so the change restarts learning.
+            assertEquals("LEARNING", upgraded.status());
+            assertTrue(upgraded.learningStartedAt().isAfter(java.time.Instant.now().minusSeconds(60)));
+        } finally {
+            environments.updateConfig(env.id(), cfg);
+            db.update("UPDATE environments SET status = 'LEARNING', status_reason = NULL WHERE id = ?", env.id());
+        }
     }
 }

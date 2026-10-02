@@ -1,6 +1,6 @@
 {
   "dataset_version": "tg_v1",
-  "audited_at": "2026-10-02T01:16:01.423720",
+  "audited_at": "2026-10-02T14:53:37.244311",
   "status": "PASS",
   "experiments_count": 80,
   "fault_experiments_count": 70,
@@ -50,6 +50,6 @@
     "leakage_violations": 0,
     "shape_violations": 0,
     "label_violations": 0,
-    "source_immutability": "VERIFIED_FROZEN"
+    "source_immutability": "UNKNOWN ([Errno 2] No such file or directory: 'git')"
   }
 }

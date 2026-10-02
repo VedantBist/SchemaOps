@@ -88,109 +88,33 @@ class TestRateLimiter:
             assert self.limiter.is_allowed("5.5.5.5", "/unknown/path") is True
 
 
-class TestArtifactVerification:
-    """Tests for startup artifact verification."""
-
-    def test_passes_with_all_required_files(self, tmp_path):
-        from app.phase7_hardening import verify_model_artifacts, _REQUIRED_ARTIFACTS
-        for rel, _ in _REQUIRED_ARTIFACTS:
-            p = tmp_path / rel
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_bytes(b'{"ok": true}')
-        result = verify_model_artifacts(tmp_path)
-        ok_count = sum(1 for v in result.values() if v.get("status") == "OK")
-        assert ok_count == len(_REQUIRED_ARTIFACTS)
-
-    def test_fails_with_missing_required_artifact(self, tmp_path):
-        from app.phase7_hardening import verify_model_artifacts
-        with pytest.raises(RuntimeError, match="Required model artifacts missing"):
-            verify_model_artifacts(tmp_path)
-
-    def test_checksum_prefix_in_result(self, tmp_path):
-        from app.phase7_hardening import verify_model_artifacts, _REQUIRED_ARTIFACTS
-        for rel, _ in _REQUIRED_ARTIFACTS:
-            p = tmp_path / rel
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_bytes(b'{"ok": true}')
-        result = verify_model_artifacts(tmp_path)
-        # Required artifacts should have checksum prefixes
-        for name, info in result.items():
-            if info.get("status") == "OK":
-                assert info.get("checksum_prefix") is not None
-                assert len(info["checksum_prefix"]) == 16
-
-
 class TestHealthStatus:
-    """Tests for health status builder."""
+    """Health reports the engine's real dependencies: database and model store."""
 
-    def test_up_status_when_all_artifacts_present(self, tmp_path):
-        from app.phase7_hardening import build_health_status
-        # Create required artifacts
-        scm = tmp_path / "ml" / "models" / "causal_scm"
-        scm.mkdir(parents=True)
-        (scm / "model.json").write_bytes(b'{}')
-        (scm / "coefficients.json").write_bytes(b'{}')
-        fp = tmp_path / "ml" / "models" / "failure_prediction"
-        fp.mkdir(parents=True)
-        (fp / "manifest.json").write_bytes(b'{}')
-        (tmp_path / "ml" / "models" / "classical_rca_rf_v1.joblib").write_bytes(b'joblib')
-
-        status = build_health_status(tmp_path)
+    def test_up_when_database_and_model_store_are_available(self, tmp_path, monkeypatch):
+        from app import phase7_hardening as h
+        monkeypatch.setenv("ENGINE_MODEL_DIR", str(tmp_path))
+        monkeypatch.setattr(h, "_database_ok", lambda: True)
+        status = h.build_health_status()
         assert status["status"] == "UP"
+        assert status["components"] == {"database": "HEALTHY", "model_store": "HEALTHY"}
 
-    def test_degraded_status_when_artifacts_missing(self, tmp_path):
-        from app.phase7_hardening import build_health_status
-        status = build_health_status(tmp_path)
-        assert status["status"] == "DEGRADED"
-        assert status["components"]["causal_scm"] == "UNAVAILABLE"
+    def test_degraded_and_not_ready_without_database(self, tmp_path, monkeypatch):
+        from app import phase7_hardening as h
+        monkeypatch.setenv("ENGINE_MODEL_DIR", str(tmp_path))
+        monkeypatch.setattr(h, "_database_ok", lambda: False)
+        assert h.build_health_status()["status"] == "DEGRADED"
+        ready, body = h.build_readiness_status()
+        assert ready is False and body["failed_components"] == ["database"]
 
-    def test_readiness_false_when_critical_artifacts_missing(self, tmp_path):
-        from app.phase7_hardening import build_readiness_status
-        is_ready, status = build_readiness_status(tmp_path)
-        assert is_ready is False
-        assert status["ready"] is False
-        assert len(status["failed_components"]) > 0
+    def test_unwritable_model_store_is_reported(self, tmp_path, monkeypatch):
+        from app import phase7_hardening as h
+        blocker = tmp_path / "file"
+        blocker.write_text("x")
+        monkeypatch.setenv("ENGINE_MODEL_DIR", str(blocker / "models"))
+        monkeypatch.setattr(h, "_database_ok", lambda: True)
+        assert h.build_health_status()["components"]["model_store"] == "UNAVAILABLE"
 
-
-class TestModelRegistry:
-    """Tests for model registry builder."""
-
-    def test_registry_returns_list(self, tmp_path):
-        from app.phase7_hardening import build_model_registry
-        registry = build_model_registry(tmp_path)
-        assert isinstance(registry, list)
-        assert len(registry) >= 2
-
-    def test_registry_has_required_fields(self, tmp_path):
-        from app.phase7_hardening import build_model_registry
-        registry = build_model_registry(tmp_path)
-        required_fields = {"model_name", "version", "type", "artifact_path", "artifact_present"}
-        for model in registry:
-            for field in required_fields:
-                assert field in model, f"Missing field '{field}' in {model.get('model_name')}"
-
-    def test_registry_includes_causal_scm(self, tmp_path):
-        from app.phase7_hardening import build_model_registry
-        registry = build_model_registry(tmp_path)
-        names = [m["model_name"] for m in registry]
-        assert "causal_scm_v1" in names
-
-    def test_registry_includes_failure_prediction(self, tmp_path):
-        from app.phase7_hardening import build_model_registry
-        registry = build_model_registry(tmp_path)
-        names = [m["model_name"] for m in registry]
-        assert "failure_prediction_v1" in names
-
-    def test_failure_prediction_documents_limitations(self, tmp_path):
-        from app.phase7_hardening import build_model_registry
-        registry = build_model_registry(tmp_path)
-        fp = next(m for m in registry if m["model_name"] == "failure_prediction_v1")
-        assert "known_limitations" in fp
-        limitations = fp["known_limitations"]
-        assert len(limitations) > 0
-        # Must document the 30% target-service accuracy limitation
-        combined = " ".join(limitations)
-        assert "30%" in combined
 
 
 class TestStructuredLogging:

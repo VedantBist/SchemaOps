@@ -18,6 +18,14 @@ x-otel-agent: &otel-agent
   OTEL_INSTRUMENTATION_SPRING_SCHEDULING_ENABLED: "false"
   OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=reference,service.namespace=causalops-reference"
   CHAOS_TOKEN: "${CHAOS_TOKEN:-dev-chaos-token}"
+  # The image sets the agent; the heap is sized from the container limit below.
+  JAVA_TOOL_OPTIONS: "-javaagent:/otel/opentelemetry-javaagent.jar -XX:MaxRAMPercentage=60"
+
+# Real resource limits, as a production deployment would have; remediation can raise them
+# (docker update) and restores them on rollback.
+x-service-limits: &service-limits
+  resources:
+    limits: { cpus: "1.0", memory: 1g }
 
 services:
   postgres:
@@ -46,6 +54,7 @@ services:
   # ── Reference system (instrumented with the OpenTelemetry Java agent) ────────
   inventory-service:
     build: ./services/inventory-service
+    deploy: *service-limits
     environment:
       <<: *otel-agent
       OTEL_SERVICE_NAME: inventory-service
@@ -55,12 +64,14 @@ services:
     depends_on: [toxiproxy, otel-collector]
   payment-service:
     build: ./services/payment-service
+    deploy: *service-limits
     environment:
       <<: *otel-agent
       OTEL_SERVICE_NAME: payment-service
     depends_on: [otel-collector]
   order-service:
     build: ./services/order-service
+    deploy: *service-limits
     environment:
       <<: *otel-agent
       OTEL_SERVICE_NAME: order-service
@@ -69,6 +80,7 @@ services:
     depends_on: [inventory-service, payment-service, toxiproxy]
   api-gateway:
     build: ./services/api-gateway
+    deploy: *service-limits
     environment:
       <<: *otel-agent
       OTEL_SERVICE_NAME: api-gateway
@@ -129,9 +141,23 @@ services:
   ai-engine:
     build: ./ai-engine
     ports: ["8000:8000"]
+    environment:
+      ENGINE_DB_HOST: postgres
+      ENGINE_DB_NAME: "${POSTGRES_DB:-causalops}"
+      ENGINE_DB_USER: "${POSTGRES_USER:-causalops}"
+      ENGINE_DB_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
+      ENGINE_MODEL_DIR: /var/lib/causalops/models
+      # Shared with causalops-api; the executor endpoints refuse every call without it.
+      ENGINE_INTERNAL_TOKEN: "${ENGINE_INTERNAL_TOKEN:-dev-engine-token-change-me}"
+      CAUSALOPS_WEBHOOK_SECRET: "${CAUSALOPS_WEBHOOK_SECRET:-}"
     volumes:
       - ./ml:/app/ml:ro
       - ./dataset:/app/dataset:ro
+      # Calibrated per-environment models (and legacy journals) need a writable location.
+      - engine-models:/var/lib/causalops/models
+      # Docker executor: restarts / resizes containers of the configured compose project only.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on: { postgres: { condition: service_healthy } }
     healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"], interval: 10s, timeout: 3s, retries: 10 }
   causalops-api:
     build: ./backend/causalops-api
@@ -154,6 +180,11 @@ services:
       OTEL_COLLECTOR_HEALTH_URL: http://otel-collector:13133
       TELEMETRY_INGEST_INTERVAL_MS: "${TELEMETRY_INGEST_INTERVAL_MS:-5000}"
       CAUSALOPS_CORS_ORIGINS: "${CAUSALOPS_CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}"
+      ENGINE_INTERNAL_TOKEN: "${ENGINE_INTERNAL_TOKEN:-dev-engine-token-change-me}"
+      # The bootstrap environment may remediate containers of this compose project (the directory
+      # name unless COMPOSE_PROJECT_NAME is set). Empty disables the Docker executor.
+      CAUSALOPS_BOOTSTRAP_DOCKER_PROJECT: "${CAUSALOPS_DOCKER_PROJECT:-causalops}"
+      CAUSALOPS_REMEDIATION_KILL_SWITCH: "${CAUSALOPS_REMEDIATION_KILL_SWITCH:-false}"
     ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
     depends_on: { postgres: { condition: service_healthy }, ai-engine: { condition: service_healthy } }
 
@@ -162,3 +193,4 @@ volumes:
   prometheus-data: {}
   loki-data: {}
   tempo-data: {}
+  engine-models: {}

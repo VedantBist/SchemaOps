@@ -58,6 +58,13 @@ public class ApiExceptionHandler {
         return error(HttpStatus.CONFLICT, e.getMessage());
     }
 
+    @ExceptionHandler(com.causalops.api.remediation.RemediationService.PolicyViolation.class)
+    ResponseEntity<Map<String, Object>> policy(com.causalops.api.remediation.RemediationService.PolicyViolation e) {
+        ResponseEntity<Map<String, Object>> r = error(HttpStatus.CONFLICT, e.getMessage());
+        r.getBody().put("policy", e.policy());
+        return r;
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<Map<String, Object>> unexpected(Exception e) {
         log.error("Unhandled API error", e);

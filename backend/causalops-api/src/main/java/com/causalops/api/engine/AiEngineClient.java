@@ -20,10 +20,27 @@ public class AiEngineClient {
 
     private final RestClient http;
     private final String baseUrl;
+    private final String engineToken;
 
-    public AiEngineClient(RestClient http, @Value("${causalops.ai-url}") String baseUrl) {
+    public AiEngineClient(RestClient http, @Value("${causalops.ai-url}") String baseUrl,
+                          @Value("${causalops.engine-token:}") String engineToken) {
         this.http = http;
         this.baseUrl = baseUrl.replaceAll("/+$", "");
+        this.engineToken = engineToken;
+    }
+
+    /** Calls an endpoint that changes the monitored system; the engine requires the shared token. */
+    public Map<String, Object> postInternal(String path, Object body) {
+        try {
+            return http.post().uri(baseUrl + path).contentType(MediaType.APPLICATION_JSON)
+                    .header("X-Engine-Token", engineToken).body(body)
+                    .retrieve().body(new ParameterizedTypeReference<>() {});
+        } catch (RestClientResponseException e) {
+            throw new EngineException(e.getStatusCode().value(), "AI engine returned HTTP " + e.getStatusCode().value()
+                    + " for " + path + ": " + e.getResponseBodyAsString());
+        } catch (RestClientException e) {
+            throw new EngineException(503, "AI engine unreachable at " + baseUrl + ": " + e.getMessage());
+        }
     }
 
     public String baseUrl() {

@@ -54,6 +54,48 @@ public class MeasurementCollector {
         return out;
     }
 
+    /**
+     * Per-edge measurements from the edge templates (series keyed by {@code client} and
+     * {@code server} labels). Edges touching an external pseudo-node are skipped.
+     */
+    public List<EdgeMeasurement> collectEdges(EnvironmentConfig config) {
+        var templates = config.telemetry().edgeMetrics();
+        if (templates == null || templates.isEmpty()) return List.of();
+        String base = config.endpoints().prometheusUrl();
+        var external = java.util.Set.copyOf(config.externalNodes());
+        Map<String, Map<String, Double>> byEdge = new LinkedHashMap<>();
+        boolean errorQueryRan = false;
+        for (var entry : templates.entrySet()) {
+            String metric = entry.getKey();
+            MetricTemplate tpl = entry.getValue();
+            List<PrometheusClient.Sample> samples;
+            try {
+                samples = prometheus.query(base, render(tpl.query(), config.telemetry().rateWindow()));
+            } catch (PrometheusClient.PrometheusException e) {
+                log.warn("Edge metric '{}' could not be read: {}", metric, e.getMessage());
+                continue;
+            }
+            if ("errorRatePct".equals(metric)) errorQueryRan = true;
+            double scale = tpl.scale() == null ? 1.0 : tpl.scale();
+            for (var s : samples) {
+                String client = s.labels().get("client");
+                String server = s.labels().get("server");
+                if (client == null || server == null || external.contains(client) || external.contains(server)) continue;
+                byEdge.computeIfAbsent(client + '\u0000' + server, k -> new HashMap<>()).put(metric, s.value() * scale);
+            }
+        }
+        List<EdgeMeasurement> out = new java.util.ArrayList<>();
+        for (var e : byEdge.entrySet()) {
+            String[] parts = e.getKey().split("\u0000", 2);
+            Map<String, Double> metrics = e.getValue();
+            if (errorQueryRan && metrics.containsKey("requestRate") && !metrics.containsKey("errorRatePct")) {
+                metrics.put("errorRatePct", 0.0);
+            }
+            out.add(new EdgeMeasurement(parts[0], parts[1], Map.copyOf(metrics)));
+        }
+        return out;
+    }
+
     /** metric -> (node label value -> value). A failing template is logged and skipped, not fatal. */
     private Map<String, Map<String, Double>> run(String base, Map<String, MetricTemplate> templates, String window) {
         Map<String, Map<String, Double>> result = new HashMap<>();

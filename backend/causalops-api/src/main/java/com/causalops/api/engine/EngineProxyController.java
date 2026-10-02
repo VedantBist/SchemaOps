@@ -28,6 +28,12 @@ public class EngineProxyController {
     public ResponseEntity<byte[]> proxy(HttpServletRequest request, @RequestBody(required = false) byte[] body) {
         String path = request.getRequestURI().substring(request.getContextPath().length() + PREFIX.length());
         if (path.isEmpty()) path = "/";
+        if (path.startsWith("/executors")) {
+            // Executors change the monitored system; only the remediation service (policy, approvals,
+            // audit) may drive them.
+            return ResponseEntity.status(403).contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"executors are driven by /api/remediation only\"}".getBytes());
+        }
         if (request.getQueryString() != null) path += "?" + request.getQueryString();
         MediaType type = request.getContentType() == null ? null : MediaType.parseMediaType(request.getContentType());
         return engine.forward(HttpMethod.valueOf(request.getMethod()), path, type, body);

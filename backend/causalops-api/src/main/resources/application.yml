@@ -16,6 +16,8 @@ management.endpoints.web.exposure.include: health,info,prometheus
 
 causalops:
   ai-url: ${AI_ENGINE_URL:http://ai-engine:8000}
+  # Shared secret for the AI engine's executor endpoints (they change the monitored system).
+  engine-token: ${ENGINE_INTERNAL_TOKEN:}
   cors:
     # Comma-separated browser origins allowed to call /api/**. Empty means no cross-origin access.
     allowed-origins: ${CAUSALOPS_CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
@@ -31,6 +33,12 @@ causalops:
       tempo-url: ${TEMPO_URL:http://tempo:3200}
       loki-url: ${LOKI_URL:http://loki:3100}
       collector-health-url: ${OTEL_COLLECTOR_HEALTH_URL:http://otel-collector:13133}
+      # When set, the bootstrapped environment may restart/resize containers of this compose project.
+      docker-project: ${CAUSALOPS_BOOTSTRAP_DOCKER_PROJECT:}
+  remediation:
+    # Global kill switch: no remediation executes in any environment while true.
+    kill-switch: ${CAUSALOPS_REMEDIATION_KILL_SWITCH:false}
+    verify-interval-ms: ${REMEDIATION_VERIFY_INTERVAL_MS:5000}
   telemetry:
     # Matches the Prometheus scrape interval; reading faster only repeats samples.
     ingest-interval-ms: ${TELEMETRY_INGEST_INTERVAL_MS:5000}

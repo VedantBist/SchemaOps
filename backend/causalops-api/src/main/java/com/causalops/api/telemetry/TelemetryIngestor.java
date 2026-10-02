@@ -3,7 +3,10 @@ package com.causalops.api.telemetry;
 import com.causalops.api.environment.Environment;
 import com.causalops.api.environment.EnvironmentService;
 import com.causalops.api.events.EventBus;
-import com.causalops.api.incident.SloBreachDetector;
+import com.causalops.api.incident.AnomalySignal;
+import com.causalops.api.incident.IncidentDetector;
+import com.causalops.api.incident.PipelineCoordinator;
+import com.causalops.api.remediation.RemediationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,18 +32,23 @@ public class TelemetryIngestor {
     private final TopologyRepository topology;
     private final MeasurementCollector collector;
     private final TelemetryRepository telemetry;
-    private final SloBreachDetector detector;
+    private final IncidentDetector detector;
+    private final PipelineCoordinator pipeline;
     private final EventBus events;
+    private final RemediationService remediation;
     private final int retentionDays;
 
     public TelemetryIngestor(EnvironmentService environments, TopologyRepository topology, MeasurementCollector collector,
-                             TelemetryRepository telemetry, SloBreachDetector detector, EventBus events,
+                             TelemetryRepository telemetry, IncidentDetector detector, PipelineCoordinator pipeline,
+                             EventBus events, RemediationService remediation,
                              @Value("${causalops.telemetry.retention-days:14}") int retentionDays) {
+        this.remediation = remediation;
         this.environments = environments;
         this.topology = topology;
         this.collector = collector;
         this.telemetry = telemetry;
         this.detector = detector;
+        this.pipeline = pipeline;
         this.events = events;
         this.retentionDays = retentionDays;
     }
@@ -76,7 +84,17 @@ public class TelemetryIngestor {
             row.put("status", result.status());
             summary.add(row);
         });
-        detector.evaluate(env, evaluations, at);
+        for (EdgeMeasurement edge : collector.collectEdges(env.config())) {
+            if (!edge.metrics().isEmpty()) telemetry.insertEdgeSnapshot(env.id(), at, edge);
+        }
+        Map<String, AnomalySignal> anomalies = pipeline.evaluate(env, at);
+        detector.evaluate(env, evaluations, anomalies, at);
+        try {
+            remediation.verify(env, evaluations, anomalies);
+        } catch (RuntimeException e) {
+            log.warn("Remediation verification failed for {}: {}", env.name(), e.getMessage());
+        }
+        pipeline.scheduleRootCauseAnalysis(env);
         events.emit("telemetry.ingested", env.id(), Map.of("at", at.toString(), "services", summary));
         return measured;
     }
