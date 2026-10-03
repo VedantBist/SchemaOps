@@ -29,3 +29,8 @@ def test_executors_reject_wrong_token(client, monkeypatch):
     assert client.get("/executors", headers={"X-Engine-Token": "y" * 32}).status_code == 401
     ok = client.get("/executors", headers={"X-Engine-Token": "x" * 32})
     assert ok.status_code == 200 and "restart" in ok.json()["docker"]
+
+
+def test_token_is_checked_before_the_request_body(client, monkeypatch):
+    monkeypatch.setenv("ENGINE_INTERNAL_TOKEN", "x" * 32)
+    assert client.post("/executors/execute", json={}).status_code == 401

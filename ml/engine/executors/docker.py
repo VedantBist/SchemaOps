@@ -58,11 +58,12 @@ class DockerExecutor:
             for c in found:
                 host = self._call("GET", f"/containers/{c['Id']}/json").json()["HostConfig"]
                 cpus, mem = int(host.get("NanoCpus") or 0), int(host.get("Memory") or 0)
-                if cpus == 0 or mem == 0:
-                    raise OperationNotSupported(f"container {c['Id'][:12]} has no CPU/memory limit to raise; "
+                if cpus == 0 and mem == 0:
+                    raise OperationNotSupported(f"container {c['Id'][:12]} has no CPU or memory limit to raise; "
                                                 "set limits on the service first")
+                # Only limits that are set are raised (0 means unlimited and stays unlimited).
                 before[c["Id"]] = {"NanoCpus": cpus, "Memory": mem, "MemorySwap": int(host.get("MemorySwap") or 0)}
-                after[c["Id"]] = {"NanoCpus": int(cpus * cpu_f), "Memory": int(mem * mem_f), "MemorySwap": -1}
+                after[c["Id"]] = {"NanoCpus": int(cpus * cpu_f), "Memory": int(mem * mem_f), "MemorySwap": -1 if mem else 0}
             if not dry_run:
                 for cid, limits in after.items():
                     self._call("POST", f"/containers/{cid}/update", json=limits)

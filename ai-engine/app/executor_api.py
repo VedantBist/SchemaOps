@@ -8,14 +8,13 @@ import logging
 import os
 from typing import Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from ml.engine import executors
 from ml.engine.executors import ExecutorError, OperationNotSupported, TargetNotFound
 
 log = logging.getLogger("causalops.executors")
-router = APIRouter(prefix="/executors")
 
 
 def _authorize(token: Optional[str]) -> None:
@@ -24,6 +23,14 @@ def _authorize(token: Optional[str]) -> None:
         raise HTTPException(status_code=503, detail="executors are disabled: ENGINE_INTERNAL_TOKEN is not configured")
     if not token or not hmac.compare_digest(token, expected):
         raise HTTPException(status_code=401, detail="missing or invalid X-Engine-Token")
+
+
+def require_token(x_engine_token: Optional[str] = Header(None)) -> None:
+    _authorize(x_engine_token)
+
+
+# The token is checked before anything else, including request-body validation.
+router = APIRouter(prefix="/executors", dependencies=[Depends(require_token)])
 
 
 class ExecuteRequest(BaseModel):
@@ -59,22 +66,19 @@ def _run(fn, *args):
 
 
 @router.get("")
-def describe(x_engine_token: Optional[str] = Header(None)):
-    _authorize(x_engine_token)
+def describe():
     return executors.describe()
 
 
 @router.post("/execute")
-def execute(body: ExecuteRequest, x_engine_token: Optional[str] = Header(None)):
-    _authorize(x_engine_token)
+def execute(body: ExecuteRequest):
     log.info("execution %s: %s %s on %s (dry_run=%s)", body.execution_id, body.executor, body.operation, body.target, body.dry_run)
     return _run(executors.execute, body.executor, body.executor_config, body.operation, body.target, body.params,
                 body.dry_run, {"execution_id": body.execution_id, **body.context})
 
 
 @router.post("/rollback")
-def rollback(body: RollbackRequest, x_engine_token: Optional[str] = Header(None)):
-    _authorize(x_engine_token)
+def rollback(body: RollbackRequest):
     log.info("rollback %s: %s %s on %s", body.execution_id, body.executor, body.operation, body.target)
     return _run(executors.rollback, body.executor, body.executor_config, body.operation, body.target,
                 body.rollback_state, {"execution_id": body.execution_id, **body.context})

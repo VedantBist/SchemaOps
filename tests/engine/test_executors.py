@@ -21,6 +21,7 @@ class FakeDocker:
             "aaa111": {"project": "shop", "service": "payments", "NanoCpus": 1_000_000_000, "Memory": 512 * 2**20, "MemorySwap": 0},
             "bbb222": {"project": "other", "service": "payments", "NanoCpus": 1_000_000_000, "Memory": 512 * 2**20, "MemorySwap": 0},
             "ccc333": {"project": "shop", "service": "nolimits", "NanoCpus": 0, "Memory": 0, "MemorySwap": 0},
+            "ddd444": {"project": "shop", "service": "memonly", "NanoCpus": 0, "Memory": 512 * 2**20, "MemorySwap": 0},
         }
         self.restarts = []
 
@@ -112,6 +113,14 @@ def test_docker_resources_raised_then_restored(docker_fake):
     registry.rollback("docker", DOCKER, "update_resources", "payments", r.rollback_state)
     assert c["NanoCpus"] == 1_000_000_000 and c["Memory"] == 512 * 2**20
     assert docker_fake.containers["bbb222"]["NanoCpus"] == 1_000_000_000      # other project untouched
+
+
+def test_docker_raises_only_the_limits_that_are_set(docker_fake):
+    r = registry.execute("docker", DOCKER, "update_resources", "memonly", {"cpuFactor": 2, "memoryFactor": 1.5}, False)
+    c = docker_fake.containers["ddd444"]
+    assert c["NanoCpus"] == 0 and c["Memory"] == 768 * 2**20       # CPU stays unlimited
+    registry.rollback("docker", DOCKER, "update_resources", "memonly", r.rollback_state)
+    assert c["Memory"] == 512 * 2**20
 
 
 def test_docker_errors(docker_fake):

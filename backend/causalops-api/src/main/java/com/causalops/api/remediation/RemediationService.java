@@ -1,5 +1,6 @@
 package com.causalops.api.remediation;
 
+import com.causalops.api.changes.ChangeEventRepository;
 import com.causalops.api.engine.AiEngineClient;
 import com.causalops.api.environment.Environment;
 import com.causalops.api.environment.EnvironmentConfig;
@@ -44,12 +45,14 @@ public class RemediationService {
     private final AiEngineClient engine;
     private final EventBus events;
     private final JdbcTemplate db;
+    private final ChangeEventRepository changes;
     private final boolean globalKillSwitch;
     private final ExecutorService workers = Executors.newFixedThreadPool(2);
 
     public RemediationService(RemediationRepository repo, IncidentRepository incidents, EnvironmentService environments,
-                              AiEngineClient engine, EventBus events, JdbcTemplate db,
+                              AiEngineClient engine, EventBus events, JdbcTemplate db, ChangeEventRepository changes,
                               @Value("${causalops.remediation.kill-switch:false}") boolean globalKillSwitch) {
+        this.changes = changes;
         this.repo = repo;
         this.incidents = incidents;
         this.environments = environments;
@@ -144,7 +147,13 @@ public class RemediationService {
         return new RemediationPolicy.Context(env.config().remediation(), globalKillSwitch, env.status(), p, createdAt, now,
                 repo.telemetryAgeSeconds(env.id()), repo.alreadyTried(incidentId, p.action().id(), target),
                 repo.targetBusy(env.id(), target), repo.lastChange(env.id(), target), repo.autoExecutionsLastHour(env.id()),
-                blastRadius(env, incidentId, p.candidate().target()), approved);
+                blastRadius(env, incidentId, p.candidate().target()), approved, changeInProgress(env));
+    }
+
+    /** A deployment or maintenance window that is open (or just ended): automation waits for a human. */
+    private String changeInProgress(Environment env) {
+        return changes.active(env.id(), 60, false).stream().findFirst()
+                .map(c -> c.get("kind") + " " + c.get("target") + " (" + c.get("source") + ")").orElse(null);
     }
 
     /**
@@ -170,6 +179,17 @@ public class RemediationService {
         Set<String> affected = Set.of(incidents.read((String) incidents.get(incidentId).get("affectedServices"), String[].class));
         dependents.removeAll(affected);
         return (double) dependents.size() / monitored.size();
+    }
+
+    /** Pending proposals expire at their TTL, or as soon as their incident has recovered. */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 30000, initialDelay = 30000)
+    public void expireStale() {
+        int n = db.update("""
+                UPDATE remediation_recommendations r SET status = 'EXPIRED'
+                WHERE r.status IN ('PROPOSED', 'AWAITING_APPROVAL', 'BLOCKED')
+                  AND (r.expires_at < now() OR EXISTS (SELECT 1 FROM incidents i WHERE i.id = r.incident_id AND i.status = 'RESOLVED'))
+                """);
+        if (n > 0) log.info("Expired {} pending remediation proposals (TTL passed or incident recovered)", n);
     }
 
     // ── approvals ───────────────────────────────────────────────────────────────
@@ -285,6 +305,9 @@ public class RemediationService {
             repo.executed(executionId, result, result.get("rollback_state"), now.plusSeconds(v.settleSeconds()),
                     now.plusSeconds(v.windowSeconds()));
             repo.audit(env.id(), incidentId, actor, "EXECUTED", "execution", executionId, result);
+            // The action itself disturbs telemetry; calibration keeps this window out of "normal" data.
+            changes.record(env.id(), "REMEDIATION", (String) rec.get("targetNode"), now, null, actor,
+                    rec.get("actionId") + ": " + result.get("detail"), executionId);
             incidents.addEvent(incidentId, "REMEDIATION_EXECUTED", Map.of("executionId", executionId.toString(),
                     "detail", String.valueOf(result.get("detail")), "verifyWithinSeconds", v.windowSeconds()));
             events.emit("remediation.executed", incidentId, Map.of("executionId", executionId, "detail", String.valueOf(result.get("detail"))));
@@ -312,14 +335,18 @@ public class RemediationService {
             UUID id = (UUID) ex.get("id");
             UUID incidentId = (UUID) ex.get("incidentId");
             Set<String> watched = watched(ex, incidentId, slo.keySet());
+            // Judged on the signal that declared the incident (as the detector resolves it): SLOs when a
+            // breach confirmed it, otherwise the anomaly gate too.
+            boolean sloIncident = sloConfirmed(incidentId);
             Map<String, Object> states = new TreeMap<>();
             boolean healthy = !watched.isEmpty();
             for (String s : watched) {
                 SloEvaluator.Result r = slo.get(s);
                 boolean flagged = anomalies.containsKey(s) && anomalies.get(s).flagged();
-                String state = r == null ? "NO_DATA" : flagged ? "ANOMALOUS" : r.level().name();
+                String state = r == null ? "NO_DATA" : r.level() != SloEvaluator.Level.HEALTHY ? r.level().name()
+                        : flagged ? (sloIncident ? "HEALTHY_ABOVE_BASELINE" : "ANOMALOUS") : "HEALTHY";
                 states.put(s, state);
-                healthy &= "HEALTHY".equals(state);
+                healthy &= state.startsWith("HEALTHY");
             }
             int streak = healthy ? ((Number) ex.get("healthyStreak")).intValue() + 1 : 0;
             int required = env.config().remediation().verification().healthySamples();
@@ -330,6 +357,7 @@ public class RemediationService {
             verification.put("checkedAt", Instant.now().toString());
             if (streak >= required) {
                 repo.verified(id, verification);
+                changes.close(id);
                 repo.audit(env.id(), incidentId, AUTONOMY, "VERIFIED", "execution", id, verification);
                 incidents.setStatus(incidentId, "MITIGATED");
                 incidents.addEvent(incidentId, "REMEDIATION_VERIFIED", Map.of("executionId", id.toString(), "watched", states));
@@ -344,12 +372,19 @@ public class RemediationService {
                 log.info("Remediation {} did not restore health in time: {}", id, states);
                 workers.submit(() -> {
                     rollbackIfPossible(env, repo.execution(id), AUTONOMY, "verification failed");
+                    changes.close(id);
                     replanQuietly(incidentId, "verification_failed");
                 });
             } else {
                 repo.verificationProgress(id, streak, verification);
             }
         }
+    }
+
+    private boolean sloConfirmed(UUID incidentId) {
+        Map<String, Object> incident = incidents.get(incidentId);
+        return Arrays.stream(incidents.read((String) incident.get("evidence"), Object[].class))
+                .anyMatch(e -> e instanceof Map<?, ?> m && "slo_breach".equals(m.get("source")));
     }
 
     /** The target (when it is a monitored service) plus every service the incident affects. */
@@ -379,6 +414,8 @@ public class RemediationService {
         repo.audit(env.id(), (UUID) ex.get("incidentId"), by, "ROLLBACK_REQUESTED", "execution", executionId,
                 Map.of("reason", String.valueOf(reason)));
         rollbackIfPossible(env, ex, by, reason);
+        changes.record(env.id(), "REMEDIATION", (String) ex.get("targetNode"), java.time.Instant.now(), java.time.Instant.now(),
+                by, "manual rollback of " + ex.get("actionId"), null);
         return repo.execution(executionId);
     }
 
@@ -450,13 +487,13 @@ public class RemediationService {
                 "SELECT signals::text AS detail FROM root_cause_candidates WHERE analysis_id = ? ORDER BY score DESC LIMIT ?",
                 analysisId, CANDIDATES_CONSIDERED)) {
             Map<String, Object> c = repo.read((String) row.get("detail"), Map.class);
-            out.add(candidate(c));
+            out.add(candidate(c, out.size() + 1));
         }
         return out;
     }
 
     @SuppressWarnings("unchecked")
-    static Recommender.Candidate candidate(Map<String, Object> c) {
+    static Recommender.Candidate candidate(Map<String, Object> c, int rank) {
         Set<String> metrics = new TreeSet<>();
         for (Map<String, Object> s : (List<Map<String, Object>>) c.getOrDefault("signals", List.of())) {
             Object prob = s.get("max_probability");
@@ -467,29 +504,35 @@ public class RemediationService {
         String unit = String.valueOf(c.get("service"));
         return new Recommender.Candidate(unit, String.valueOf(c.getOrDefault("kind", "service")),
                 String.valueOf(c.getOrDefault("target", unit)),
-                ((Number) c.getOrDefault("confidence", 0)).doubleValue(), metrics, rootMetric);
+                ((Number) c.getOrDefault("confidence", 0)).doubleValue(), metrics, rootMetric, rank);
     }
 
-    /** Counterfactual benefit per candidate: the stored one for the top cause, the engine for others. */
+    /**
+     * Counterfactual benefit per candidate, all computed over the same window so they are
+     * comparable. The counterfactual stored with the RCA is only a fallback for the top cause.
+     */
     @SuppressWarnings("unchecked")
     private Map<String, Recommender.Benefit> benefits(Environment env, Map<String, Object> incident,
                                                       List<Recommender.Candidate> candidates) {
         Map<String, Recommender.Benefit> out = new HashMap<>();
         UUID incidentId = (UUID) incident.get("id");
-        var stored = db.queryForList("SELECT target, result::text AS result FROM simulations WHERE incident_id = ? ORDER BY created_at DESC LIMIT 1",
-                incidentId);
-        if (!stored.isEmpty()) {
-            out.put((String) stored.get(0).get("target"), benefit(repo.read((String) stored.get(0).get("result"), Map.class)));
-        }
         Instant opened = ((Timestamp) incident.get("openedAt")).toInstant();
+        String start = opened.minus(Duration.ofMinutes(5)).toString();
+        String end = Instant.now().toString();
         for (Recommender.Candidate c : candidates) {
-            if (out.containsKey(c.unit())) continue;
             try {
-                out.put(c.unit(), benefit(engine.post("/counterfactual", Map.of("environment_id", env.id().toString(),
-                        "start", opened.minus(Duration.ofMinutes(5)).toString(), "end", Instant.now().toString(), "unit", c.unit()))));
+                Map<String, Object> cf = engine.post("/counterfactual", Map.of("environment_id", env.id().toString(),
+                        "start", start, "end", end, "unit", c.unit()));
+                // A response without validity or impact data is no estimate at all.
+                if (cf != null && cf.containsKey("validity") && cf.containsKey("entry_impact")) out.put(c.unit(), benefit(cf));
             } catch (RuntimeException e) {
                 log.debug("No counterfactual for {}: {}", c.unit(), e.getMessage());
             }
+        }
+        var stored = db.queryForList("SELECT target, result::text AS result FROM simulations WHERE incident_id = ? ORDER BY created_at DESC LIMIT 1",
+                incidentId);
+        if (!stored.isEmpty()) {
+            out.putIfAbsent((String) stored.get(0).get("target"), benefit(repo.read((String) stored.get(0).get("result"), Map.class)));
         }
         return out;
     }
@@ -526,8 +569,10 @@ public class RemediationService {
         String kind = (String) rec.get("targetKind");
         String unit = (String) rec.get("targetNode");
         String target = "link".equals(kind) && unit.contains("->") ? unit.substring(unit.indexOf("->") + 2) : unit;
+        var original = rec.get("analysisId") == null ? null : candidates((UUID) rec.get("analysisId")).stream()
+                .filter(c -> c.unit().equals(unit)).findFirst().orElse(null);
         var candidate = new Recommender.Candidate(unit, kind, target, ((Number) rec.get("rcaConfidence")).doubleValue(),
-                Set.of(), rootMetricOf((UUID) rec.get("analysisId"), unit));
+                Set.of(), original == null ? null : original.rootMetric(), original == null ? CANDIDATES_CONSIDERED : original.rank());
         var benefit = new Recommender.Benefit(num(b.get("meanAvoidedLatencyMs")), num(b.get("peakAvoidedLatencyMs")),
                 num(b.get("peakAvoidedErrorPct")), ((Number) b.getOrDefault("restoredNodes", 0)).intValue(),
                 String.valueOf(b.get("validity")));
@@ -535,12 +580,6 @@ public class RemediationService {
         return new Recommender.Proposal(candidate, action, (String) rec.get("binding"), (Boolean) rec.get("reversible"),
                 EnvironmentConfig.STATELESS_OPERATIONS.contains(action.operation()), benefit, eff, 0,
                 ((Number) rec.get("score")).doubleValue(), (String) rec.get("rationale"));
-    }
-
-    private String rootMetricOf(UUID analysisId, String unit) {
-        if (analysisId == null) return null;
-        return candidates(analysisId).stream().filter(c -> c.unit().equals(unit)).map(Recommender.Candidate::rootMetric)
-                .findFirst().orElse(null);
     }
 
     private static Double num(Object o) {

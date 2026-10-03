@@ -79,18 +79,21 @@ public class OverviewController {
     }
 
     @GetMapping("/predictions")
-    public List<Map<String, Object>> predictions(@RequestParam(required = false) String service) {
+    public List<Map<String, Object>> predictions(@RequestParam(required = false) UUID environmentId,
+                                                 @RequestParam(required = false) String service) {
+        UUID env = environments.resolve(environmentId).id();
         String sql = """
                 SELECT id, service_name AS service, probability, risk_level AS "riskLevel", horizon_seconds AS "horizonSeconds",
-                       factors::text AS factors, created_at AS "createdAt"
-                FROM predictions %s ORDER BY created_at DESC LIMIT 500
+                       factors::text AS factors, method, model_version AS "modelVersion", created_at AS "createdAt"
+                FROM predictions WHERE environment_id = ? %s ORDER BY created_at DESC LIMIT 500
                 """;
-        return service == null ? db.queryForList(sql.formatted("")) : db.queryForList(sql.formatted("WHERE service_name = ?"), service);
+        return service == null ? db.queryForList(sql.formatted(""), env)
+                : db.queryForList(sql.formatted("AND service_name = ?"), env, service);
     }
 
     @GetMapping("/predictions/{service}")
-    public List<Map<String, Object>> predictionsFor(@PathVariable String service) {
-        return predictions(service);
+    public List<Map<String, Object>> predictionsFor(@PathVariable String service, @RequestParam(required = false) UUID environmentId) {
+        return predictions(environmentId, service);
     }
 
     @GetMapping("/simulations/{id}")

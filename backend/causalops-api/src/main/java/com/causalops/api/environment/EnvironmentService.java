@@ -122,6 +122,13 @@ public class EnvironmentService {
         return true;
     }
 
+    /** The configuration as it would be stored: defaults filled in and validated (nothing is saved). */
+    public EnvironmentConfig preview(EnvironmentConfig config) {
+        EnvironmentConfig merged = withDefaults(config);
+        validate(merged);
+        return merged;
+    }
+
     public Environment updateStatus(UUID id, String status) {
         if (!STATUSES.contains(status)) throw new IllegalArgumentException("status must be one of " + STATUSES);
         return environments.updateStatus(id, status);

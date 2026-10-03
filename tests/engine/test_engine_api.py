@@ -34,6 +34,7 @@ class FakeStore:
                             "started_at": start.to_pydatetime(), "stopped_at": end.to_pydatetime(), "duration_seconds": 300}]
         self.runs_by_id, self.registry = {}, []
         self.learning_started_at = self.t[0].to_pydatetime()
+        self.change_rows = []
 
     def environment(self, env_id):
         if env_id != ENV:
@@ -57,6 +58,9 @@ class FakeStore:
 
     def faults(self, env_id, start, end):
         return self.fault_rows
+
+    def changes(self, env_id, start, end):
+        return self.change_rows
 
     def has_running_calibration(self, env_id):
         return any(r["status"] == "RUNNING" for r in self.runs_by_id.values())
@@ -119,6 +123,15 @@ def test_calibration_registers_a_validated_champion_and_serves_it(store):
     assert cf["entry_impact"]["gateway"]["peak_avoided_latency_ms"] > 100
 
 
+def test_recorded_changes_are_neither_normal_data_nor_false_positives(store):
+    t = store.t
+    store.change_rows = [{"kind": "RESTART", "target": "orders", "started_at": t[100].to_pydatetime(),
+                          "ended_at": t[110].to_pydatetime()}]
+    m = calibrate.calibrate(store, ENV, store.start_run(ENV, "INITIAL", "test"))["metrics"]
+    assert m["data"]["recorded_changes"] == 1
+    assert m["data"]["samples_excluded_for_changes"] >= 11
+
+
 def test_challenger_is_kept_only_if_not_worse(store, monkeypatch):
     calibrate.calibrate(store, ENV, store.start_run(ENV, "INITIAL", "test"))
     first = store.champion(ENV)["version"]
@@ -146,7 +159,7 @@ def test_champion_from_before_a_learning_restart_is_replaced(store, monkeypatch)
     store.learning_started_at = (pd.Timestamp(store.champion(ENV)["data_to"]) + timedelta(seconds=1)).to_pydatetime()
     monkeypatch.setattr(calibrate, "evaluate_episodes",
                         lambda *a, **k: (_ for _ in ()).throw(AssertionError("a stale champion must not be scored")))
-    promote, decision = calibrate.champion_challenger(store, ENV, None, None, None, [], {})
+    promote, decision, _ = calibrate.champion_challenger(store, ENV, None, None, None, [], {})
     assert promote is True and "before learning restarted" in decision and first in decision
 
 

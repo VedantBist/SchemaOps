@@ -7,6 +7,10 @@
 #
 # Toxiproxy sits on every real network path so DB and network latency faults are genuine delays.
 
+# Fixed project name: container labels must match the Docker executor's scope
+# (CAUSALOPS_DOCKER_PROJECT) whatever folder the repository is cloned into.
+name: causalops
+
 x-otel-agent: &otel-agent
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
   OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
@@ -21,16 +25,18 @@ x-otel-agent: &otel-agent
   # The image sets the agent; the heap is sized from the container limit below.
   JAVA_TOOL_OPTIONS: "-javaagent:/otel/opentelemetry-javaagent.jar -XX:MaxRAMPercentage=60"
 
-# Real resource limits, as a production deployment would have; remediation can raise them
-# (docker update) and restores them on rollback.
+# A real memory limit, as a production deployment would have; remediation can raise it (docker update)
+# and restores it on rollback. No CPU quota: CFS throttling of JVM bursts (GC/JIT threads) inflates p99
+# even at ~2% average CPU, which the anomaly gate would learn and flag as noise.
 x-service-limits: &service-limits
   resources:
-    limits: { cpus: "1.0", memory: 1g }
+    limits: { memory: 1536m }
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
+      CAUSALOPS_RESTORE_SNAPSHOT: "${CAUSALOPS_RESTORE_SNAPSHOT:-true}"
       POSTGRES_DB: "${POSTGRES_DB:-causalops}"
       POSTGRES_USER: "${POSTGRES_USER:-causalops}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
@@ -38,6 +44,9 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-reference-system.sql:ro
+      # First start only: restores the calibrated demo environment (see demo/README.md).
+      - ./infrastructure/postgres/02-restore-snapshot.sh:/docker-entrypoint-initdb.d/02-restore-snapshot.sh:ro
+      - ./demo/snapshot:/snapshot:ro
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"], interval: 5s, timeout: 3s, retries: 20 }
 
   # ── Reference system network paths (fault injection points) ──────────────────
@@ -138,6 +147,13 @@ services:
     depends_on: [prometheus, tempo, loki]
 
   # ── CausalOps platform ────────────────────────────────────────────────────────
+  # Seeds the model store with the snapshot's champion model when the volume is empty.
+  model-seed:
+    image: alpine:3.20
+    command: ["sh", "-c", "if [ -z \"$$(ls -A /models)\" ] && [ -f /snapshot/models.tar.gz ]; then tar xzf /snapshot/models.tar.gz -C /models && echo 'model store seeded from demo snapshot'; else echo 'model store already initialised'; fi"]
+    volumes:
+      - engine-models:/models
+      - ./demo/snapshot:/snapshot:ro
   ai-engine:
     build: ./ai-engine
     ports: ["8000:8000"]
@@ -157,7 +173,9 @@ services:
       - engine-models:/var/lib/causalops/models
       # Docker executor: restarts / resizes containers of the configured compose project only.
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on: { postgres: { condition: service_healthy } }
+    depends_on:
+      postgres: { condition: service_healthy }
+      model-seed: { condition: service_completed_successfully }
     healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"], interval: 10s, timeout: 3s, retries: 10 }
   causalops-api:
     build: ./backend/causalops-api
@@ -187,6 +205,12 @@ services:
       CAUSALOPS_REMEDIATION_KILL_SWITCH: "${CAUSALOPS_REMEDIATION_KILL_SWITCH:-false}"
     ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
     depends_on: { postgres: { condition: service_healthy }, ai-engine: { condition: service_healthy } }
+
+  # ── Console (http://localhost:3000) ───────────────────────────────────────────
+  frontend:
+    build: { context: ., dockerfile: infrastructure/frontend/Dockerfile }
+    ports: ["${CAUSALOPS_UI_PORT:-3000}:80"]
+    depends_on: [causalops-api]
 
 volumes:
   postgres-data: {}

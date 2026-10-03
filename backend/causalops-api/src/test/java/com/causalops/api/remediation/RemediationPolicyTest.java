@@ -14,7 +14,11 @@ class RemediationPolicyTest {
     private static final Instant NOW = Instant.parse("2026-10-02T12:00:00Z");
 
     private static Recommender.Proposal proposal(EnvironmentConfig.Action action, double confidence, String validity) {
-        var c = new Recommender.Candidate("orders", "service", "orders", confidence, Set.of("latency"), "latency");
+        return proposal(action, confidence, validity, 1);
+    }
+
+    private static Recommender.Proposal proposal(EnvironmentConfig.Action action, double confidence, String validity, int rank) {
+        var c = new Recommender.Candidate("orders", "service", "orders", confidence, Set.of("latency"), "latency", rank);
         return new Recommender.Proposal(c, action, "orders", action.operation().equals("update_resources"),
                 action.operation().equals("restart"), new Recommender.Benefit(300.0, 600.0, null, 2, validity),
                 new Recommender.Effectiveness(0, 0), 1, 0.3, "");
@@ -22,7 +26,7 @@ class RemediationPolicyTest {
 
     private static RemediationPolicy.Context ctx(Recommender.Proposal p, String status, boolean approved) {
         return new RemediationPolicy.Context(Fixtures.config(1, Fixtures.dockerOnly()), false, status, p, NOW, NOW, 5.0,
-                false, false, null, 0, 0.25, approved);
+                false, false, null, 0, 0.25, approved, null);
     }
 
     private static Set<String> failed(RemediationPolicy.Decision d) {
@@ -33,7 +37,10 @@ class RemediationPolicyTest {
     void tierOneActionRunsAutomaticallyWhenEveryRulePasses() {
         var d = RemediationPolicy.decide(ctx(proposal(Fixtures.RESTART, 0.6, "PASS"), "ACTIVE", false));
         assertEquals(RemediationPolicy.Mode.AUTO, d.mode(), d.summary());
-        assertEquals(15, d.rules().size());
+        assertEquals(17, d.rules().size());
+        var runnerUp = RemediationPolicy.decide(ctx(proposal(Fixtures.RESTART, 0.6, "PASS", 2), "ACTIVE", false));
+        assertEquals(RemediationPolicy.Mode.APPROVAL, runnerUp.mode());
+        assertEquals(Set.of("ACTS_ON_TOP_ROOT_CAUSE"), failed(runnerUp));
     }
 
     @Test
@@ -52,21 +59,21 @@ class RemediationPolicyTest {
     void autonomyRulesCoverStaleTelemetryCooldownBudgetAndBlastRadius() {
         var p = proposal(Fixtures.RESTART, 0.6, "PASS");
         var c = new RemediationPolicy.Context(Fixtures.config(1, Fixtures.dockerOnly()), false, "ACTIVE", p, NOW, NOW, 120.0,
-                false, false, NOW.minus(Duration.ofMinutes(3)), 4, 0.75, false);
+                false, false, NOW.minus(Duration.ofMinutes(3)), 4, 0.75, false, "DEPLOYMENT checkout (ci)");
         var d = RemediationPolicy.decide(c);
         assertEquals(RemediationPolicy.Mode.APPROVAL, d.mode());
-        assertEquals(Set.of("TELEMETRY_FRESH", "TARGET_COOLDOWN", "AUTO_BUDGET", "BLAST_RADIUS"), failed(d));
+        assertEquals(Set.of("TELEMETRY_FRESH", "TARGET_COOLDOWN", "AUTO_BUDGET", "BLAST_RADIUS", "NO_CHANGE_IN_PROGRESS"), failed(d));
     }
 
     @Test
     void safetyRulesBlockEvenWithApproval() {
         var p = proposal(Fixtures.RESTART, 0.9, "PASS");
         var killed = new RemediationPolicy.Context(Fixtures.config(3, Fixtures.dockerOnly()), true, "ACTIVE", p, NOW, NOW, 5.0,
-                false, false, null, 0, 0.0, true);
+                false, false, null, 0, 0.0, true, null);
         assertEquals(RemediationPolicy.Mode.BLOCKED, RemediationPolicy.decide(killed).mode());
 
         var busyAndRetried = new RemediationPolicy.Context(Fixtures.config(3, Fixtures.dockerOnly()), false, "ACTIVE", p,
-                NOW.minus(Duration.ofHours(1)), NOW, 5.0, true, true, null, 0, 0.0, true);
+                NOW.minus(Duration.ofHours(1)), NOW, 5.0, true, true, null, 0, 0.0, true, null);
         var d = RemediationPolicy.decide(busyAndRetried);
         assertEquals(RemediationPolicy.Mode.BLOCKED, d.mode());
         assertEquals(Set.of("RECOMMENDATION_FRESH", "NOT_ALREADY_TRIED", "TARGET_NOT_BUSY"), failed(d));

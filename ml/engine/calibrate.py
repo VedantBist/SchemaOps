@@ -24,7 +24,7 @@ import pandas as pd
 
 from . import rca as rca_mod
 from .anomaly import AnomalyModel
-from .episodes import Episode, disturbed_mask, from_faults, groups
+from .episodes import Episode, change_mask, disturbed_mask, from_faults, groups
 from .forecast import Forecaster
 from .model import EnvironmentModel, load
 from .scm import LaggedSCM
@@ -40,6 +40,8 @@ MIN_EPISODES_FOR_ACTIVE = 3
 MIN_DETECTION_RECALL = 0.8
 MIN_RCA_TOP1 = 0.6
 PROMOTION_TOLERANCE = 0.02
+# Counterfactuals are rolled forward through the SCM, so its equations must explain held-out data.
+MIN_SCM_R2 = 0.5
 
 
 def start(store: Store, environment_id: str, mode: str, trigger: str) -> str:
@@ -87,7 +89,9 @@ def calibrate(store: Store, environment_id: str, run_id: str) -> dict:
     columns = usable_columns(frame)
     data = frame.data[columns]
     breach_any = slo_breach(frame, slo, service_slos).any(axis=1)
-    quiet = ~disturbed_mask(data.index, episodes) & ~breach_any
+    changes = store.changes(environment_id, data_from, last) if hasattr(store, "changes") else []
+    changed = change_mask(data.index, changes)
+    quiet = ~disturbed_mask(data.index, episodes) & ~breach_any & ~changed
     clean = data[quiet]
     if len(clean) < 120:
         raise ValueError(f"Only {len(clean)} undisturbed samples to learn normal behaviour from; need at least 120")
@@ -105,7 +109,8 @@ def calibrate(store: Store, environment_id: str, run_id: str) -> dict:
         "data": {"from": str(data.index.min()), "to": str(data.index.max()), "samples": int(len(data)),
                  "undisturbed_samples": int(len(clean)), "step_seconds": frame.step_seconds,
                  "variables": len(columns), "nodes": len(topology.nodes), "edges": len(topology.edges),
-                 "labelled_episodes": len(episodes)},
+                 "labelled_episodes": len(episodes), "recorded_changes": len(changes),
+                 "samples_excluded_for_changes": int(changed.sum())},
         "gate": evaluate_gate(model_frame, quiet, fit_args),
         "scm": scm.summary(),
         "forecast": forecaster.summary(),
@@ -119,7 +124,9 @@ def calibrate(store: Store, environment_id: str, run_id: str) -> dict:
                              slo, service_slos, analysis, str(data.index.min()), str(data.index.max()), metrics)
     path, checksum = model.save()
 
-    promote, decision = champion_challenger(store, environment_id, model, model_frame, quiet, episodes, metrics)
+    promote, decision, champion_passes = champion_challenger(store, environment_id, model, model_frame, quiet, episodes, metrics, passed)
+    # The lifecycle follows the model that serves after this run, judged on this run's data.
+    serving_passes = passed if promote else champion_passes
     status = "CHAMPION" if promote else "CHALLENGER"
     store.register_model(environment_id, version=version, status=status, run_id=run_id,
                          data_from=data.index.min().to_pydatetime(), data_to=data.index.max().to_pydatetime(),
@@ -129,7 +136,7 @@ def calibrate(store: Store, environment_id: str, run_id: str) -> dict:
                                      "rca": "residual + anomaly + precedence + graph"})
     gate_text = "quality gates passed" if passed else "quality gates not met: " + "; ".join(reasons)
     return {"data_from": data.index.min().to_pydatetime(), "data_to": data.index.max().to_pydatetime(),
-            "model_version": version, "promoted": promote, "quality_passed": passed,
+            "model_version": version, "promoted": promote, "quality_passed": serving_passes,
             "decision": f"{decision}; {gate_text}", "metrics": metrics}
 
 
@@ -204,7 +211,7 @@ def evaluate_episodes(frame: Frame, anomaly: AnomalyModel, topology: Topology, e
 
 def quality(metrics: dict, analysis: dict) -> tuple[bool, list[str]]:
     reasons = []
-    fpr = metrics["gate"].get("heldout_false_positive_rate")
+    fpr = (metrics.get("gate") or {}).get("heldout_false_positive_rate")
     if fpr is None:
         reasons.append("no held-out estimate of the false-positive rate yet")
     elif fpr > analysis["maxGateFalsePositiveRate"]:
@@ -218,6 +225,11 @@ def quality(metrics: dict, analysis: dict) -> tuple[bool, list[str]]:
             reasons.append(f"detection recall {ep['detection_recall']:.2f} below {MIN_DETECTION_RECALL}")
         if ep["rca_top1_accuracy"] < MIN_RCA_TOP1:
             reasons.append(f"RCA top-1 accuracy {ep['rca_top1_accuracy']:.2f} below {MIN_RCA_TOP1}")
+    r2 = (metrics.get("scm") or {}).get("median_holdout_r2")
+    if r2 is None:
+        reasons.append("no cross-validated fit of the causal model yet")
+    elif r2 < MIN_SCM_R2:
+        reasons.append(f"causal model explains held-out data poorly (median cross-validated R2 {r2:.2f} < {MIN_SCM_R2})")
     return not reasons, reasons
 
 
@@ -234,25 +246,29 @@ def _score(metrics: dict, analysis: dict) -> float:
 
 
 def champion_challenger(store: Store, environment_id: str, challenger: EnvironmentModel, frame: Frame,
-                        quiet: pd.Series, episodes: list[Episode], metrics: dict) -> tuple[bool, str]:
+                        quiet: pd.Series, episodes: list[Episode], metrics: dict,
+                        challenger_passes: bool = False) -> tuple[bool, str, bool]:
     champ_row = store.champion(environment_id)
     if champ_row is None:
-        return True, "first model for this environment: promoted to champion"
+        return True, "first model for this environment: promoted to champion", False
     learning_started = pd.Timestamp(store.environment(environment_id).learning_started_at)
     if champ_row.get("data_to") is not None and pd.Timestamp(champ_row["data_to"]) < learning_started:
         return True, (f"current champion {champ_row['version']} was trained on telemetry from before learning restarted "
-                      f"at {learning_started.isoformat()} (metric definitions changed): replaced")
+                      f"at {learning_started.isoformat()} (metric definitions changed): replaced"), False
     try:
         champion = load(environment_id, champ_row["version"], champ_row["artifact_path"], champ_row["checksum"])
     except Exception as e:
-        return True, f"current champion {champ_row['version']} could not be loaded ({e}): replaced"
+        return True, f"current champion {champ_row['version']} could not be loaded ({e}): replaced", False
     analysis = challenger.analysis
     # The champion is scored on the same recent data and the same labelled episodes.
     cols = [c for c in champion.columns if c in frame.data.columns]
     champ_metrics: dict = {}
     flagged = champion.anomaly.flagged(frame.data.reindex(columns=champion.columns)).any(axis=1)
+    # The same held-out set the challenger's gate is scored on: the latest share of the QUIET samples.
     recent = quiet.copy()
-    recent.iloc[: int(len(recent) * (1 - HOLDOUT_FRACTION))] = False
+    quiet_idx = np.flatnonzero(quiet.to_numpy())
+    if len(quiet_idx):
+        recent.iloc[: quiet_idx[int(len(quiet_idx) * (1 - HOLDOUT_FRACTION))]] = False
     if recent.any():
         champ_metrics["gate"] = {"heldout_false_positive_rate": round(float(flagged[recent].mean()), 5)}
     # Leave-one-episode-out refits the SCM for every episode, so scoring the champion's gate and
@@ -260,6 +276,16 @@ def champion_challenger(store: Store, environment_id: str, challenger: Environme
     if episodes:
         champ_metrics["episodes"] = evaluate_episodes(frame, champion.anomaly, champion.topology, episodes, analysis, cols)
     new, old = _score(metrics, analysis), _score(champ_metrics, analysis)
+    champ_metrics.setdefault("scm", champ_row.get("metrics", {}).get("scm", {}) if isinstance(champ_row.get("metrics"), dict) else {})
+    champion_passes, champion_reasons = quality(champ_metrics, analysis)
+    # Kept with the run, so the platform can show how the serving champion does on today's data.
+    metrics["champion_evaluation"] = {"version": champion.version, "gate": champ_metrics.get("gate", {}),
+                                      "episodes": {k: v for k, v in (champ_metrics.get("episodes") or {}).items() if k != "per_episode"},
+                                      "scm": champ_metrics.get("scm", {}), "passes": champion_passes, "reasons": champion_reasons}
+    if challenger_passes and not champion_passes:
+        return True, (f"challenger {challenger.version} passes the quality gates on this data and champion {champion.version} "
+                      f"does not ({'; '.join(champion_reasons)}): promoted"), False
     if new + PROMOTION_TOLERANCE >= old:
-        return True, f"challenger {challenger.version} scored {new:.3f} vs champion {champion.version} {old:.3f}: promoted"
-    return False, f"challenger {challenger.version} scored {new:.3f} vs champion {champion.version} {old:.3f}: champion kept"
+        return True, f"challenger {challenger.version} scored {new:.3f} vs champion {champion.version} {old:.3f}: promoted", champion_passes
+    return False, (f"challenger {challenger.version} scored {new:.3f} vs champion {champion.version} {old:.3f}: champion kept"
+                   f" (champion {'passes' if champion_passes else 'fails'} the quality gates on this data)"), champion_passes

@@ -116,7 +116,7 @@ public class MeasurementCollector {
         return result;
     }
 
-    static String render(String template, String window) {
+    public static String render(String template, String window) {
         return template.replace("${window}", window);
     }
 }

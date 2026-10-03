@@ -29,6 +29,11 @@ public class ApiExceptionHandler {
         return error(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    ResponseEntity<Map<String, Object>> noRoute(org.springframework.web.servlet.resource.NoResourceFoundException e) {
+        return error(HttpStatus.NOT_FOUND, "No endpoint " + e.getResourcePath());
+    }
+
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class,
             HttpMessageNotReadableException.class})
     ResponseEntity<Map<String, Object>> badRequest(Exception e) {

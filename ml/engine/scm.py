@@ -132,13 +132,7 @@ class LaggedSCM:
             X, y, rows = design(z, v, parents[v], valid)
             if len(y) < max(30, 3 * X.shape[1] if X.size else 30):
                 continue
-            split = int(len(y) * 0.8)
-            r2 = None
-            if split >= 20 and len(y) - split >= 10:
-                hold = _ridge(alpha).fit(X[:split], y[:split])
-                ss_res = float(np.sum((y[split:] - hold.predict(X[split:])) ** 2))
-                ss_tot = float(np.sum((y[split:] - y[split:].mean()) ** 2))
-                r2 = 1 - ss_res / ss_tot if ss_tot > 1e-12 else None
+            r2 = blocked_cv_r2(X, y, alpha, gap=lags)
             model = _ridge(alpha).fit(X, y)
             resid = y - model.predict(X)
             eq = Equation(parents[v], model.coef_.copy(), float(model.intercept_), float(max(np.std(resid), 1e-3)), r2)
@@ -245,7 +239,30 @@ class LaggedSCM:
         return {"variables": len(self.variables), "lags": self.lags, "ridge_alpha": self.alpha,
                 "parents_total": int(sum(len(e.parents) for e in self.equations.values())),
                 "ensemble_members": self.ensemble_size(),
-                "median_holdout_r2": round(float(np.median(r2)), 3) if r2 else None}
+                "median_holdout_r2": round(float(np.median(r2)), 3) if r2 else None,
+                "r2_method": "blocked 5-fold cross-validation in time order"}
+
+
+def blocked_cv_r2(X: np.ndarray, y: np.ndarray, alpha: float, folds: int = 5, gap: int = 3) -> float | None:
+    """Out-of-sample R2 from blocked cross-validation in time order.
+
+    Each contiguous block is predicted by a model fitted on the rest (minus ``gap`` rows on each
+    side, so lagged rows of the block do not leak into training). Residual and total sums are
+    pooled over all blocks. A single "last 20%" holdout is not used: when that slice happens to be
+    quiet, its variance is near zero and R2 says nothing about how the equation explains incidents.
+    """
+    n = len(y)
+    if n < folds * 20:
+        return None
+    ss_res = ss_tot = 0.0
+    mean = float(y.mean())
+    for block in np.array_split(np.arange(n), folds):
+        lo, hi = max(block[0] - gap, 0), min(block[-1] + gap + 1, n)
+        train = np.r_[0:lo, hi:n]
+        m = _ridge(alpha).fit(X[train], y[train])
+        ss_res += float(np.sum((y[block] - m.predict(X[block])) ** 2))
+        ss_tot += float(np.sum((y[block] - mean) ** 2))
+    return 1 - ss_res / ss_tot if ss_tot > 1e-9 * n else None
 
 
 def _ridge(alpha: float) -> Ridge:

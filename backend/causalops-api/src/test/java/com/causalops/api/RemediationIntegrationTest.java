@@ -138,12 +138,14 @@ class RemediationIntegrationTest {
                 incident);
     }
 
-    private static void await(String what, Supplier<Boolean> condition) throws InterruptedException {
+    private void await(String what, Supplier<Boolean> condition) throws InterruptedException {
         for (int i = 0; i < 100; i++) {
             if (condition.get()) return;
             Thread.sleep(100);
         }
-        fail("timed out waiting for " + what);
+        fail("timed out waiting for " + what + "; events " + db.queryForList(
+                "SELECT event_type, payload::text FROM incident_events ORDER BY occurred_at") + "; recommendations " + db.queryForList(
+                "SELECT action_id, status, policy->>'summary' AS summary FROM remediation_recommendations ORDER BY created_at"));
     }
 
     private List<String> timeline(UUID id) {
@@ -171,6 +173,10 @@ class RemediationIntegrationTest {
         assertEquals("VERIFIED", executions(id).get(0).get("status"));
         assertEquals("AUTO", executions(id).get(0).get("mode"));
         assertEquals("MITIGATED", incidents.get(id).get("status"));
+        Map<String, Object> change = db.queryForMap("SELECT kind, target, ended_at FROM change_events WHERE reference_id = ?",
+                executions(id).get(0).get("id"));
+        assertEquals("REMEDIATION", change.get("kind"));
+        assertNotNull(change.get("ended_at"), "the change window closes with the verdict");
         assertTrue(timeline(id).containsAll(List.of("RCA_COMPLETED", "REMEDIATION_RECOMMENDED", "REMEDIATION_EXECUTING",
                 "REMEDIATION_EXECUTED", "REMEDIATION_VERIFIED")), timeline(id).toString());
 

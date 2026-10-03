@@ -38,7 +38,7 @@ public final class RemediationPolicy {
                           Recommender.Proposal proposal, Instant recommendationCreatedAt, Instant now,
                           Double telemetryAgeSeconds, boolean alreadyTriedForIncident, boolean targetBusy,
                           Instant lastChangeOnTarget, int autoExecutionsLastHour, Double blastRadius,
-                          boolean approved) {
+                          boolean approved, String changeInProgress) {
     }
 
     private static final Set<String> CALIBRATED = Set.of("CALIBRATED", "ACTIVE");
@@ -79,6 +79,9 @@ public final class RemediationPolicy {
         rules.add(new Rule("ENVIRONMENT_ACTIVE", false, "ACTIVE".equals(c.environmentStatus()),
                 "ACTIVE".equals(c.environmentStatus()) ? "models passed the quality gates"
                         : "models have not passed the quality gates yet (" + c.environmentStatus() + ")"));
+        int rank = p.candidate().rank();
+        rules.add(new Rule("ACTS_ON_TOP_ROOT_CAUSE", false, rank == 1,
+                rank == 1 ? "targets the most likely root cause" : "targets RCA candidate #" + rank + "; a human confirms runner-up causes"));
         double conf = p.candidate().confidence();
         rules.add(new Rule("RCA_CONFIDENCE", false, conf >= cfg.minRcaConfidence(),
                 "%.2f (minimum %.2f)".formatted(conf, cfg.minRcaConfidence())));
@@ -98,6 +101,10 @@ public final class RemediationPolicy {
                 ? "no current telemetry to judge what depends on the target"
                 : "%.0f%% of monitored components depend on the target and are still healthy (max %.0f%%)".formatted(
                 c.blastRadius() * 100, cfg.maxAutoBlastRadius() * 100)));
+
+        rules.add(new Rule("NO_CHANGE_IN_PROGRESS", false, c.changeInProgress() == null,
+                c.changeInProgress() == null ? "no deployment or maintenance in progress"
+                        : "a recorded change is in progress: " + c.changeInProgress()));
 
         Mode mode;
         if (rules.stream().anyMatch(r -> r.safety() && !r.passed())) mode = Mode.BLOCKED;

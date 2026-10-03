@@ -59,6 +59,16 @@ def disturbed_mask(index: pd.DatetimeIndex, episodes: list[Episode], settle_s: i
     return m
 
 
+def change_mask(index: pd.DatetimeIndex, changes: list[dict], settle_s: int = SETTLE_S) -> pd.Series:
+    """True for samples during a recorded change (deploy, restart, maintenance, remediation) or its settling time.
+    Such samples are neither normal behaviour nor labelled incidents."""
+    m = pd.Series(False, index=index)
+    for c in changes:
+        start, end = pd.Timestamp(c["started_at"]), pd.Timestamp(c["ended_at"])
+        m |= (index >= start) & (index <= end + pd.Timedelta(seconds=settle_s))
+    return m
+
+
 def groups(index: pd.DatetimeIndex, episodes: list[Episode], block_minutes: int = 10) -> pd.Series:
     """Cross-validation groups: each episode (with margins) is one group, quiet time is cut into blocks."""
     g = pd.Series((index.asi8 // (block_minutes * 60 * 10**9)) + 10**6, index=index)

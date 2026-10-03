@@ -4,7 +4,7 @@ Checks against the running stack:
   1. Engine health reflects its real dependencies (database, model store).
   2. The archived tg_v1 serving endpoints are gone.
   3. Calibration on stored telemetry and labelled faults (runs one if no champion exists, or with --calibrate).
-  4. A champion model is registered with a checksum; the environment left LEARNING.
+  4. A champion model is registered with a checksum; the environment is ACTIVE (all quality gates passed).
   5. Live evaluation stores anomaly scores and forecasts with model version and method.
   6. A counterfactual on a recorded fault window passes its own validity checks.
   7. (--incident) A real DB fault is detected, its RCA names inventory-db automatically, a
@@ -83,7 +83,7 @@ def calibration(api, force):
     if not check(run is not None and run["status"] == "SUCCEEDED", "latest calibration run succeeded",
                  run and (run.get("error") or run["decision"])):
         return None
-    m = json.loads(run["metrics"])
+    m = run["metrics"] if not isinstance(run["metrics"], str) else json.loads(run["metrics"])
     d = m["data"]
     print(f"     data: {d['samples']} samples ({d['from']} .. {d['to']}), {d['variables']} variables, "
           f"{d['nodes']} nodes, {d['edges']} edges, {d['labelled_episodes']} labelled episodes")
@@ -103,6 +103,8 @@ def calibration(api, force):
         print(f"     forecast {h}s: method={f['method']} positives={f.get('positives')} "
               f"{f.get('note') or f.get('learned_cv') or ''}")
     print(f"     SCM: {m['scm']}")
+    r2 = m["scm"].get("median_holdout_r2")
+    check(r2 is not None and r2 >= 0.5, "causal model explains held-out data (median cross-validated R2 >= 0.5)", r2)
     return st
 
 
@@ -118,7 +120,7 @@ def registry(api, st):
         if st["environment"]["status"] != "LEARNING" or time.time() > deadline:
             break
         time.sleep(10)
-    check(st["environment"]["status"] in ("CALIBRATED", "ACTIVE"), "environment left LEARNING",
+    check(st["environment"]["status"] == "ACTIVE", "environment ACTIVE (every quality gate passed)",
           f"{st['environment']['status']}: {st['statusReason']}")
     check(st["nextRetrainDue"] is not None, "weekly retrain scheduled", st["nextRetrainDue"])
 
@@ -154,6 +156,7 @@ def counterfactual_on_recorded_fault(api):
         return
     v = cf["validity"]
     check(v["pre_intervention_max_diff"] == 0, "identical to the observation before the intervention")
+    check(v["status"] == "PASS", "counterfactual validity PASS (fit, physical bounds, reachability)", v["warnings"])
     check(v["unreachable_max_diff"] < 1e-6, "payment-service (unreachable from inventory-db) unchanged", v["unreachable_max_diff"])
     impact = cf["entry_impact"].get("api-gateway", {})
     check(impact.get("peak_avoided_latency_ms", 0) > 0, "removing the DB delay lowers gateway latency",
@@ -190,8 +193,9 @@ def incident(api):
               f"{[c['service'] for c in rca['candidates'][:3]]}")
         cf = rca["counterfactual"]
         if check(cf is not None, "counterfactual stored with the RCA"):
-            res = json.loads(cf["result"])
-            check(res["validity"]["pre_intervention_max_diff"] == 0, "counterfactual validity",
+            res = cf["result"] if not isinstance(cf["result"], str) else json.loads(cf["result"])
+            check(res["validity"]["status"] == "PASS" and res["validity"]["pre_intervention_max_diff"] == 0,
+                  "counterfactual validity PASS",
                   f"{res['validity']['status']}, gateway peak avoided "
                   f"{res['entry_impact'].get('api-gateway', {}).get('peak_avoided_latency_ms')} ms")
     http("POST", f"{api}/faults/{fault['id']}/stop")

@@ -1,9 +1,0 @@
-{
-  "activeFault": "auth-gateway",
-  "incidentId": "INC-8945",
-  "status": "CRITICAL",
-  "target": "auth-gateway",
-  "latencyMs": 1450,
-  "errorRate": 18.5,
-  "injectedAt": 1790402277000
-}

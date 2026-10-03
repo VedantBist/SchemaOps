@@ -228,7 +228,7 @@ def approval_scenario(api):
     code, ex = http("POST", f"{api}/remediation/recommendations/{limits['id']}/approve",
                     {"by": "verify_phase4@oncall", "reason": "try more headroom first"})
     check(code == 200 and ex["mode"] == "APPROVED", "operator approval executes the tier-2 action", f"HTTP {code}")
-    raised = wait("limits raised", lambda: (lambda c: c if c["nano_cpus"] > limits_before["nano_cpus"] else None)(container("order-service")), 60, 2)
+    raised = wait("limits raised", lambda: (lambda c: c if (c["nano_cpus"], c["memory"]) > (limits_before["nano_cpus"], limits_before["memory"]) and c["memory"] >= limits_before["memory"] else None)(container("order-service")), 60, 2)
     check(raised is not None, "CPU/memory limits really raised (docker update)",
           raised and f"cpu {limits_before['nano_cpus']} -> {raised['nano_cpus']}, mem {limits_before['memory']} -> {raised['memory']}")
     failed = wait("verification verdict", lambda: next((e for e in executions(api, iid) if e["id"] == ex["id"] and

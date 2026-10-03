@@ -25,8 +25,9 @@ public final class Recommender {
     private Recommender() {
     }
 
+    /** {@code rank}: position in the RCA ranking (1 = most likely root cause). */
     public record Candidate(String unit, String kind, String target, double confidence, Set<String> metrics,
-                            String rootMetric) {
+                            String rootMetric, int rank) {
     }
 
     /** Counterfactual impact of restoring a unit; null fields when it could not be computed. */

@@ -170,7 +170,7 @@ def incident_lifecycle(api):
                  incident and f"{incident['incidentKey']} '{incident['title']}' severity={incident['severity']}"):
         http("POST", f"{api}/faults/{fault['id']}/stop")
         return
-    evidence = json.loads(incident["evidence"])
+    evidence = incident["evidence"] if not isinstance(incident["evidence"], str) else json.loads(incident["evidence"])
     ev = next((e for e in evidence if e["service"] == "order-service"), None)
     check(ev is not None and ev["observed"] > ev["threshold"], "evidence holds the measured value",
           ev and f"{ev['metric']} observed {ev['observed']} > threshold {ev['threshold']} ({ev['source']})")

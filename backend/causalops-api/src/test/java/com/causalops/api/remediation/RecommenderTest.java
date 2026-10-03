@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class RecommenderTest {
 
     private static final Recommender.Candidate ORDERS = new Recommender.Candidate("orders", "service", "orders", 0.6,
-            Set.of("latency", "pool_util"), "latency");
+            Set.of("latency", "pool_util"), "latency", 1);
     private static final Recommender.Candidate DB = new Recommender.Candidate("orders-db", "database", "orders-db", 0.3,
-            Set.of("db_latency"), "db_latency");
+            Set.of("db_latency"), "db_latency", 2);
 
     @Test
     void proposesOnlyEnabledActionsThatMatchKindAndDeviation() {

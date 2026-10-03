@@ -169,3 +169,18 @@ def test_overlapping_faults_are_marked_concurrent():
     ]
     eps = from_faults(faults)
     assert [e.concurrent for e in eps] == [True, True, False]
+
+
+def test_fit_is_scored_across_incidents_not_on_a_quiet_tail():
+    """A model that explains an incident must not be judged on a near-constant final slice."""
+    from ml.engine.scm import blocked_cv_r2
+    rng = np.random.default_rng(3)
+    n = 600
+    x = np.where((np.arange(n) > 100) & (np.arange(n) < 200), 50.0, 0.0) + rng.normal(0, 0.05, n)
+    y = 2.0 * x + rng.normal(0, 0.5, n)
+    X = x.reshape(-1, 1)
+    r2 = blocked_cv_r2(X, y, alpha=1.0)
+    assert r2 is not None and r2 > 0.95
+    # The old "last 20%" holdout would see only noise around zero here.
+    tail = slice(int(n * 0.8), n)
+    assert np.var(y[tail]) < 1.0 < np.var(y)

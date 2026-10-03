@@ -104,9 +104,10 @@ public class CalibrationService {
                 continue;
             }
             String status = env.status();
-            if (Boolean.TRUE.equals(run.get("promoted"))) {
+            // quality_passed describes the model serving after the run (new or kept), judged on the run's data.
+            if (Boolean.TRUE.equals(run.get("promoted")) || !"LEARNING".equals(status)) {
                 status = Boolean.TRUE.equals(run.get("quality_passed")) ? "ACTIVE" : "CALIBRATED";
-            } else if ("LEARNING".equals(status)) {
+            } else {
                 status = "CALIBRATED";  // first model is always kept; quality gates decide ACTIVE
             }
             String reason = String.valueOf(run.get("decision"));

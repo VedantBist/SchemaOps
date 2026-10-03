@@ -104,6 +104,14 @@ class Store:
             WHERE environment_id = %s AND status <> 'FAILED' AND started_at >= %s AND started_at <= %s
             ORDER BY started_at""", (env_id, start, end))
 
+    def changes(self, env_id: str, start: datetime, end: datetime) -> list[dict]:
+        """Recorded changes (deploys, restarts, maintenance, remediation) overlapping the window."""
+        return self._rows("""
+            SELECT kind, target, started_at, coalesce(ended_at, started_at + interval '10 minutes') AS ended_at
+            FROM change_events
+            WHERE environment_id = %s AND started_at <= %s AND coalesce(ended_at, started_at + interval '10 minutes') >= %s
+            ORDER BY started_at""", (env_id, end, start))
+
     # ── calibration runs ─────────────────────────────────────────────────────
     def has_running_calibration(self, env_id: str) -> bool:
         return bool(self._rows("SELECT 1 FROM calibration_runs WHERE environment_id = %s AND status = 'RUNNING'", (env_id,)))

@@ -1,5 +1,6 @@
 package com.causalops.api.incident;
 
+import com.causalops.api.changes.ChangeEventRepository;
 import com.causalops.api.environment.Environment;
 import com.causalops.api.events.EventBus;
 import com.causalops.api.telemetry.SloEvaluator;
@@ -22,9 +23,11 @@ import java.util.stream.Collectors;
  *   <li><b>Anomaly gate</b>: the calibrated AI engine flags a service as anomalous against its
  *       learned baseline (only for calibrated environments). Fires before an SLO is crossed.</li>
  * </ul>
- * Services that turn bad later join the open incident. The incident resolves once every
- * affected service has been healthy (within SLO and not flagged) for
- * {@code detection.recoverySamples} consecutive samples.
+ * Services that turn bad later join the open incident. An incident is closed on the signal that
+ * declared it: once an SLO breach confirmed it, it resolves when every affected service has been
+ * within SLO for {@code detection.recoverySamples} consecutive samples (the usual definition of
+ * restored service; a restart's JVM warm-up can stay above the learned baseline while within SLO).
+ * An incident only the anomaly gate saw resolves when the affected services are also no longer flagged.
  */
 @Component
 public class IncidentDetector {
@@ -36,13 +39,15 @@ public class IncidentDetector {
 
     private final IncidentRepository incidents;
     private final EventBus events;
+    private final ChangeEventRepository changes;
 
     /** environment -> service -> streak counters. Only the ingestion thread writes them. */
     private final Map<UUID, Map<String, Streak>> streaks = new ConcurrentHashMap<>();
 
     private static final class Streak {
         int breaching;
-        int healthy;
+        int healthy;      // within SLO and not flagged by the gate
+        int withinSlo;    // within SLO
         Breach worst;
     }
 
@@ -50,7 +55,8 @@ public class IncidentDetector {
     record Issue(String service, String source, String severity, Map<String, Object> evidence, String summary) {
     }
 
-    public IncidentDetector(IncidentRepository incidents, EventBus events) {
+    public IncidentDetector(IncidentRepository incidents, EventBus events, ChangeEventRepository changes) {
+        this.changes = changes;
         this.incidents = incidents;
         this.events = events;
     }
@@ -63,6 +69,7 @@ public class IncidentDetector {
         results.forEach((service, r) -> {
             Streak s = envStreaks.computeIfAbsent(service, k -> new Streak());
             boolean flagged = anomalies.containsKey(service) && anomalies.get(service).flagged();
+            s.withinSlo = r.level() == Level.HEALTHY ? s.withinSlo + 1 : 0;
             if (!r.breaches().isEmpty()) {
                 s.breaching++;
                 s.healthy = 0;
@@ -117,10 +124,16 @@ public class IncidentDetector {
             events.emit("incident.updated", id, Map.of("affectedServices", affected, "severity", severity));
         }
 
-        boolean recovered = issues.isEmpty() && affected.stream().allMatch(svc -> {
-            Streak s = envStreaks.get(svc);
-            return s != null && s.healthy >= detection.recoverySamples();
-        });
+        boolean sloIncident = evidence.stream().anyMatch(e -> e instanceof Map<?, ?> m && SLO_SOURCE.equals(m.get("source")));
+        boolean recovered = sloIncident
+                ? issues.values().stream().noneMatch(i -> SLO_SOURCE.equals(i.source())) && affected.stream().allMatch(svc -> {
+                    Streak s = envStreaks.get(svc);
+                    return s != null && s.withinSlo >= detection.recoverySamples();
+                })
+                : issues.isEmpty() && affected.stream().allMatch(svc -> {
+                    Streak s = envStreaks.get(svc);
+                    return s != null && s.healthy >= detection.recoverySamples();
+                });
         if (recovered) {
             incidents.setStatus(id, "RESOLVED");
             incidents.addEvent(id, "RECOVERED", Map.of("at", at.toString(), "recoverySamples", detection.recoverySamples()));
@@ -138,6 +151,13 @@ public class IncidentDetector {
         UUID id = incidents.create(env.id(), title(affected), severity, "DETECTED", source, summary(issues),
                 affected, evidence);
         incidents.addEvent(id, "DETECTED", Map.of("source", source, "services", affected, "at", at.toString()));
+        // Change correlation: most incidents follow a change; say which one was in progress.
+        var recent = changes.active(env.id(), 300, true);
+        if (!recent.isEmpty()) {
+            incidents.addEvent(id, "CHANGE_CORRELATED", Map.of("changes", recent.stream().map(c -> Map.of(
+                    "kind", c.get("kind"), "target", String.valueOf(c.get("target")), "source", c.get("source"),
+                    "description", c.get("description"), "startedAt", String.valueOf(c.get("startedAt")))).toList()));
+        }
         Map<String, Object> created = incidents.get(id);
         events.emit("incident.created", id, created);
         log.info("Incident {} opened by {}: {}", created.get("incidentKey"), source, created.get("title"));

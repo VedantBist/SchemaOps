@@ -1,55 +1,87 @@
-import React, { useState } from 'react';
-import { DemoStateProvider } from './context/DemoStateContext';
-import { AppShell, AppPage } from './components/layout/AppShell';
-import { OverviewView } from './views/OverviewView';
-import { TopologyView } from './views/TopologyView';
-import { ActiveIncidentsView } from './views/ActiveIncidentsView';
-import { RootCauseView } from './views/RootCauseView';
-import { SimulationView } from './views/SimulationView';
-import { PredictionsView } from './views/PredictionsView';
-import { ServicesView } from './views/ServicesView';
-import { IncidentHistoryView } from './views/IncidentHistoryView';
-import { MetricsView } from './views/MetricsView';
-import { LogsView } from './views/LogsView';
-import { TracesView } from './views/TracesView';
+import React from 'react';
+import { AuthProvider, EnvironmentProvider, useAuth, useEnv, useRoute } from './context/AppContext';
+import { AppShell, NAV } from './components/AppShell';
+import { Empty, Loading, Page, Panel, Button } from './components/ui';
+import { Overview } from './pages/Overview';
+import { Services, Topology } from './pages/Services';
+import { IncidentDetail, IncidentList } from './pages/Incidents';
+import { Remediation } from './pages/Remediation';
+import { Calibration, Predictions, Simulation } from './pages/Intelligence';
+import { Logs, Metrics, Traces } from './pages/Observability';
+import { Changes, FaultLab } from './pages/Operations';
+import { Setup } from './pages/Setup';
+import { ChangePassword, Login, Users } from './pages/Auth';
+
+/** One failing page must not blank the whole console; the boundary resets on navigation. */
+class PageBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return <Page title="This page failed to render"><Panel><Empty title={this.state.error.message}>
+        The rest of the console keeps working; reload or pick another page.</Empty></Panel></Page>;
+    }
+    return this.props.children;
+  }
+}
+
+const TITLES: Record<string, string> = Object.fromEntries(NAV.flatMap((s) => s.items.map((i) => [i.page, i.label])));
+
+const Routes: React.FC = () => {
+  const [route, navigate] = useRoute();
+  const { environments, loaded, error } = useEnv();
+  const { can } = useAuth();
+  const { page, id, query } = route;
+
+  if (loaded && !error && environments.length === 0 && page !== 'setup') {
+    return (
+      <Page title="Welcome to CausalOps">
+        <Panel><Empty title="No environment yet">Connect your first system: CausalOps reads its OpenTelemetry data, discovers the topology and starts learning.</Empty>
+          {can('ADMIN') && <div className="text-center"><Button variant="primary" onClick={() => navigate('/setup')}>Open the setup wizard</Button></div>}</Panel>
+      </Page>
+    );
+  }
+  switch (page) {
+    case 'overview': return <Overview navigate={navigate} />;
+    case 'topology': return <Topology navigate={navigate} />;
+    case 'services': return <Services navigate={navigate} id={id} />;
+    case 'incidents': return id ? <IncidentDetail id={id} navigate={navigate} /> : <IncidentList navigate={navigate} state="active" />;
+    case 'history': return <IncidentList navigate={navigate} state="resolved" />;
+    case 'remediation': return <Remediation navigate={navigate} />;
+    case 'predictions': return <Predictions />;
+    case 'simulation': return <Simulation />;
+    case 'calibration': return <Calibration />;
+    case 'metrics': return <Metrics />;
+    case 'logs': return <Logs query={query} />;
+    case 'traces': return <Traces id={id} />;
+    case 'faults': return <FaultLab />;
+    case 'changes': return <Changes />;
+    case 'setup': return <Setup navigate={navigate} />;
+    case 'users': return <Users />;
+    default: return <Page title="Not found"><Empty title={`No page "${page}"`} /></Page>;
+  }
+};
+
+const Authenticated: React.FC = () => {
+  const { user, checking } = useAuth();
+  const [route, navigate] = useRoute();
+  if (checking) return <Loading label="Checking session…" />;
+  if (!user) return <Login />;
+  if (user.mustChangePassword) return <ChangePassword forced />;
+  const title = route.page === 'incidents' && route.id ? 'Incident' : TITLES[route.page] ?? 'CausalOps';
+  return (
+    <EnvironmentProvider>
+      <AppShell page={route.page} navigate={navigate} title={title}>
+        <PageBoundary key={`${route.page}/${route.id ?? ''}`}><Routes /></PageBoundary>
+      </AppShell>
+    </EnvironmentProvider>
+  );
+};
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<AppPage>('overview');
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'overview':
-        return <OverviewView onNavigate={setCurrentPage} />;
-      case 'topology':
-        return <TopologyView onNavigate={setCurrentPage} />;
-      case 'services':
-        return <ServicesView onNavigate={setCurrentPage} />;
-      case 'active-incidents':
-        return <ActiveIncidentsView onNavigate={setCurrentPage} />;
-      case 'root-cause':
-        return <RootCauseView onNavigate={setCurrentPage} />;
-      case 'simulation':
-        return <SimulationView onNavigate={setCurrentPage} />;
-      case 'predictions':
-        return <PredictionsView onNavigate={setCurrentPage} />;
-      case 'incident-history':
-        return <IncidentHistoryView onNavigate={setCurrentPage} />;
-      case 'metrics':
-        return <MetricsView onNavigate={setCurrentPage} />;
-      case 'logs':
-        return <LogsView onNavigate={setCurrentPage} />;
-      case 'traces':
-        return <TracesView onNavigate={setCurrentPage} />;
-      default:
-        return <OverviewView onNavigate={setCurrentPage} />;
-    }
-  };
-
   return (
-    <DemoStateProvider>
-      <AppShell currentPage={currentPage} onNavigate={setCurrentPage}>
-        {renderPage()}
-      </AppShell>
-    </DemoStateProvider>
+    <AuthProvider>
+      <Authenticated />
+    </AuthProvider>
   );
 }

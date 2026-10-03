@@ -12,9 +12,17 @@ import java.util.UUID;
 public class EnvironmentController {
 
     private final EnvironmentService environments;
+    private final EnvironmentValidator validator;
 
-    public EnvironmentController(EnvironmentService environments) {
+    public EnvironmentController(EnvironmentService environments, EnvironmentValidator validator) {
         this.environments = environments;
+        this.validator = validator;
+    }
+
+    /** Tries a proposed configuration against the real backends and previews the discovered topology; saves nothing. */
+    @PostMapping("/validate")
+    public Map<String, Object> validate(@RequestBody EnvironmentConfig config) {
+        return validator.validate(config);
     }
 
     @GetMapping
