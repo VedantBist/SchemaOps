@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { OCSF_CLASSES, ulpf, type LosslessProof, type UlpfEventDetail, type VaultVerify } from '../api/ulpf';
+import { OCSF_CLASSES, ulpf, ulpf3, type LosslessProof, type UlpfEventDetail, type VaultVerify } from '../api/ulpf';
 import { useApi } from '../hooks/useApi';
 import {
   Async, Badge, Button, Empty, Field, KeyValue, Page, Panel, Stat, Table, Td, ago, fmtNum, fmtTime, inputClass,
@@ -55,7 +55,13 @@ export const LogSources: React.FC<{ navigate: Navigate }> = ({ navigate }) => {
                   <Td><Badge tone={r.losslessPct >= 100 ? 'good' : 'bad'}>{fmtNum(r.losslessPct, 2)}%</Badge></Td>
                   <Td mono>{bytes(r.bytes)}</Td>
                   <Td>{ago(r.last_seen)}</Td>
-                  <Td><Button variant="ghost" onClick={() => navigate(`/log-events?source=${encodeURIComponent(r.id)}`)}>Events</Button></Td>
+                  <Td className="whitespace-nowrap">
+                    <Button variant="ghost" onClick={() => navigate(`/log-events?source=${encodeURIComponent(r.id)}`)}>Events</Button>
+                    {r.pack_id && r.normalizedPct < 100 && (
+                      <Button variant="ghost" title="Re-run the current pack over this source's stored raw events (degraded ones only)"
+                              onClick={() => ulpf3.renormalize(r.id).then(() => navigate('/log-health'))}>Re-normalize history</Button>
+                    )}
+                  </Td>
                 </tr>
               ))}
             </Table>
@@ -180,6 +186,7 @@ const EventLineage: React.FC<{ uid: string; navigate: Navigate }> = ({ uid, navi
               </pre>
             </Panel>
           </div>
+          <VersionsPanel uid={uid} current={d.event} />
           <Panel title="Field lineage (where every extracted value lives in the OCSF record)" dense>
             <Table head={['Field', 'OCSF location', 'Value']}>
               {Object.entries(d.event.ulpf.fields).map(([name, loc]) => (
@@ -234,6 +241,42 @@ export const VaultPanel: React.FC = () => {
           ...result.writers.map((w) => [`Writer ${w.writer}`, `${w.segments} segments, ${w.records.toLocaleString()} records ${w.ok ? 'OK' : w.errors.join('; ')}`] as [string, string]),
         ]} />
       ) : <div className="text-[12px] text-[#5E6561]">Recomputes the SHA-256 of every stored raw event and the hash chain across all segments.</div>}
+    </Panel>
+  );
+};
+
+
+/** Earlier normalized versions of this event (kept by re-normalization), with what changed. */
+const VersionsPanel: React.FC<{ uid: string; current: Record<string, unknown> }> = ({ uid, current }) => {
+  const versions = useApi(() => ulpf3.versions(uid), [uid]);
+  if (!versions.data || versions.data.length === 0) return null;
+  const meta = current.ulpf as Record<string, unknown>;
+  const fields = (e: Record<string, unknown>) => Object.entries(((e.ulpf as Record<string, unknown>)?.fields ?? {}) as Record<string, string>);
+  return (
+    <Panel title={`Revision history: re-normalized ${versions.data.length} time(s); the raw event never changed`} dense>
+      <Table head={['Revision', 'Parsed by', 'Status', 'Fill', 'Mapped to OCSF', 'Kept in unmapped', 'Replaced']}>
+        {versions.data.map((v) => {
+          const f = fields(v.event);
+          return (
+            <tr key={v.revision}>
+              <Td mono>r{v.revision}</Td><Td mono>{v.parser}</Td><Td><Badge tone={v.status === 'NORMALIZED' ? 'good' : 'warn'}>{v.status}</Badge></Td>
+              <Td mono>{v.fill == null ? '—' : `${fmtNum(100 * v.fill, 0)}%`}</Td>
+              <Td mono>{f.filter(([, l]) => !l.startsWith('unmapped:')).length}</Td>
+              <Td mono>{f.filter(([, l]) => l.startsWith('unmapped:')).length}</Td>
+              <Td>{fmtTime(v.replaced_at)}</Td>
+            </tr>
+          );
+        })}
+        <tr className="bg-[#F3F7F5]">
+          <Td mono>r{String(meta.revision ?? versions.data.length + 1)} (current)</Td>
+          <Td mono>{String(meta.parser)}@{String(meta.parser_version)}</Td>
+          <Td><Badge tone="good">{String(meta.status)}</Badge></Td>
+          <Td mono>{(meta.pack as { fill?: number } | undefined)?.fill == null ? '—' : `${fmtNum(100 * ((meta.pack as { fill: number }).fill), 0)}%`}</Td>
+          <Td mono>{fields(current).filter(([, l]) => !l.startsWith('unmapped:')).length}</Td>
+          <Td mono>{fields(current).filter(([, l]) => l.startsWith('unmapped:')).length}</Td>
+          <Td>—</Td>
+        </tr>
+      </Table>
     </Panel>
   );
 };

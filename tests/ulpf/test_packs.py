@@ -86,3 +86,40 @@ def test_studio_auto_maps_structured_kv():
     assert proposal["kind"] == "auto-map"
     result = studio.test(proposal["yaml"], lines, None)
     assert result["summary"]["normalizedPct"] == 100.0 and result["summary"]["losslessPct"] == 100.0
+
+
+def test_repair_infers_renamed_fields_and_keeps_old_format_working():
+    from ml.ulpf import quality, repair
+    champion = next(p for p in packs.builtin() if p.id == "fortinet-fortigate")
+    ctx = samples.Ctx(random.Random(9))
+    old = [samples.fortigate(ctx) for _ in range(80)]
+    ctx.variant = 2
+    new = [samples.fortigate(ctx) for _ in range(80)]
+    assert repair.evaluate(champion, new, NOW)["fill"] < 0.5
+    text, changes = repair.infer(champion, new, NOW)
+    mapped = {c["field"]: c["attribute"] for c in changes}
+    assert mapped["src_ip"] == "src_endpoint.ip" and mapped["dst_port"] == "dst_endpoint.port"
+    assert mapped["fw_action"] == "disposition"
+    assert any(c["attribute"] == "time" and c["field"] == "eventtime" for c in changes)
+    challenger = packs.load(text)
+    assert challenger.version == champion.version + 1
+    on_new = repair.evaluate(challenger, new, NOW)
+    on_old = repair.evaluate(challenger, old, NOW)
+    assert on_new["fill"] == 1.0 and on_new["lossless"] == 1.0
+    assert on_old["fill"] == 1.0  # no regression for devices still on the old firmware
+    r = process(new[0].encode(), received_at=NOW, pack=challenger)
+    assert abs(r.event["time"] / 1000 - NOW.timestamp()) > 0  # eventtime (ns) parsed, not the arrival time
+    assert r.event["metadata"]["original_time"].isdigit()
+
+
+def test_quality_gate_flags_drift_and_silence():
+    from ml.ulpf import quality
+    rng = random.Random(3)
+    fills = [1.0 if rng.random() > 0.02 else 0.83 for _ in range(90)]
+    b = quality.fit("fill", fills, z_floor=4, max_fpr=0.01)
+    healthy = [{"bucket": i, "events": 12, "fill": 1.0, "normalized_ratio": 1.0} for i in range(3)]
+    bad = [{"bucket": i, "events": 12, "fill": 0.17, "normalized_ratio": 0.0} for i in range(3)]
+    assert not quality.drifting(b, None, healthy, 2)[0]
+    assert quality.drifting(b, None, healthy + bad, 2)[0]
+    assert not quality.drifting(b, None, healthy + bad[:1], 2)[0]  # one bad bucket is not enough
+    assert quality.silence_buckets(10) == 3 and quality.silence_buckets(0.5) == 19

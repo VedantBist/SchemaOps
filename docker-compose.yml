@@ -241,6 +241,17 @@ services:
     volumes: [ulpf-vault:/var/lib/ulpf]
     deploy: { replicas: 2 }
     depends_on: { redis: { condition: service_healthy }, causalops-api: { condition: service_started } }
+  # CausalOps watching the log pipeline: quality baselines, drift / silence / clock-skew incidents,
+  # verified pack promotion with rollback, re-normalization jobs. One instance.
+  ulpf-monitor:
+    build: { context: ., dockerfile: infrastructure/ulpf/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/ulpf:${CAUSALOPS_VERSION:-latest}"
+    command: ["python", "-m", "ml.ulpf.monitor"]
+    environment:
+      <<: *ulpf-env
+      CAUSALOPS_REMEDIATION_KILL_SWITCH: "${CAUSALOPS_REMEDIATION_KILL_SWITCH:-false}"
+    volumes: [ulpf-vault:/var/lib/ulpf]
+    depends_on: { ulpf: { condition: service_healthy } }
   # Realistic perimeter-device traffic (Palo Alto, FortiGate, Cisco ASA, Check Point, pfSense, Juniper,
   # Sophos, Suricata, F5 WAF, sshd, Windows) for demos; stop it to feed only your own devices.
   log-replayer:

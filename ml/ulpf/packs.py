@@ -63,6 +63,7 @@ class Pack:
     strict: bool
     source_text: str
     priority: int = 50
+    time_fallback: str | None = None
 
     @property
     def ref(self) -> str:
@@ -162,7 +163,7 @@ def load(text: str) -> Pack:
                 list(extract.get("csv_columns") or []), rules, mapping, values,
                 int(d["class"]) if d.get("class") is not None else None, class_rules,
                 d.get("time"), d.get("host"), list(d.get("expect") or []), bool(d.get("strict", True)), text,
-                int(d.get("priority", 50)))
+                int(d.get("priority", 50)), d.get("time_fallback"))
 
 
 def builtin() -> list[Pack]:
@@ -172,9 +173,11 @@ def builtin() -> list[Pack]:
 class Registry:
     """Champion packs plus source → pack bindings, as seen by one worker (refreshed from the database)."""
 
-    def __init__(self, packs: list[Pack] | None = None, bindings: dict[str, str] | None = None):
+    def __init__(self, packs: list[Pack] | None = None, bindings: dict[str, str] | None = None,
+                 skews: dict[str, int] | None = None):
         self.packs: dict[str, Pack] = {p.id: p for p in (packs or [])}
         self.bindings: dict[str, str] = dict(bindings or {})
+        self.skews: dict[str, int] = dict(skews or {})  # source → clock correction in ms
 
     def for_event(self, source_id: str, parsed: Parsed, text: str) -> tuple[Pack | None, bool]:
         """Returns (pack, newly_bound). A source bound to a pack keeps using it even when its format

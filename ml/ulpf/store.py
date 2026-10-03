@@ -9,7 +9,7 @@ from typing import Any, Iterator
 
 EVENT_COLUMNS = ("uid", "source_id", "received_at", "event_time", "class_uid", "status", "format", "product",
                  "src_ip", "dst_ip", "user_name", "action", "message", "lossless", "segment", "vault_offset",
-                 "sha256", "chain", "parser", "fill", "event")
+                 "sha256", "chain", "parser", "fill", "device_time", "event")
 
 
 def dsn() -> str:
@@ -81,7 +81,7 @@ class Store:
         if not stats:
             return
         if True:
-            for sid, s in stats.items():
+            for sid, s in sorted(stats.items()):  # one lock order for every worker: no deadlocks
                 cur.execute("""
                     INSERT INTO log_sources (id, host, vendor, product, format, first_seen, last_seen, last_peer, transport,
                                              events, normalized, partial, quarantined, lossless_ok, bytes, pack_id,
@@ -127,4 +127,6 @@ def event_row(uid: str, result, ref, received_at: datetime) -> tuple:
             result.parsed.format[:60], (result.parsed.product or "")[:120] or None, src, dst,
             (user or "")[:200] or None, e.get("action"), (msg or "")[:500] or None, result.lossless, ref.segment,
             ref.offset, result.sha256, ref.chain, f"{result.parsed.parser}@{result.parsed.parser_version}"[:80],
-            result.fill, json.dumps(e, separators=(",", ":")))
+            result.fill,
+            datetime.fromtimestamp(result.device_time_ms / 1000, tz=timezone.utc) if result.device_time_ms is not None else None,
+            json.dumps(e, separators=(",", ":")))

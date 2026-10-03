@@ -33,8 +33,10 @@ def registry(store: Store) -> packs.Registry:
             loaded.append(packs.load(r["yaml"]))
         except packs.PackError:
             continue  # a broken stored pack must not stop the pipeline; the studio shows it
-    bindings = {r["id"]: r["pack_id"] for r in store.rows("SELECT id, pack_id FROM log_sources WHERE pack_id IS NOT NULL")}
-    return packs.Registry(loaded, bindings)
+    rows = store.rows("SELECT id, pack_id, skew_ms FROM log_sources WHERE pack_id IS NOT NULL OR skew_ms IS NOT NULL")
+    bindings = {r["id"]: r["pack_id"] for r in rows if r["pack_id"]}
+    skews = {r["id"]: int(r["skew_ms"]) for r in rows if r["skew_ms"]}
+    return packs.Registry(loaded, bindings, skews)
 
 
 def save(store: Store, text: str, *, status: str, origin: str, created_by: str | None, notes: str | None,

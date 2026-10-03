@@ -1,4 +1,4 @@
-import { get, post } from './client';
+import { get, post, put, request } from './client';
 
 // ── shapes returned by the ULPF service (through /api/ulpf) ──────────────────
 export interface UlpfStats {
@@ -106,6 +106,50 @@ export const ulpf2 = {
   analyze: (samples: string[], source?: string) => post<AnalyzeResult>('/ulpf/studio/analyze', { samples, source }),
   test: (yaml: string, samples: string[]) => post<TestResult>('/ulpf/studio/test', { yaml, samples }),
   entities: (q?: string, kind?: string) => get<EntityRow[]>('/ulpf/entities', { q, kind, limit: 200 }),
-  entity: (key: string) => get<EntityDetail>('/ulpf/entity', { key }),
+  entity: (key: string, minutes?: number) => get<EntityDetail>('/ulpf/entity', { key, minutes: minutes ?? 0 }),
   onboarding: () => get<Onboarding>('/ulpf/onboarding'),
+};
+
+// ── quality, incidents, re-normalization, scenarios, settings (U3) ───────────
+export interface QualityBucket { bucket: string; events: number; normalized: number; partial: number; quarantined: number; lossless_ok: number; fill_avg: number | null; skew_ms: number | null; pack: string | null }
+export interface BaselineRow { metric: string; median: number; scale: number; threshold: number; samples: number; fittedAt?: string; fitted_at?: string }
+export interface QualitySource {
+  id: string; pack_id: string | null; skew_ms: number | null; last_seen: string; silent_seconds: number; buckets: number;
+  baselines: BaselineRow[] | null; latest: { events: number; fill: number | null; normalized: number; skewMs: number | null; bucket: string } | null;
+  open_incidents: number; learningProgress: number; state: 'LEARNING' | 'WATCHED';
+}
+export interface UlpfSettings { autoExecuteMaxTier: number; dryRun: boolean; learningMinutes: number; bucketSeconds: number; consecutiveBuckets: number; maxFalsePositiveRate: number; zFloor: number; promotionCooldownMinutes: number; skewThresholdSeconds: number }
+export interface UlpfIncident {
+  id: string; incident_key: string; kind: 'PARSER_DRIFT' | 'SOURCE_SILENT' | 'CLOCK_SKEW' | 'PIPELINE' | 'SECURITY_CORRELATION';
+  source_id: string | null; severity: string; status: string; title: string; summary: string; onset_at: string | null; detected_at: string;
+  mitigated_at: string | null; resolved_at: string | null; mttd_seconds: number | null; mttr_seconds: number | null; evidence?: Record<string, unknown>;
+}
+export interface PolicyRule { rule: string; kind: 'safety' | 'autonomy'; passed: boolean; detail: string }
+export interface UlpfAction {
+  id: string; action: string; tier: number; status: string; automatic: boolean; params: Record<string, unknown>; policy: PolicyRule[];
+  result: Record<string, unknown> | null; created_at: string; executed_at: string | null; finished_at: string | null; decided_by: string | null;
+}
+export interface RenormJob {
+  id: string; source_id: string; incident_id: string | null; window_from: string | null; window_to: string | null; only_degraded: boolean;
+  status: string; requested_by: string; processed: number; changed: number; improved: number; fields_recovered: number; lossless_ok: number;
+  error: string | null; created_at: string; started_at: string | null; finished_at: string | null;
+}
+export interface IncidentDetailU { incident: UlpfIncident; timeline: { at: string; type: string; payload: Record<string, unknown> }[]; actions: UlpfAction[]; jobs: RenormJob[] }
+export interface EventVersion { revision: number; parser: string; status: string; fill: number | null; event: Record<string, unknown>; replaced_at: string; job_id: string | null }
+export interface Scenarios { devices: string[]; kinds: Record<string, string>; active: Record<string, Record<string, unknown> & { remainingSeconds: number }> }
+
+export const ulpf3 = {
+  overview: () => get<{ settings: UlpfSettings; sources: QualitySource[] }>('/ulpf/quality/overview'),
+  quality: (source: string, minutes = 30) => get<{ source: string; buckets: QualityBucket[]; baselines: Record<string, BaselineRow> }>('/ulpf/quality', { source, minutes }),
+  incidents: (status?: 'active' | 'resolved') => get<UlpfIncident[]>('/ulpf/incidents', { status }),
+  incident: (id: string) => get<IncidentDetailU>(`/ulpf/incidents/${encodeURIComponent(id)}`),
+  decide: (actionId: string, decision: 'approve' | 'reject') => post(`/ulpf/actions/${actionId}/${decision}`),
+  renormalize: (source: string, onlyDegraded = true) => post<{ id: string }>('/ulpf/renormalize', { source, onlyDegraded }),
+  jobs: () => get<RenormJob[]>('/ulpf/jobs'),
+  versions: (uid: string) => get<EventVersion[]>(`/ulpf/events/${encodeURIComponent(uid)}/versions`),
+  scenarios: () => get<Scenarios>('/ulpf/scenarios'),
+  inject: (device: string, kind: string, value: unknown, durationSeconds: number) => post('/ulpf/scenarios', { device, kind, value, durationSeconds }),
+  clear: (device: string) => request('DELETE', `/ulpf/scenarios/${encodeURIComponent(device)}`),
+  settings: () => get<UlpfSettings>('/ulpf/settings'),
+  saveSettings: (s: Partial<UlpfSettings>) => put<UlpfSettings>('/ulpf/settings', s),
 };

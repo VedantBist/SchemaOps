@@ -96,7 +96,8 @@ def normalize(parsed: Parsed, *, received_at: datetime, source_id: str, peer: st
         event["unmapped"] = unmapped
 
     sev = _severity(parsed)
-    time_ms, time_text = _time(parsed, received_at, pack.time_field if pack else None)
+    time_ms, time_text = _time(parsed, received_at, pack.time_field if pack else None,
+                               getattr(pack, "time_fallback", None) if pack else None)
     forced = pack.classify(parsed) if pack else None
     class_uid = forced if forced in CLASS else _class(event, parsed)
     name, category_uid, category = CLASS[class_uid]
@@ -190,7 +191,12 @@ def _severity(parsed: Parsed) -> int:
     return 0
 
 
-def _time(parsed: Parsed, received_at: datetime, preferred: str | list | None = None) -> tuple[int, str | None]:
+def _time(parsed: Parsed, received_at: datetime, preferred: str | list | None = None,
+          fallback: str | None = None) -> tuple[int, str | None]:
+    if fallback and not (isinstance(preferred, list) and all(parsed.get(n) for n in preferred))             and not (isinstance(preferred, str) and parsed.get(preferred)) and parsed.get(fallback):
+        ts = parse_time(parsed.get(fallback), received_at)
+        if ts:
+            return int(ts.timestamp() * 1000), parsed.get(fallback)
     if isinstance(preferred, list):  # e.g. [date, time]
         parts = [parsed.get(n) for n in preferred]
         if all(parts):
@@ -217,9 +223,9 @@ def _time(parsed: Parsed, received_at: datetime, preferred: str | list | None = 
 
 def parse_time(text: str, ref: datetime) -> datetime | None:
     t = text.strip()
-    if t.isdigit() and len(t) in (10, 13):
-        v = int(t)
-        return datetime.fromtimestamp(v / 1000 if len(t) == 13 else v, tz=timezone.utc)
+    if t.isdigit() and len(t) in (10, 13, 16, 19):
+        # epoch seconds, milliseconds, microseconds or nanoseconds (FortiOS 7.4 eventtime)
+        return datetime.fromtimestamp(int(t) / 10 ** (len(t) - 10), tz=timezone.utc)
     try:
         iso = t.replace("Z", "+00:00").replace(" ", "T", 1) if re.match(r"\d{4}-\d\d-\d\d", t) else None
         if iso:

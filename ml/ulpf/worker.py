@@ -13,6 +13,7 @@ import time
 from collections import defaultdict
 from datetime import datetime, timezone
 
+import psycopg
 import redis
 
 from . import packstore
@@ -98,6 +99,18 @@ class Worker:
             return
         refs = self.vault.append_many(items)
         rows = [event_row(uid, res, ref, received) for (uid, received, _t, _p, _s, res), ref in zip(results, refs)]
+        for attempt in range(3):
+            try:
+                self._commit(rows, results)
+                break
+            except psycopg.errors.DeadlockDetected:
+                if attempt == 2:
+                    raise
+                log.warning("deadlock on batch commit, retrying")
+                time.sleep(0.2)
+        self._ack(items)
+
+    def _commit(self, rows, results) -> None:
         with self.store.transaction() as cur:
             new = self.store.insert_events(cur, rows)
             stats = defaultdict(lambda: {"events": 0, "NORMALIZED": 0, "PARTIAL": 0, "QUARANTINED": 0,
@@ -127,6 +140,8 @@ class Worker:
                     graph.flush(cur)
             except Exception as e:
                 log.warning("entity graph update skipped for this batch: %s", e)
+
+    def _ack(self, items) -> None:
         ids = [uid for uid, _ in items]
         pipe = self.r.pipeline(transaction=True)  # ack, delete and count atomically (conservation check)
         pipe.xack(STREAM, GROUP, *ids)

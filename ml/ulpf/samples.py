@@ -126,7 +126,8 @@ def juniper_srx(c: Ctx, host="srx-core-01") -> str:
           f'destination-address="{f["dst"]}" destination-port="{f["dport"]}" service-name="junos-{f["app"]}" '
           f'protocol-id="{6 if f["proto"] == "tcp" else 17}" policy-name="{"trust-to-untrust" if f["allowed"] else "deny-all"}" '
           f'source-zone-name="trust" destination-zone-name="untrust" username="{f["user"] or "N/A"}"]')
-    return f"<14>1 {t:%Y-%m-%dT%H:%M:%S.%f}"[:-3] + f"+05:30 {host} RT_FLOW - {kind} {sd} session {'created' if f['allowed'] else 'denied'}"
+    ist = t.astimezone(timezone(timedelta(hours=5, minutes=30)))  # the device logs local time with its offset
+    return f"<14>1 {ist:%Y-%m-%dT%H:%M:%S.%f}"[:-3] + f"+05:30 {host} RT_FLOW - {kind} {sd} session {'created' if f['allowed'] else 'denied'}"
 
 
 def sophos(c: Ctx, host="sophos-xg") -> str:

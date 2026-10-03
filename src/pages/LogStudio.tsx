@@ -250,10 +250,16 @@ export const Entities: React.FC<{ navigate: Navigate; query?: URLSearchParams }>
 };
 
 const EntityView: React.FC<{ entityKey: string; navigate: Navigate }> = ({ entityKey, navigate }) => {
-  const detail = useApi(() => ulpf2.entity(entityKey), [entityKey], 15000);
+  const [minutes, setMinutes] = useState(60);
+  const detail = useApi(() => ulpf2.entity(entityKey, minutes), [entityKey, minutes], 15000);
   return (
     <Page title={`Entity ${entityKey}`} subtitle="Everything linked to this identifier, and its events across all vendors."
-          actions={<Button onClick={() => navigate('/log-entities')}>Back</Button>}>
+          actions={<>
+            <select className={inputClass} value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
+              {[[60, 'last hour'], [360, 'last 6 h'], [1440, 'last 24 h'], [0, 'all history']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            <Button onClick={() => navigate('/log-entities')}>Back</Button>
+          </>}>
       <Async state={detail}>{(d) => (
         <>
           <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4">
@@ -267,7 +273,7 @@ const EntityView: React.FC<{ entityKey: string; navigate: Navigate }> = ({ entit
                   ['First / last seen', `${fmtDateTime(d.entity.first_seen)} → ${fmtDateTime(d.entity.last_seen)}`],
                 ]} />
               </Panel>
-              <Panel title="Seen by (last hour)" dense>
+              <Panel title={`Seen by (${minutes ? `last ${minutes >= 60 ? `${minutes / 60} h` : `${minutes} min`}` : 'all history'})`} dense>
                 <Table head={['Source', 'Events']}>
                   {d.eventsBySourceLastHour.map((s) => <tr key={s.source_id}><Td mono>{s.source_id}</Td><Td mono>{s.n}</Td></tr>)}
                 </Table>

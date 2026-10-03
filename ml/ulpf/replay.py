@@ -7,11 +7,14 @@ can change a device's behaviour while the replayer runs.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import random
 import socket
 import time
+
+from datetime import timedelta
 
 from . import samples
 
@@ -32,12 +35,24 @@ def main() -> None:
     ctx = {name: samples.Ctx(random.Random(rng.random())) for name in samples.DEVICES}
     names = list(samples.DEVICES)
     weights = [3 if n in ("pa-edge-01", "fgt-dc-01", "asa-perimeter") else 1 for n in names]
+    scenarios, checked = {}, 0.0
+    r = None
+    try:
+        import redis
+        r = redis.Redis.from_url(os.environ.get("ULPF_REDIS_URL", "redis://redis:6379/0"))
+    except Exception:
+        r = None
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     tcp = None
     sent, started = 0, time.time()
     interval = 1.0 / args.rate if args.rate > 0 else 0
     while args.count == 0 or sent < args.count:
+        if r is not None and time.time() - checked > 2:
+            scenarios = _scenarios(r, ctx)
+            checked = time.time()
         name = rng.choices(names, weights)[0]
+        if scenarios.get(name, {}).get("silent"):
+            continue
         line = samples.DEVICES[name](ctx[name], name).encode()
         try:
             if name in TCP_DEVICES:
@@ -56,6 +71,27 @@ def main() -> None:
             log.info("sent %d events (%.1f/s)", sent, sent / (time.time() - started))
         if interval:
             time.sleep(max(0.0, started + sent * interval - time.time()))
+
+
+def _scenarios(r, ctx) -> dict:
+    """Fault scenarios set from the console (Redis hash ulpf:scenarios, device -> JSON with an expiry)."""
+    try:
+        raw = r.hgetall("ulpf:scenarios")
+    except Exception:
+        return {}
+    now = time.time()
+    active = {}
+    for k, v in raw.items():
+        device, s = k.decode(), json.loads(v)
+        if s.get("until", 0) < now:
+            r.hdel("ulpf:scenarios", device)
+            continue
+        active.setdefault(device, {}).update(s)
+    for device, c in ctx.items():
+        s = active.get(device, {})
+        c.variant = 2 if s.get("firmware") else 1
+        c.skew = timedelta(seconds=float(s.get("skewSeconds", 0)))
+    return active
 
 
 if __name__ == "__main__":

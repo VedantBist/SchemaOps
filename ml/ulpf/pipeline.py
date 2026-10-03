@@ -26,6 +26,7 @@ class Result:
     pack: object = None        # the packs.Pack applied, if any
     newly_bound: bool = False  # this event bound its source to the pack
     fill: float | None = None  # share of the pack's expected OCSF attributes present
+    device_time_ms: int | None = None  # time stated by the device itself (None when the event carries no time)
 
 
 def decode(raw: bytes) -> tuple[str, str]:
@@ -70,6 +71,13 @@ def process(raw: bytes, *, received_at: datetime, peer: str | None = None, sourc
             error = f"pack {pack.ref}: {type(e).__name__}: {e}"
     event = normalize(parsed, received_at=received_at, source_id=source_id, peer=peer, pack=pack)
     geoip.enrich(event)
+    device_ms = event["time"] if event["metadata"].get("original_time") is not None else None
+    skew = registry.skews.get(source_id) if registry is not None and hasattr(registry, "skews") else None
+    if device_ms is not None and skew:
+        # The source's clock is known to be off by `skew` ms (estimated by the monitor): correct the event time
+        # used for search and correlation; the device's own time stays in metadata.original_time and ulpf.clock.
+        event["time"] = device_ms + skew
+        event["ulpf"]["clock"] = {"device_time": device_ms, "skew_ms": skew, "corrected": True}
     try:
         event["ulpf"]["skeleton"] = lossless.skeleton(text, parsed.fields)
     except ValueError as e:
@@ -92,4 +100,4 @@ def process(raw: bytes, *, received_at: datetime, peer: str | None = None, sourc
         event["ulpf"]["pack"] = {"id": pack.id, "version": pack.version, "fill": round(fill, 4)}
     if error:
         event["ulpf"]["error"] = error
-    return Result(event, status, ok, sha, encoding, source_id, parsed, pack, newly_bound, fill)
+    return Result(event, status, ok, sha, encoding, source_id, parsed, pack, newly_bound, fill, device_ms)

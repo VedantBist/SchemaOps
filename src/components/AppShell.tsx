@@ -7,7 +7,8 @@ import { Badge, Dot, toneOf } from './ui';
 
 export const NAV: { section: string; items: { page: string; label: string; role?: 'OPERATOR' | 'ADMIN' }[] }[] = [
   { section: 'Command', items: [{ page: 'overview', label: 'Overview' }, { page: 'topology', label: 'Topology' }, { page: 'services', label: 'Services' }] },
-  { section: 'Log pipeline', items: [{ page: 'log-sources', label: 'Log sources' }, { page: 'log-events', label: 'Event explorer' },
+  { section: 'Log pipeline', items: [{ page: 'log-sources', label: 'Log sources' }, { page: 'log-health', label: 'Pipeline health' },
+    { page: 'log-events', label: 'Event explorer' },
     { page: 'log-entities', label: 'Entities' }, { page: 'log-studio', label: 'Parser studio' }, { page: 'log-packs', label: 'Parser packs' }] },
   { section: 'Incidents', items: [{ page: 'incidents', label: 'Active' }, { page: 'history', label: 'History' }] },
   { section: 'Remediation', items: [{ page: 'remediation', label: 'Remediation center' }] },

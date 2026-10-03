@@ -8,7 +8,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import redis
@@ -71,6 +71,9 @@ def clean(value):
         return value.isoformat()
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
+    from decimal import Decimal
+    if isinstance(value, Decimal):
+        return float(value)
     return str(value)
 
 
@@ -387,17 +390,19 @@ def list_entities(q: str | None = None, kind: str | None = None, limit: int = Qu
 
 
 @app.get("/entity")
-def entity_detail(key: str):
+def entity_detail(key: str, minutes: int | None = Query(60, ge=1)):
+    """minutes limits links and events to a recent window (None/0 = all history)."""
     node = store.rows("SELECT * FROM entities WHERE key = %s", (key,))
     if not node:
         raise HTTPException(404, f"no entity {key}")
     # Two hops: enough to resolve the asset (ip ↔ mac ↔ host) and the users seen on it.
-    links = store.rows("SELECT a, b, kind, events, sources, last_seen FROM entity_links WHERE a = %s OR b = %s "
-                       "ORDER BY events DESC LIMIT 200", (key, key))
+    since = datetime.now(timezone.utc) - timedelta(minutes=minutes) if minutes else datetime(1970, 1, 1, tzinfo=timezone.utc)
+    links = store.rows("SELECT a, b, kind, events, sources, last_seen FROM entity_links WHERE (a = %s OR b = %s) AND last_seen >= %s "
+                       "ORDER BY events DESC LIMIT 200", (key, key, since))
     hop1 = list({lk["a"] for lk in links} | {lk["b"] for lk in links})
     if hop1:
         more = store.rows("SELECT a, b, kind, events, sources, last_seen FROM entity_links WHERE (a = ANY(%s) OR b = ANY(%s)) "
-                          "AND kind <> 'user-ip' ORDER BY events DESC LIMIT 400", (hop1, hop1))
+                          "AND kind <> 'user-ip' AND last_seen >= %s ORDER BY events DESC LIMIT 400", (hop1, hop1, since))
         seen = {(lk["a"], lk["b"]) for lk in links}
         links += [lk for lk in more if (lk["a"], lk["b"]) not in seen]
     keys = list({lk["a"] for lk in links} | {lk["b"] for lk in links} | {key})
@@ -415,14 +420,177 @@ def entity_detail(key: str):
         params.append(users)
     events, by_source = [], []
     if cond:
-        where = "(" + " OR ".join(cond) + ")"
+        where = "(" + " OR ".join(cond) + ") AND received_at >= %s"
+        params.append(since)
         events = store.rows("SELECT uid, source_id, received_at, class_uid, event->>'class_name' AS class_name, "
                             "host(src_ip) AS src_ip, host(dst_ip) AS dst_ip, user_name, action, product FROM ulpf_events "
                             "WHERE " + where + " ORDER BY received_at DESC LIMIT 100", tuple(params))
         by_source = store.rows("SELECT source_id, count(*) AS n FROM ulpf_events WHERE " + where +
-                               " AND received_at > now() - interval '1 hour' GROUP BY 1 ORDER BY 2 DESC", tuple(params))
+                               " GROUP BY 1 ORDER BY 2 DESC", tuple(params))
     return clean({"entity": node[0], "asset": asset, "nodes": nodes, "links": links, "events": events,
-                  "eventsBySourceLastHour": by_source})
+                  "eventsBySourceLastHour": by_source, "windowMinutes": minutes})
+
+
+# ── quality, incidents, re-normalization, scenarios, settings ─────────────────
+@app.get("/quality")
+def quality_series(source: str, minutes: int = Query(30, le=1440)):
+    rows = store.rows("SELECT bucket, events, normalized, partial, quarantined, lossless_ok, fill_avg, skew_ms, pack "
+                      "FROM ulpf_quality WHERE source_id = %s AND bucket > now() - make_interval(mins => %s) ORDER BY bucket",
+                      (source, minutes))
+    baselines = store.rows("SELECT metric, median, scale, threshold, samples, fitted_at FROM source_baselines WHERE source_id = %s",
+                           (source,))
+    return clean({"source": source, "buckets": rows, "baselines": {b["metric"]: b for b in baselines}})
+
+
+@app.get("/quality/overview")
+def quality_overview():
+    """Per source: learning progress, current quality and the learned normal."""
+    settings = {r["key"]: r["value"] for r in store.rows("SELECT key, value FROM ulpf_settings")}
+    b = int(settings["bucketSeconds"])
+    need = int(settings["learningMinutes"]) * 60 // b
+    rows = store.rows("""
+        SELECT s.id, s.pack_id, s.skew_ms, s.last_seen, EXTRACT(EPOCH FROM now() - s.last_seen) AS silent_seconds,
+               (SELECT count(*) FROM ulpf_quality q WHERE q.source_id = s.id AND q.bucket > now() - interval '6 hours') AS buckets,
+               (SELECT json_agg(json_build_object('metric', metric, 'median', median, 'scale', scale, 'threshold', threshold,
+                                                  'samples', samples, 'fittedAt', fitted_at)) FROM source_baselines b WHERE b.source_id = s.id) AS baselines,
+               (SELECT json_build_object('events', events, 'fill', fill_avg, 'normalized', normalized, 'skewMs', skew_ms, 'bucket', bucket)
+                  FROM ulpf_quality q WHERE q.source_id = s.id AND q.bucket < now() - make_interval(secs => %s)
+                  ORDER BY bucket DESC LIMIT 1) AS latest,
+               (SELECT count(*) FROM ulpf_incidents i WHERE i.source_id = s.id AND i.status <> 'RESOLVED') AS open_incidents
+        FROM log_sources s ORDER BY s.id""", (b,))
+    for r in rows:
+        r["learningProgress"] = min(1.0, int(r["buckets"]) / max(need, 1))
+        r["state"] = "WATCHED" if r["baselines"] else "LEARNING"
+    return clean({"settings": settings, "sources": rows})
+
+
+@app.get("/incidents")
+def list_incidents(status: str | None = None, limit: int = Query(100, le=500)):
+    where = "WHERE status <> 'RESOLVED'" if status == "active" else "WHERE status = 'RESOLVED'" if status == "resolved" else ""
+    rows = store.rows(f"""SELECT id, incident_key, kind, source_id, severity, status, title, summary, onset_at, detected_at,
+                                 mitigated_at, resolved_at,
+                                 EXTRACT(EPOCH FROM detected_at - onset_at) AS mttd_seconds,
+                                 EXTRACT(EPOCH FROM resolved_at - onset_at) AS mttr_seconds
+                          FROM ulpf_incidents {where} ORDER BY detected_at DESC LIMIT %s""", (limit,))
+    return clean(rows)
+
+
+@app.get("/incidents/{incident_id}")
+def incident_detail(incident_id: str):
+    rows = store.rows("""SELECT *, EXTRACT(EPOCH FROM detected_at - onset_at) AS mttd_seconds,
+                                EXTRACT(EPOCH FROM resolved_at - onset_at) AS mttr_seconds
+                         FROM ulpf_incidents WHERE id::text = %s OR incident_key = %s""", (incident_id, incident_id))
+    if not rows:
+        raise HTTPException(404, f"no incident {incident_id}")
+    inc = rows[0]
+    timeline = store.rows("SELECT at, type, payload FROM ulpf_incident_events WHERE incident_id = %s ORDER BY at, id", (inc["id"],))
+    actions = store.rows("SELECT * FROM ulpf_actions WHERE incident_id = %s ORDER BY created_at", (inc["id"],))
+    jobs = store.rows("SELECT * FROM renormalization_jobs WHERE incident_id = %s ORDER BY created_at", (inc["id"],))
+    return clean({"incident": inc, "timeline": timeline, "actions": actions, "jobs": jobs})
+
+
+@app.post("/actions/{action_id}/{decision}")
+async def decide(action_id: str, decision: str, request: Request):
+    """Human approval for a PROPOSED action (approve → the monitor executes it on its next tick)."""
+    if decision not in ("approve", "reject"):
+        raise HTTPException(400, "decision is approve or reject")
+    body = await request.json() if (await request.body()) else {}
+    user = body.get("user") or "local operator"
+    rows = store.rows("UPDATE ulpf_actions SET status = %s, decided_by = %s WHERE id::text = %s AND status = 'PROPOSED' RETURNING incident_id, action",
+                      ("APPROVED" if decision == "approve" else "REJECTED", user, action_id))
+    if not rows:
+        raise HTTPException(409, "only a PROPOSED action can be approved or rejected")
+    store.execute("INSERT INTO ulpf_incident_events (incident_id, type, payload) VALUES (%s, %s, %s)",
+                  (rows[0]["incident_id"], f"ACTION_{decision.upper()}D", json.dumps({"action": rows[0]["action"], "by": user})))
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, entity_id, incident_id, detail) VALUES (%s, %s, 'ulpf', %s, %s, %s)",
+                  (user, f"ACTION_{decision.upper()}D", action_id, rows[0]["incident_id"], json.dumps({"action": rows[0]["action"]})))
+    return {"id": action_id, "decision": decision}
+
+
+@app.post("/renormalize")
+async def request_renormalization(request: Request):
+    body = await request.json()
+    if not body.get("source"):
+        raise HTTPException(400, "source is required")
+    row = store.rows("""INSERT INTO renormalization_jobs (source_id, window_from, window_to, only_degraded, status, requested_by)
+                        VALUES (%s, %s, %s, %s, 'PENDING', %s) RETURNING id""",
+                     (body["source"], body.get("from"), body.get("to"), bool(body.get("onlyDegraded", True)),
+                      body.get("user") or "local operator"))[0]
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, entity_id, detail) VALUES (%s, 'RENORMALIZATION_REQUESTED', 'ulpf', %s, %s)",
+                  (body.get("user") or "local operator", row["id"], json.dumps(body)))
+    return {"id": str(row["id"]), "status": "PENDING"}
+
+
+@app.get("/jobs")
+def jobs(limit: int = Query(50, le=200)):
+    return clean(store.rows("SELECT * FROM renormalization_jobs ORDER BY created_at DESC LIMIT %s", (limit,)))
+
+
+@app.get("/events/{uid}/versions")
+def event_versions(uid: str):
+    rows = store.rows("SELECT revision, parser, status, fill, event, replaced_at, job_id FROM ulpf_event_versions "
+                      "WHERE uid = %s ORDER BY revision", (uid,))
+    return clean(rows)
+
+
+SCENARIOS = {"firmware": "vendor firmware changes its log format", "silent": "device stops sending logs",
+             "skewSeconds": "device clock drifts (seconds, + = ahead)"}
+
+
+@app.get("/scenarios")
+def list_scenarios():
+    from . import samples
+    now = time.time()
+    active = {k.decode(): json.loads(v) for k, v in sync_redis.hgetall("ulpf:scenarios").items()}
+    return {"devices": list(samples.DEVICES), "kinds": SCENARIOS,
+            "active": {d: {**s, "remainingSeconds": round(s["until"] - now)} for d, s in active.items() if s["until"] > now}}
+
+
+@app.post("/scenarios")
+async def set_scenario(request: Request):
+    """Fault injection for the demo traffic (the replayer applies it within 2 s)."""
+    body = await request.json()
+    device, kind = body.get("device"), body.get("kind")
+    if kind not in SCENARIOS:
+        raise HTTPException(400, f"kind must be one of {list(SCENARIOS)}")
+    value = body.get("value", True)
+    duration = int(body.get("durationSeconds", 600))
+    current = json.loads(sync_redis.hget("ulpf:scenarios", device) or "{}")
+    current.update({kind: value, "until": time.time() + duration})
+    sync_redis.hset("ulpf:scenarios", device, json.dumps(current))
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES (%s, 'FAULT_INJECTED', 'ulpf', %s)",
+                  (body.get("user") or "local operator", json.dumps({"device": device, "kind": kind, "value": value,
+                                                                     "durationSeconds": duration})))
+    return {"device": device, "scenario": current}
+
+
+@app.delete("/scenarios/{device}")
+def clear_scenario(device: str):
+    sync_redis.hdel("ulpf:scenarios", device)
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES ('local operator', 'FAULT_CLEARED', 'ulpf', %s)",
+                  (json.dumps({"device": device}),))
+    return {"device": device, "cleared": True}
+
+
+@app.get("/settings")
+def get_settings():
+    return {r["key"]: r["value"] for r in store.rows("SELECT key, value FROM ulpf_settings")}
+
+
+@app.put("/settings")
+async def put_settings(request: Request):
+    body = await request.json()
+    allowed = {"autoExecuteMaxTier", "dryRun", "learningMinutes", "consecutiveBuckets", "maxFalsePositiveRate", "zFloor",
+               "promotionCooldownMinutes", "skewThresholdSeconds"}
+    before = get_settings()
+    for k, v in body.items():
+        if k in allowed:
+            store.execute("UPDATE ulpf_settings SET value = %s, updated_at = now(), updated_by = 'local operator' WHERE key = %s",
+                          (json.dumps(v), k))
+    after = get_settings()
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES ('local operator', 'ULPF_SETTINGS_CHANGED', 'ulpf', %s)",
+                  (json.dumps({"before": before, "after": after}),))
+    return after
 
 
 # ── onboarding ────────────────────────────────────────────────────────────────
