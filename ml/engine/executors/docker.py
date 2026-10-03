@@ -6,6 +6,7 @@ service name; every container (replica) of that service is acted on.
 Operations
   restart           restart the service's containers (no persistent change; nothing to roll back)
   update_resources  raise CPU / memory limits by a factor; rollback restores the previous limits
+  start_stopped     start the service's replicas that exited or crashed (running ones are untouched)
 """
 from __future__ import annotations
 
@@ -27,7 +28,7 @@ def client(socket_path: str = "/var/run/docker.sock", transport: httpx.BaseTrans
 
 class DockerExecutor:
     name = "docker"
-    operations = ("restart", "update_resources")
+    operations = ("restart", "update_resources", "start_stopped")
 
     def __init__(self, config: dict, http: httpx.Client):
         self.project = config.get("project")
@@ -35,15 +36,25 @@ class DockerExecutor:
             raise OperationNotSupported("docker executor needs 'project' (the compose project whose containers it may manage)")
         self.http = http
 
-    def containers(self, service: str) -> list[dict]:
+    def containers(self, service: str, include_stopped: bool = False) -> list[dict]:
         filters = {"label": [f"com.docker.compose.project={self.project}", f"com.docker.compose.service={service}"]}
-        r = self._call("GET", "/containers/json", params={"all": "false", "filters": json.dumps(filters)})
+        r = self._call("GET", "/containers/json", params={"all": str(include_stopped).lower(), "filters": json.dumps(filters)})
         found = r.json()
         if not found:
-            raise TargetNotFound(f"no running container of compose service '{service}' in project '{self.project}'")
+            raise TargetNotFound(f"no {'' if include_stopped else 'running '}container of compose service '{service}' "
+                                 f"in project '{self.project}'")
         return found
 
     def execute(self, operation: str, target: str, params: dict, dry_run: bool) -> ExecutionResult:
+        if operation == "start_stopped":
+            stopped = [c for c in self.containers(target, include_stopped=True) if c.get("State") != "running"]
+            ids = [c["Id"][:12] for c in stopped]
+            if not dry_run:
+                for c in stopped:
+                    self._call("POST", f"/containers/{c['Id']}/start")
+            return ExecutionResult(self.name, operation, target,
+                                   f"started {len(ids)} stopped container(s) {ids}" if ids else "no stopped container",
+                                   None, {"containers": ids, "states": {c["Id"][:12]: c.get("State") for c in stopped}}, dry_run)
         found = self.containers(target)
         ids = [c["Id"][:12] for c in found]
         if operation == "restart":

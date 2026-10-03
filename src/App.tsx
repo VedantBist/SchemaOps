@@ -13,6 +13,7 @@ import { Setup } from './pages/Setup';
 import { EventExplorer, LogSources } from './pages/LogPipeline';
 import { Entities, PackList, ParserStudio } from './pages/LogStudio';
 import { PipelineHealth } from './pages/LogHealth';
+import { Benchmarks, Compliance, Detections, Outputs, Privacy } from './pages/LogSecurity';
 import { ChangePassword, Login, Users } from './pages/Auth';
 
 /** One failing page must not blank the whole console; the boundary resets on navigation. */
@@ -67,6 +68,11 @@ const Routes: React.FC = () => {
     case 'log-studio': return <ParserStudio navigate={navigate} query={query} />;
     case 'log-packs': return <PackList navigate={navigate} />;
     case 'log-health': return <PipelineHealth navigate={navigate} id={id} />;
+    case 'log-detections': return <Detections navigate={navigate} />;
+    case 'log-outputs': return <Outputs />;
+    case 'log-privacy': return <Privacy />;
+    case 'log-compliance': return <Compliance />;
+    case 'log-bench': return <Benchmarks />;
     default: return <Page title="Not found"><Empty title={`No page "${page}"`} /></Page>;
   }
 };

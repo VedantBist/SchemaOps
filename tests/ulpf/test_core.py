@@ -143,3 +143,16 @@ def test_cef_first_extension_key_after_header_pipe():
     assert r.event["src_endpoint"]["ip"] == "10.0.0.1"
     assert r.event["dst_endpoint"]["ip"] == "8.8.8.8"
     assert r.lossless
+
+
+def test_vault_verifies_after_retention_purge(tmp_path):
+    v = vault.Vault(tmp_path, "w1", max_bytes=200)
+    for i in range(12):
+        v.append_many([(f"{i}-0", f"event {i} with some padding".encode())])
+    v.seal()
+    segs = sorted((tmp_path / "w1").glob("*.seg"))
+    assert len(segs) > 3
+    vault.purge(tmp_path, "w1", segs[:2])
+    result = vault.verify_writer(tmp_path, "w1")
+    assert result["ok"], result["errors"]
+    assert result["segments"] == len(segs) - 2

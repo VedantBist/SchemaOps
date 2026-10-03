@@ -1,0 +1,7 @@
+# Build context is the repository root; only the engine is needed.
+*
+!ai-engine/requirements.txt
+!ai-engine/app/
+!ml/__init__.py
+!ml/engine/
+**/__pycache__

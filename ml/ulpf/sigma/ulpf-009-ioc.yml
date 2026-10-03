@@ -1,0 +1,12 @@
+title: Traffic with an address on the offline threat list
+id: ulpf-009
+status: stable
+level: high
+description: Any event to or from an address in the bundled indicator list (works without internet access; extend the list for your feeds).
+tags: [attack.command_and_control]
+detection:
+  src:
+    src_ip: [185.220.101.34, 45.155.205.233, 89.248.165.52]
+  dst:
+    dst_ip: [185.220.101.34, 45.155.205.233, 89.248.165.52]
+  condition: src or dst

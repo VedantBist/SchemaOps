@@ -1,0 +1,13 @@
+title: Brute force against any login service
+id: ulpf-001
+status: stable
+level: high
+description: Many failed logins from one address within two minutes, whatever product logged them (SSH, VPN, Windows, firewall portals).
+tags: [attack.credential_access, attack.t1110.001]
+logsource:
+  category: authentication
+detection:
+  selection:
+    action: Denied
+  condition: selection | count() by src_ip >= 8
+timeframe: 2m

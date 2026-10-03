@@ -126,6 +126,7 @@ def stats():
                                   COALESCE(SUM(lossless_ok),0) AS lossless, COALESCE(SUM(bytes),0) AS bytes,
                                   COUNT(*) AS sources FROM log_sources""")[0]
     rate = store.rows("""SELECT COUNT(*) AS n FROM ulpf_events WHERE received_at > now() - interval '60 seconds'""")[0]["n"]
+    not_lossless = int(store.rows("SELECT count(*) AS n FROM ulpf_events WHERE NOT lossless")[0]["n"])
     now = time.time()
     total_received = received.get("total", 0)
     acked = received.get("stored", 0)
@@ -133,7 +134,8 @@ def stats():
     return clean({
         "received": total_received, "receivedByTransport": {k: v for k, v in received.items() if k not in ("total", "stored")},
         "stored": stored, "normalized": int(totals["normalized"]), "partial": int(totals["partial"]),
-        "quarantined": int(totals["quarantined"]), "losslessVerified": int(totals["lossless"]),
+        "quarantined": int(totals["quarantined"]), "losslessVerified": stored - not_lossless,
+        "notLossless": not_lossless,
         "bytes": int(totals["bytes"]), "sources": int(totals["sources"]), "backlog": backlog,
         "dropped": dropped, "eventsPerSecond": round(rate / 60.0, 2),
         # Conservation: everything received is either stored or still queued in the stream.
@@ -265,6 +267,34 @@ async def parse_sample(request: Request):
     return clean({"format": res.parsed.format, "status": res.status, "lossless": res.lossless,
                   "fields": [{"name": f.name, "value": f.text, "start": f.start, "end": f.end} for f in res.parsed.fields],
                   "event": res.event})
+
+
+@app.post("/admin/demo-reset")
+def demo_reset():
+    """Puts the log pipeline back to the demo starting point. Keeps every event, vault byte and audit row:
+    stops fault scenarios, re-activates the bundled pack versions, retires packs made in this run (Studio /
+    automatic repair) and unbinds their sources, resolves open pipeline incidents with a note."""
+    sync_redis.delete("ulpf:scenarios")
+    sync_redis.delete("ulpf:chaos:crash")
+    restored, retired = [], []
+    for b in store.rows("SELECT DISTINCT ON (id) id, version FROM parser_packs WHERE origin = 'BUILTIN' ORDER BY id, version DESC"):
+        packstore.activate(store, b["id"], b["version"])
+        restored.append(f"{b['id']}@{b['version']}")
+    for p in store.rows("SELECT id, version FROM parser_packs WHERE status = 'CHAMPION' AND origin <> 'BUILTIN'"):
+        store.execute("UPDATE parser_packs SET status = 'RETIRED' WHERE id = %s AND version = %s", (p["id"], p["version"]))
+        store.execute("UPDATE log_sources SET pack_id = NULL, pack_bound_at = NULL WHERE pack_id = %s", (p["id"],))
+        retired.append(f"{p['id']}@{p['version']}")
+    store.execute("UPDATE ulpf_actions SET status = 'REJECTED', decided_by = 'demo reset' WHERE status = 'PROPOSED'")
+    closed = store.rows("UPDATE ulpf_incidents SET status = 'RESOLVED', resolved_at = now(), updated_at = now() "
+                        "WHERE status <> 'RESOLVED' RETURNING id")
+    for c in closed:
+        store.execute("INSERT INTO ulpf_incident_events (incident_id, type, payload) VALUES (%s, 'CLOSED_BY_DEMO_RESET', '{}')", (c["id"],))
+    store.execute("UPDATE ulpf_settings SET value = 'false' WHERE key = 'dryRun'")
+    store.execute("UPDATE ulpf_settings SET value = '1' WHERE key = 'autoExecuteMaxTier'")
+    detail = {"restored": restored, "retired": retired, "incidentsClosed": len(closed)}
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES ('scripts/demo/reset.sh', 'ULPF_DEMO_RESET', 'ulpf', %s)",
+                  (json.dumps(detail),))
+    return detail
 
 
 @app.post("/admin/reconcile")
@@ -534,7 +564,9 @@ def event_versions(uid: str):
 
 
 SCENARIOS = {"firmware": "vendor firmware changes its log format", "silent": "device stops sending logs",
-             "skewSeconds": "device clock drifts (seconds, + = ahead)"}
+             "skewSeconds": "device clock drifts (seconds, + = ahead)",
+             "attack": "attacker scans the perimeter, brute-forces SSH and VPN, then logs in (device: attacker)",
+             "crash": "one pipeline worker process crashes (device: ulpf-worker)"}
 
 
 @app.get("/scenarios")
@@ -542,7 +574,7 @@ def list_scenarios():
     from . import samples
     now = time.time()
     active = {k.decode(): json.loads(v) for k, v in sync_redis.hgetall("ulpf:scenarios").items()}
-    return {"devices": list(samples.DEVICES), "kinds": SCENARIOS,
+    return {"devices": list(samples.DEVICES) + ["attacker", "ulpf-worker"], "kinds": SCENARIOS,
             "active": {d: {**s, "remainingSeconds": round(s["until"] - now)} for d, s in active.items() if s["until"] > now}}
 
 
@@ -555,8 +587,17 @@ async def set_scenario(request: Request):
         raise HTTPException(400, f"kind must be one of {list(SCENARIOS)}")
     value = body.get("value", True)
     duration = int(body.get("durationSeconds", 600))
+    if kind == "crash":
+        sync_redis.set("ulpf:chaos:crash", "1", ex=60)
+        store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES (%s, 'FAULT_INJECTED', 'ulpf', %s)",
+                      (body.get("user") or "local operator", json.dumps({"kind": "crash", "target": "one ulpf-worker"})))
+        return {"device": "ulpf-worker", "scenario": {"crash": True}}
+    if kind == "attack":
+        device = "attacker"
     current = json.loads(sync_redis.hget("ulpf:scenarios", device) or "{}")
     current.update({kind: value, "until": time.time() + duration})
+    if kind == "attack":
+        current["started"] = time.time()
     sync_redis.hset("ulpf:scenarios", device, json.dumps(current))
     store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES (%s, 'FAULT_INJECTED', 'ulpf', %s)",
                   (body.get("user") or "local operator", json.dumps({"device": device, "kind": kind, "value": value,
@@ -591,6 +632,236 @@ async def put_settings(request: Request):
     store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES ('local operator', 'ULPF_SETTINGS_CHANGED', 'ulpf', %s)",
                   (json.dumps({"before": before, "after": after}),))
     return after
+
+
+# ── outputs and SIEM cost ─────────────────────────────────────────────────────
+@app.get("/sinks")
+def list_sinks():
+    return clean(store.rows("SELECT name, kind, tier, enabled, tokenize, config, cursor_seq, exported, last_ok, last_error, "
+                            "last_error_at FROM ulpf_sinks ORDER BY name"))
+
+
+@app.put("/sinks/{name}")
+async def update_sink(name: str, request: Request):
+    body = await request.json()
+    sets, params = [], []
+    for k in ("enabled", "tokenize", "tier"):
+        if k in body:
+            sets.append(f"{k} = %s")
+            params.append(body[k])
+    if "config" in body:
+        sets.append("config = %s")
+        params.append(json.dumps(body["config"]))
+    if body.get("enabled"):
+        sets.append("cursor_seq = CASE WHEN cursor_seq = 0 THEN 0 ELSE cursor_seq END")
+    if not sets:
+        raise HTTPException(400, "nothing to change")
+    store.execute(f"UPDATE ulpf_sinks SET {', '.join(sets)} WHERE name = %s", tuple(params + [name]))
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES ('local operator', 'SINK_CHANGED', 'ulpf', %s)",
+                  (json.dumps({"sink": name, **{k: v for k, v in body.items() if k != "config"}}),))
+    return list_sinks()
+
+
+@app.get("/cost")
+def cost():
+    """Measured: bytes the SIEM tier sent vs what sending every event would have sent, and what that costs."""
+    settings = {r["key"]: r["value"] for r in store.rows("SELECT key, value FROM ulpf_settings")}
+    rate = float(settings.get("siemCostPerGbInr", 3000))
+    rows = store.rows("SELECT sink, day, events_in, events_out, bytes, full_bytes, errors FROM sink_stats ORDER BY day DESC, sink")
+    siem = [r for r in rows if r["sink"] == "siem-tier"]
+    tot_in = sum(int(r["events_in"]) for r in siem)
+    tot_out = sum(int(r["events_out"]) for r in siem)
+    full = sum(int(r["full_bytes"]) for r in siem)
+    sent = sum(int(r["bytes"]) for r in siem)
+    span = store.rows("SELECT EXTRACT(EPOCH FROM max(inserted_at) - min(inserted_at)) AS s FROM ulpf_events "
+                      "WHERE seq <= (SELECT cursor_seq FROM ulpf_sinks WHERE name = 'siem-tier') AND inserted_at > now() - interval '1 day'")
+    lake = store.rows("SELECT exported, cursor_seq FROM ulpf_sinks WHERE name = 'data-lake'")
+    stored = store.rows("SELECT count(*) AS n FROM ulpf_events WHERE seq <= %s AND seq > (SELECT min(seq) FROM ulpf_events WHERE "
+                        "inserted_at >= (SELECT min(created_at) FROM ulpf_sinks))", (lake[0]["cursor_seq"] if lake else 0,))
+    seconds = float(span[0]["s"] or 0) if span else 0.0
+    per_day = 86400 / seconds if seconds > 60 else None
+    reduction = (1 - sent / full) if full else None
+    out = {"ratePerGbInr": rate, "eventsIn": tot_in, "eventsOut": tot_out, "fullBytes": full, "siemBytes": sent,
+           "reductionPct": round(100 * reduction, 1) if reduction is not None else None,
+           "measuredSeconds": round(seconds), "byDay": rows,
+           "lake": {"exported": int(lake[0]["exported"]) if lake else 0}}
+    if per_day:
+        full_gb_day, siem_gb_day = full * per_day / 2 ** 30, sent * per_day / 2 ** 30
+        out.update({"fullGbPerDay": round(full_gb_day, 3), "siemGbPerDay": round(siem_gb_day, 3),
+                    "savedInrPerMonth": round((full_gb_day - siem_gb_day) * 30 * rate)})
+    return clean(out)
+
+
+# ── Sigma detections ──────────────────────────────────────────────────────────
+@app.get("/sigma/rules")
+def sigma_rules():
+    rules = store.rows("""SELECT r.id, r.title, r.level, r.tags, r.enabled, r.yaml,
+                                 (SELECT count(*) FROM sigma_hits h WHERE h.rule_id = r.id) AS detections,
+                                 (SELECT max(last_seen) FROM sigma_hits h WHERE h.rule_id = r.id) AS last_hit
+                          FROM sigma_rules r ORDER BY r.id""")
+    return clean(rules)
+
+
+@app.get("/sigma/hits")
+def sigma_hits(rule: str | None = None, limit: int = Query(100, le=500)):
+    where = "WHERE rule_id = %s" if rule else ""
+    rows = store.rows(f"SELECT * FROM sigma_hits {where} ORDER BY last_seen DESC LIMIT %s", ((rule, limit) if rule else (limit,)))
+    return clean(rows)
+
+
+# ── privacy (DPDP) ────────────────────────────────────────────────────────────
+@app.get("/privacy/preview/{uid}")
+def privacy_preview(uid: str):
+    from .privacy import Tokenizer
+    from .tiering import strip_internal
+    row = _event(uid)
+    t = Tokenizer(store=store)
+    original = strip_internal(row["event"])
+    tokenized, changed = t.event(original)
+    t.flush()
+    return clean({"uid": uid, "original": original, "tokenized": tokenized, "changed": changed})
+
+
+@app.post("/privacy/detokenize")
+async def detokenize(request: Request):
+    """Reveals the value behind a token. A reason is required; every request is recorded, granted or not."""
+    from .privacy import Tokenizer
+    body = await request.json()
+    token, reason, user = body.get("token", "").strip(), (body.get("reason") or "").strip(), body.get("user") or "local operator"
+    if len(reason) < 8:
+        raise HTTPException(400, "state the reason (at least 8 characters); it is recorded in the audit trail")
+    found = Tokenizer(store=store).reveal(token)
+    store.execute("INSERT INTO token_audit (actor, token, reason, granted) VALUES (%s, %s, %s, %s)", (user, token, reason, found is not None))
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, detail) VALUES (%s, 'PII_DETOKENIZED', 'ulpf', %s)",
+                  (user, json.dumps({"token": token, "reason": reason, "granted": found is not None})))
+    if not found:
+        raise HTTPException(404, "unknown token")
+    return {"token": token, "kind": found[0], "value": found[1]}
+
+
+@app.get("/privacy/audit")
+def privacy_audit():
+    return clean(store.rows("SELECT * FROM token_audit ORDER BY at DESC LIMIT 100"))
+
+
+# ── signed bundles (data diode, CERT-In evidence) ─────────────────────────────
+@app.post("/bundles")
+async def create_bundle(request: Request):
+    from . import bundle
+    body = await request.json()
+    minutes = int(body.get("minutes", 15))
+    until = datetime.fromisoformat(body["until"]) if body.get("until") else datetime.now(timezone.utc)
+    since = datetime.fromisoformat(body["since"]) if body.get("since") else until - timedelta(minutes=minutes)
+    purpose = body.get("purpose", "DATA_DIODE")
+    started = time.time()
+    res = bundle.create(store, source=body.get("source"), since=since, until=until, purpose=purpose,
+                        created_by=body.get("user") or "local operator", vault_dir=VAULT_DIR, incident=body.get("incident"))
+    detail = {"seconds": round(time.time() - started, 2), "window": [since.isoformat(), until.isoformat()], "source": body.get("source")}
+    row = store.rows("""INSERT INTO ulpf_bundles (direction, purpose, file, bytes, events, sha256, key_id, verified, detail, created_by)
+                        VALUES ('EXPORT', %s, %s, %s, %s, %s, %s, true, %s, %s) RETURNING id""",
+                     (purpose, res["file"], res["bytes"], res["events"], res["sha256"], res["signer"], json.dumps(detail),
+                      body.get("user") or "local operator"))[0]
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, entity_id, detail) VALUES (%s, 'BUNDLE_EXPORTED', 'ulpf', %s, %s)",
+                  (body.get("user") or "local operator", row["id"], json.dumps({**detail, "file": res["file"], "events": res["events"]})))
+    return clean({"id": row["id"], **res, **detail})
+
+
+@app.get("/bundles")
+def list_bundles():
+    return clean(store.rows("SELECT * FROM ulpf_bundles ORDER BY created_at DESC LIMIT 50"))
+
+
+@app.get("/bundles/{bundle_id}/download")
+def download_bundle(bundle_id: str):
+    from fastapi.responses import Response
+    from . import bundle
+    row = store.rows("SELECT file FROM ulpf_bundles WHERE id::text = %s AND direction = 'EXPORT'", (bundle_id,))
+    if not row:
+        raise HTTPException(404, "no such bundle")
+    data = (bundle.BUNDLE_DIR / row[0]["file"]).read_bytes()
+    return Response(content=data, media_type="application/gzip",
+                    headers={"Content-Disposition": f'attachment; filename="{row[0]["file"]}"'})
+
+
+@app.post("/bundles/import")
+async def import_bundle(request: Request, ingest: bool = False, purpose: str = "DATA_DIODE"):
+    """Body: the bundle file (application/gzip). Verifies before anything is accepted; ingest=true replays the raw
+    events into this pipeline (they are normalized and proven lossless again on this side)."""
+    from . import bundle
+    blob = await request.body()
+    result = bundle.verify(blob)
+    ingested = 0
+    if result["ok"] and ingest:
+        for source, raw in bundle.raw_events(blob):
+            await state["intake"].put(raw, None, "bundle", f"import:{source}")
+            ingested += 1
+    result["ingested"] = ingested
+    row = store.rows("""INSERT INTO ulpf_bundles (direction, purpose, bytes, events, sha256, key_id, verified, detail, created_by)
+                        VALUES ('IMPORT', %s, %s, %s, %s, %s, %s, %s, 'local operator') RETURNING id""",
+                     (purpose, len(blob), (result.get("manifest") or {}).get("events"), hashlib.sha256(blob).hexdigest(),
+                      (result.get("manifest") or {}).get("signer"), result["ok"], json.dumps(result, default=str)))[0]
+    store.execute("INSERT INTO audit_log (actor, action, entity_type, entity_id, detail) VALUES ('local operator', %s, 'ulpf', %s, %s)",
+                  ("BUNDLE_IMPORTED" if result["ok"] else "BUNDLE_REJECTED", row["id"],
+                   json.dumps({"problems": result["problems"], "ingested": ingested})))
+    return clean({"id": row["id"], **result})
+
+
+@app.post("/bundles/{bundle_id}/tamper-test")
+async def tamper_test(bundle_id: str):
+    """Demo: flip one byte in one raw event of an exported bundle and try to import it."""
+    from . import bundle
+    row = store.rows("SELECT file FROM ulpf_bundles WHERE id::text = %s AND direction = 'EXPORT'", (bundle_id,))
+    if not row:
+        raise HTTPException(404, "no such bundle")
+    blob = bundle.tamper((bundle.BUNDLE_DIR / row[0]["file"]).read_bytes())
+    result = bundle.verify(blob)
+    store.execute("""INSERT INTO ulpf_bundles (direction, purpose, bytes, events, sha256, key_id, verified, detail, created_by)
+                     VALUES ('IMPORT', 'TAMPER_TEST', %s, %s, %s, %s, %s, %s, 'local operator')""",
+                  (len(blob), (result.get("manifest") or {}).get("events"), hashlib.sha256(blob).hexdigest(),
+                   (result.get("manifest") or {}).get("signer"), result["ok"], json.dumps(result, default=str)))
+    return clean(result)
+
+
+@app.get("/keys")
+def keys():
+    from . import bundle
+    pub = bundle.public_pem()
+    return {"signer": bundle.key_id(pub), "publicKey": pub.decode(), "trusted": list(bundle.trusted_keys())}
+
+
+# ── CERT-In compliance ────────────────────────────────────────────────────────
+@app.get("/compliance")
+def compliance_status(refresh: bool = False):
+    from . import compliance
+    if refresh:
+        settings = {r["key"]: r["value"] for r in store.rows("SELECT key, value FROM ulpf_settings")}
+        result = compliance.run(store, settings, VAULT_DIR)
+        store.execute("INSERT INTO compliance_runs (framework, passed, failed, result) VALUES (%s, %s, %s, %s)",
+                      (result["framework"], result["passed"], result["failed"], json.dumps(result, default=str)))
+        return clean(result)
+    row = store.rows("SELECT result FROM compliance_runs ORDER BY at DESC LIMIT 1")
+    return clean(row[0]["result"]) if row else compliance_status(refresh=True)
+
+
+# ── benchmarks ────────────────────────────────────────────────────────────────
+@app.get("/benchmarks")
+def list_benchmarks():
+    return clean(store.rows("SELECT * FROM benchmarks ORDER BY at DESC LIMIT 20"))
+
+
+@app.post("/benchmarks")
+async def store_benchmark(request: Request):
+    body = await request.json()
+    store.execute("INSERT INTO benchmarks (kind, result) VALUES (%s, %s)", (body.get("kind", "END_TO_END"), json.dumps(body)))
+    return {"stored": True}
+
+
+@app.post("/benchmarks/processing")
+def run_processing_benchmark(seconds: float = Query(10, le=60)):
+    from . import bench
+    result = bench.processing(seconds, registry=packstore.registry(store))
+    store.execute("INSERT INTO benchmarks (kind, result) VALUES ('PROCESSING', %s)", (json.dumps(result),))
+    return result
 
 
 # ── onboarding ────────────────────────────────────────────────────────────────

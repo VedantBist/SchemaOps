@@ -1,0 +1,13 @@
+title: Network scan signature from the IDS
+id: ulpf-007
+status: stable
+level: medium
+description: An IDS signature for scanning (ET SCAN family) fired.
+tags: [attack.discovery, attack.t1046]
+logsource:
+  category: finding
+detection:
+  selection:
+    signature|startswith: ET SCAN
+  condition: selection | count() by src_ip >= 3
+timeframe: 5m

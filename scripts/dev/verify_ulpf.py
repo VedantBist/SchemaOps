@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end checks for CausalOps ULPF against a running stack (standard library only).
 
-    python3 scripts/dev/verify_ulpf.py                 # all checks, including the fault scenarios (~6 min)
+    python3 scripts/dev/verify_ulpf.py                 # all checks, including the fault scenarios (~15 min)
     python3 scripts/dev/verify_ulpf.py --quick         # no fault scenarios (~20 s)
     python3 scripts/dev/verify_ulpf.py --api http://localhost:8080/api/ulpf
 
@@ -176,6 +176,81 @@ def u3(full: bool) -> None:
         check("silent source resolved when traffic returned", bool(res), f"MTTR {res['mttr_seconds']:.0f} s" if res else "timeout")
 
 
+def raw_call(path: str, body: bytes, ctype: str = "application/gzip"):
+    req = urllib.request.Request(API + path, data=body, method="POST", headers={"Content-Type": ctype})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return json.loads(r.read().decode())
+
+
+def u4(full: bool) -> None:
+    print("U4 outputs, SIEM cost, privacy, bundles, compliance, self-healing, scale")
+    sinks = {s["name"]: s for s in call("/sinks")}
+    check("data lake (Parquet on MinIO) receiving every event", sinks["data-lake"]["exported"] > 0 and not (
+        sinks["data-lake"]["last_error"] and (sinks["data-lake"]["last_error_at"] or "") > (sinks["data-lake"]["last_ok"] or "")),
+          f"{sinks['data-lake']['exported']:,} events exported")
+    cost = wait(lambda: (lambda c: c if c["eventsIn"] > 500 else None)(call("/cost")), 150, 10)
+    if check("SIEM tier measured smaller than the full stream", cost and (cost["reductionPct"] or 0) > 20,
+             f"{cost['reductionPct']}% less ({cost['eventsIn']:,} events in, {cost['eventsOut']:,} records out)" if cost else "no data"):
+        check("SIEM saving computed from measured volume", cost.get("savedInrPerMonth", 0) > 0,
+              f"₹{cost['savedInrPerMonth']:,}/month at ₹{cost['ratePerGbInr']:.0f}/GB")
+    auth = call("/events?classUid=3002&limit=20")
+    with_user = next((e for e in auth if e["user_name"]), None)
+    if check("authentication event available for the privacy check", bool(with_user)):
+        pv = call(f"/privacy/preview/{with_user['uid']}")
+        text = json.dumps(pv["tokenized"])
+        check("pseudonymised export carries no personal data", with_user["user_name"] not in text and pv["changed"],
+              f"changed {', '.join(pv['changed'])}")
+        token = pv["tokenized"]["actor"]["user"]["name"]
+        rev = call("/privacy/detokenize", {"token": token, "reason": "verify_ulpf automated check"})
+        audit = call("/privacy/audit")
+        check("detokenisation returns the value and is audited", rev["value"] == with_user["user_name"] and audit[0]["token"] == token,
+              f"{token} → {rev['value']}")
+    b = call("/bundles", {"minutes": 5, "purpose": "DATA_DIODE", "user": "verify_ulpf"})
+    check("signed bundle exported", b["events"] > 0, f"{b['events']} events, {b['bytes']:,} bytes, signer {b['signer']}")
+    bad = call(f"/bundles/{b['id']}/tamper-test", {})
+    check("tampered bundle rejected", not bad["ok"], "; ".join(bad["problems"])[:120])
+    blob = urllib.request.urlopen(API + f"/bundles/{b['id']}/download", timeout=120).read()
+    ok = raw_call("/bundles/import?ingest=false", blob)
+    check("untouched bundle verifies on import", ok["ok"], ", ".join(c["check"] for c in ok["checks"] if c["passed"]))
+    comp = call("/compliance?refresh=true")
+    check("CERT-In compliance evaluated from measurements", len(comp["checks"]) >= 5,
+          f"{comp['passed']} passed, {comp['failed']} failed: " + ", ".join(c["id"] for c in comp["checks"] if not c["passed"]))
+    bench = call("/benchmarks/processing?seconds=8", {})
+    check("processing benchmark measured", bench["eventsPerSecondPerWorker"] > 500 and bench["losslessPct"] == 100,
+          f"{bench['eventsPerSecondPerWorker']:,} events/s per worker ({bench['eventsPerDayPerWorker'] / 1e6:.0f} M/day), lossless")
+    if not full:
+        return
+    # Self-healing: one worker process crashes; the monitor starts it through the Docker executor.
+    before = call("/stats")["conservation"]
+    t0 = time.time()
+    call("/scenarios", {"device": "ulpf-worker", "kind": "crash", "value": True})
+    inc = wait(lambda: (lambda i: i if i and i["status"] in ("RESOLVED", "ESCALATED") else None)(incident_after("PIPELINE", "ulpf-worker", t0)), 240, 5)
+    if check("crashed worker detected and restarted automatically", inc and inc["status"] == "RESOLVED",
+             f"{inc['incident_key']} MTTR {inc['mttr_seconds']:.0f} s" if inc else "timeout"):
+        cons = wait(lambda: (lambda c: c if c["inFlight"] < 50 else None)(call("/stats")["conservation"]), 60, 3)
+        check("no event lost across the crash", cons and cons["balanced"] and cons["received"] > before["received"],
+              f"{cons['received']:,} = {cons['stored']:,} + {cons['inFlight']}" if cons else "")
+
+
+def u5(full: bool) -> None:
+    print("U5 cross-device correlation")
+    if not full:
+        return
+    t0 = time.time()
+    call("/scenarios", {"device": "attacker", "kind": "attack", "value": True, "durationSeconds": 300})
+    inc = wait(lambda: incident_after("SECURITY_CORRELATION", "203.0.113.66", t0), 300, 6)
+    if check("attack chain correlated across devices (access gained)", bool(inc), inc["title"] if inc else "timeout"):
+        d = call(f"/incidents/{inc['incident_key']}")
+        ev = d["incident"]["evidence"]
+        check("chain seen by several products", len(ev["vendors"]) >= 3, ", ".join(ev["vendors"]))
+        check("blocking the attacker waits for an analyst (tier 2)",
+              any(a["action"] == "BLOCK_SOURCE" and a["status"] == "PROPOSED" for a in d["actions"]))
+    hits = [h for h in call("/sigma/hits?limit=100") if h["group_key"] == "203.0.113.66"]
+    scan = next((h for h in hits if h["rule_id"] == "ulpf-003"), None)
+    check("one Sigma rule fires across firewall vendors", scan and len(scan["vendors"]) >= 3,
+          f"{scan['distinct_count']} ports, vendors {', '.join(scan['vendors'])}" if scan else "no port-scan hit")
+
+
 def main() -> int:
     global API
     p = argparse.ArgumentParser()
@@ -190,6 +265,8 @@ def main() -> int:
         u1(args.syslog_host, args.syslog_port)
         u2()
         u3(not args.quick)
+        u4(not args.quick)
+        u5(not args.quick)
     except urllib.error.URLError as e:
         check("API reachable", False, str(e))
     failed = [r for r in RESULTS if not r[1]]

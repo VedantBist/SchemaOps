@@ -1,0 +1,13 @@
+title: Port scan blocked across perimeter firewalls
+id: ulpf-003
+status: stable
+level: medium
+description: One address denied on fifteen or more distinct destination ports within two minutes, counted across every firewall vendor together.
+tags: [attack.discovery, attack.t1046]
+logsource:
+  category: firewall
+detection:
+  selection:
+    action: Denied
+  condition: selection | count(dst_port) by src_ip >= 15
+timeframe: 2m

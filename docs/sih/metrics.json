@@ -1,0 +1,62 @@
+{
+ "events": 812155,
+ "received": 812156,
+ "lossless": 812155,
+ "normalizedPct": 100.0,
+ "conservationBalanced": true,
+ "sources": 15,
+ "packs": 14,
+ "sigmaRules": 10,
+ "siemReductionPct": 59.1,
+ "savedInrPerMonth": 269110,
+ "fullGbPerDay": 5.063,
+ "siemGbPerDay": 2.073,
+ "ratePerGbInr": 3000.0,
+ "benchmark": {
+  "kind": "PROCESSING",
+  "note": "single process, one CPU core; workers scale horizontally (stateless, consumer group)",
+  "events": 21500,
+  "machine": {
+   "cpu": "x86_64",
+   "cores": 12,
+   "python": "3.12.15"
+  },
+  "seconds": 8.01,
+  "losslessPct": 100.0,
+  "mbPerSecond": 0.7,
+  "avgEventBytes": 273,
+  "eventsPerDayPerWorker": 231931422,
+  "eventsPerSecondPerWorker": 2684
+ },
+ "incidents": {
+  "PIPELINE": {
+   "resolved": 3,
+   "medianMttd": 32,
+   "medianMttr": 456
+  },
+  "SOURCE_SILENT": {
+   "resolved": 16,
+   "medianMttd": 133,
+   "medianMttr": 139
+  },
+  "CLOCK_SKEW": {
+   "resolved": 3,
+   "medianMttd": 60,
+   "medianMttr": 181
+  },
+  "PARSER_DRIFT": {
+   "resolved": 3,
+   "medianMttd": 30,
+   "medianMttr": 122
+  },
+  "SECURITY_CORRELATION": {
+   "resolved": 37,
+   "medianMttd": 425,
+   "medianMttr": 537
+  }
+ },
+ "compliance": {
+  "passed": 5,
+  "failed": 1
+ }
+}

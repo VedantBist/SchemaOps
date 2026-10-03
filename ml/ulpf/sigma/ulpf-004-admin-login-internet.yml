@@ -1,0 +1,14 @@
+title: Privileged account logged in from the internet
+id: ulpf-004
+status: stable
+level: critical
+description: A successful login of root, admin or administrator from a public address.
+tags: [attack.initial_access, attack.t1078.003]
+logsource:
+  category: authentication
+detection:
+  selection:
+    action: Allowed
+    user: [root, admin, administrator]
+    src_is_private: false
+  condition: selection

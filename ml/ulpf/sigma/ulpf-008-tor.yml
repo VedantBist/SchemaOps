@@ -1,0 +1,12 @@
+title: Tor hidden-service lookup
+id: ulpf-008
+status: stable
+level: medium
+description: A DNS query or IDS alert for a .onion name.
+tags: [attack.command_and_control, attack.t1090.003]
+detection:
+  dns:
+    query|endswith: .onion
+  ids:
+    signature|contains: onion
+  condition: dns or ids

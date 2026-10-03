@@ -10,8 +10,11 @@ import random
 from datetime import datetime, timedelta, timezone
 
 INTERNAL = [f"10.20.{a}.{b}" for a in (1, 2, 3) for b in (11, 23, 37, 41, 58, 64, 75, 99)]
-EXTERNAL = ["185.220.101.34", "45.155.205.233", "104.18.32.7", "142.250.183.14", "13.107.42.14", "20.190.160.20",
-            "151.101.1.140", "89.248.165.52", "103.21.244.9", "198.51.100.23", "203.0.113.77", "49.44.180.12"]
+# Public addresses in three roles that do not overlap, as on a real perimeter:
+SERVICES = ["104.18.32.7", "142.250.183.14", "13.107.42.14", "20.190.160.20", "151.101.1.140"]   # SaaS / CDNs (outbound)
+REMOTE = ["49.44.180.12", "117.200.12.45", "122.171.88.20", "106.51.77.3", "182.68.5.19"]         # staff at home (Indian ISPs)
+BAD = ["185.220.101.34", "45.155.205.233", "89.248.165.52", "198.51.100.23", "203.0.113.77"]      # internet scanners
+EXTERNAL = SERVICES + REMOTE + BAD
 USERS = ["arjun.mehta", "priya.nair", "svc_backup", "admin", "neha.kulkarni", "rahul.verma", "root", "vpn_guest"]
 # Each internal address belongs to one machine and (mostly) one person, so the same user, IP, MAC and
 # hostname recur across vendors' logs, as on a real network.
@@ -40,9 +43,13 @@ class Ctx:
         r = self.rng
         app, port = r.choice(APPS)
         outbound = r.random() < 0.7
-        src = r.choice(INTERNAL) if outbound else r.choice(EXTERNAL)
-        dst = r.choice(EXTERNAL) if outbound else r.choice(INTERNAL)
-        allowed = r.random() < (0.85 if outbound else 0.35)
+        if outbound:
+            src, dst, allowed = r.choice(INTERNAL), r.choice(SERVICES), r.random() < 0.95
+        elif r.random() < 0.6:  # internet background noise: mostly blocked
+            src, dst, allowed = r.choice(BAD), r.choice(INTERNAL), r.random() < 0.1
+        else:                   # remote staff reaching published services
+            src, dst, allowed = r.choice(REMOTE), r.choice(INTERNAL), True
+            app, port = ("ssl", 443)
         proto = "udp" if app in ("dns", "ntp") else "tcp"
         return dict(src=src, dst=dst, sport=r.randint(1025, 65000), dport=port, app=app, proto=proto,
                     allowed=allowed, sent=r.randint(200, 90000), rcvd=r.randint(200, 900000),
@@ -146,6 +153,10 @@ SIGS = [(2010935, "ET SCAN Suspicious inbound to MSSQL port 1433", 2), (2001219,
 def suricata(c: Ctx, host="ids-sensor-01") -> str:
     f, t = c.flow(), c.now()
     sid, sig, sev = c.rng.choice(SIGS)
+    if "SCAN" in sig:  # scans come from internet scanners
+        f["src"], f["dst"] = c.rng.choice(BAD), c.rng.choice(INTERNAL)
+    elif "onion" in sig or "USER_AGENTS" in sig:  # outbound oddities come from inside
+        f["src"], f["dst"] = c.rng.choice(INTERNAL), c.rng.choice(SERVICES)
     ev = {"timestamp": f"{t:%Y-%m-%dT%H:%M:%S.%f}+0000", "flow_id": c.rng.randint(10 ** 14, 10 ** 15),
           "in_iface": "eth1", "event_type": "alert", "src_ip": f["src"], "src_port": f["sport"],
           "dest_ip": f["dst"], "dest_port": f["dport"], "proto": f["proto"].upper(),
@@ -158,7 +169,7 @@ def cef_waf(c: Ctx, host="waf-01") -> str:
     f, t = c.flow(), c.now()
     attack = c.rng.choice([("SQL Injection", 8), ("Cross Site Scripting", 7), ("Path Traversal", 6), ("Bot Access", 3)])
     return (f"<134>{bsd(t)} {host} CEF:0|F5|Advanced WAF|17.1.0|200000098|{attack[0]}|{attack[1]}|"
-            f"rt={int(t.timestamp() * 1000)} src={c.rng.choice(EXTERNAL)} spt={f['sport']} dst={c.rng.choice(INTERNAL)} dpt=443 "
+            f"rt={int(t.timestamp() * 1000)} src={c.rng.choice(BAD if attack[1] > 5 else REMOTE)} spt={f['sport']} dst={c.rng.choice(INTERNAL)} dpt=443 "
             f"requestMethod=GET request=https://portal.example.in/login?id\\=1 act={'blocked' if attack[1] > 5 else 'alerted'} "
             f"cs1Label=policy_name cs1=/Common/portal_policy")
 
@@ -171,7 +182,7 @@ def sshd(c: Ctx, host="bastion-01") -> str:
         user, ok = OWNER[ip], c.rng.random() < 0.9
     else:
         # Internet brute force against common account names.
-        ip = c.rng.choice(EXTERNAL[:4])
+        ip = c.rng.choice(BAD[:4])
         user, ok = c.rng.choice(["root", "admin", "oracle", "test", "ubuntu"]), False
     port = c.rng.randint(30000, 65000)
     if ok:
@@ -207,9 +218,16 @@ def dhcpd(c: Ctx, host="dhcp-01") -> str:
 def custom_vpn(c: Ctx, host="vpn-gw-01") -> str:
     """An in-house VPN gateway with its own text format: no bundled pack (onboarded in Parser Studio)."""
     t = c.now()
-    ip = c.rng.choice(EXTERNAL)
-    user = c.rng.choice(PEOPLE + ["vpn_guest"])
+    # Each person connects from their home ISP; occasional mistyped passwords, plus scanners guessing.
+    staff = [p for p in PEOPLE if "." in p]  # people, not service or admin accounts
+    person = c.rng.randrange(len(staff))
+    user, ip = staff[person], REMOTE[person]
     r = c.rng.random()
+    if r > 0.92:
+        user, ip = c.rng.choice(["admin", "vpn_guest", "test"]), c.rng.choice(BAD)
+        r = 0.5  # always a failure
+    elif 0.45 <= r < 0.75:
+        r = 0.0 if c.rng.random() < 0.8 else 0.5  # staff mostly succeed (0.0 = session opened, 0.5 = failed)
     if r < 0.45:
         msg = f"session opened for user {user} from {ip} port {c.rng.randint(30000, 65000)} assigned 10.8.0.{c.rng.randint(2, 250)}"
     elif r < 0.75:
@@ -225,3 +243,46 @@ DEVICES = {
     "waf-01": cef_waf, "bastion-01": sshd, "dc01.corp.local": windows_xml, "dhcp-01": dhcpd,
     "vpn-gw-01": custom_vpn,
 }
+
+
+# ── attack scenario (Fault lab): scan → brute force → successful login, one attacker, many vendors ──
+ATTACKER = "203.0.113.66"
+
+
+def attack_line(c: Ctx, phase: str, ip: str = ATTACKER) -> tuple[str, str]:
+    """Returns (device, raw line) for the given phase of the attack."""
+    r, t = c.rng, c.now()
+    victim = r.choice(INTERNAL)
+    sport = r.randint(30000, 65000)
+    if phase == "scan":
+        port = r.randint(1, 1024)
+        device = r.choice(["pa-edge-01", "fgt-dc-01", "asa-perimeter", "pfsense-branch"])
+        if device == "pa-edge-01":
+            c.seq += 1
+            fields = ["1", f"{t:%Y/%m/%d %H:%M:%S}", "013201004417", "TRAFFIC", "deny", "2560", f"{t:%Y/%m/%d %H:%M:%S}",
+                      ip, victim, "0.0.0.0", "0.0.0.0", "block-inbound", "", "", "not-applicable", "vsys1", "untrust", "trust",
+                      "ethernet1/1", "", "Log-Fwd", f"{t:%Y/%m/%d %H:%M:%S}", str(c.seq), "1", str(sport), str(port), "0", "0",
+                      "0x0", "tcp", "deny", "60", "60", "0", "1", f"{t:%Y/%m/%d %H:%M:%S}", "0", "any", "0", str(c.seq * 7),
+                      "0x0", "IN", "10.0.0.0-10.255.255.255", "0", "1", "0", "policy-deny"]
+            return device, f"<14>{bsd(t)} {device} " + ",".join(fields)
+        if device == "fgt-dc-01":
+            return device, (f'<189>{bsd(t)} {device} date={t:%Y-%m-%d} time={t:%H:%M:%S} devname="{device}" devid="FG100FTK19000123" '
+                            f'logid="0000000013" type="traffic" subtype="forward" level="notice" vd="root" srcip={ip} srcport={sport} '
+                            f'srcintf="port1" dstip={victim} dstport={port} dstintf="port2" policyid=0 proto=6 action="deny" '
+                            f'service="tcp/{port}" sentbyte=0 rcvdbyte=0 duration=0')
+        if device == "asa-perimeter":
+            return device, (f"<166>{MONTHS[t.month - 1]} {t.day:02d} {t.year} {t:%H:%M:%S} {device} : %ASA-4-106023: Deny tcp src "
+                            f"outside:{ip}/{sport} dst inside:{victim}/{port} by access-group \"outside_access_in\" [0x0, 0x0]")
+        fields = ["5", "", "", "1000000103", "igb0", "match", "block", "in", "4", "0x0", "", "64", str(r.randint(1000, 60000)),
+                  "0", "DF", "6", "tcp", "60", ip, victim, str(sport), str(port), "0", "S", str(r.randint(10 ** 8, 4 * 10 ** 9)),
+                  "", "64240", "", "mss"]
+        return device, f"<134>{bsd(t)} {device} filterlog[{r.randint(300, 9000)}]: " + ",".join(fields)
+    if phase == "brute":
+        user = r.choice(["admin", "root", "administrator", "oracle", "backup", "arjun.mehta"])
+        if r.random() < 0.5:
+            return "bastion-01", f"<38>{bsd(t)} bastion-01 sshd[{r.randint(1000, 40000)}]: Failed password for {user} from {ip} port {sport} ssh2"
+        return "vpn-gw-01", f"<134>{bsd(t)} vpn-gw-01 vpnd[{r.randint(300, 900)}]: authentication failed for user {user} from {ip} port {sport} reason bad-credentials"
+    # success: the attacker gets in with a guessed admin password
+    if r.random() < 0.5:
+        return "bastion-01", f"<38>{bsd(t)} bastion-01 sshd[{r.randint(1000, 40000)}]: Accepted password for admin from {ip} port {sport} ssh2"
+    return "vpn-gw-01", f"<134>{bsd(t)} vpn-gw-01 vpnd[{r.randint(300, 900)}]: session opened for user admin from {ip} port {sport} assigned 10.8.0.66"

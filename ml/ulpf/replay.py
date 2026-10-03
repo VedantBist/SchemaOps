@@ -50,6 +50,19 @@ def main() -> None:
         if r is not None and time.time() - checked > 2:
             scenarios = _scenarios(r, ctx)
             checked = time.time()
+        attack = scenarios.get("attacker", {})
+        if attack.get("attack") and rng.random() < 0.25:
+            # Attack traffic is added on top of normal traffic: scan for 60 s, brute force for 90 s, then a login.
+            elapsed = time.time() - attack.get("started", time.time())
+            phase = "scan" if elapsed < 60 else "brute" if elapsed < 150 else "success" if elapsed < 156 else None
+            if phase:
+                name, raw_line = samples.attack_line(ctx["pa-edge-01"], phase)
+                if not scenarios.get(name, {}).get("silent"):
+                    try:
+                        udp.sendto(raw_line.encode(), (args.host, args.port))
+                    except OSError:
+                        pass
+                continue
         name = rng.choices(names, weights)[0]
         if scenarios.get(name, {}).get("silent"):
             continue

@@ -22,7 +22,7 @@ import os
 import time
 from datetime import datetime, timedelta, timezone
 
-from . import packstore, quality, repair, renormalize, vault
+from . import compliance, correlate, packstore, quality, repair, renormalize, vault
 from .ocsf import get_path
 from .store import Store
 
@@ -40,7 +40,12 @@ def utcnow() -> datetime:
 class Monitor:
     def __init__(self, store: Store | None = None):
         self.store = store or Store()
+        import redis
+        self.redis = redis.Redis.from_url(os.environ.get("ULPF_REDIS_URL", "redis://redis:6379/0"))
         self.last_calibration = 0.0
+        self.last_vault_check = 0.0
+        self.last_compliance = 0.0
+        self.backlog_history: list[int] = []
         self.baselines: dict[str, dict[str, quality.Baseline]] = {}
 
     # ── settings and guards ─────────────────────────────────────────────────
@@ -162,7 +167,15 @@ class Monitor:
         now = utcnow()
         end = now - timedelta(seconds=3)  # buckets still being written are not judged
         consecutive = int(cfg["consecutiveBuckets"])
-        for src in self.store.rows("SELECT id, pack_id, skew_ms, last_seen FROM log_sources"):
+        sources = self.store.rows("SELECT id, pack_id, skew_ms, last_seen FROM log_sources")
+        # If many sources fall silent together, or the queue is backing up, the pipeline stalled: the devices
+        # did not all stop at once. Per-source silence is then not reported (the pipeline check covers it).
+        backlog = int(self.redis.xlen("ulpf:raw"))
+        quiet = [x for x in sources if x["last_seen"] < now - timedelta(seconds=3 * b)
+                 and self.baselines.get(x["id"], {}).get("volume") and self.baselines[x["id"]]["volume"].median >= 0.5]
+        watched = [x for x in sources if self.baselines.get(x["id"], {}).get("volume")]
+        pipeline_stalled = backlog > 1000 or (len(quiet) >= 3 and len(quiet) >= 0.5 * max(len(watched), 1))
+        for src in sources:
             bl = self.baselines.get(src["id"], {})
             if not bl:
                 continue
@@ -173,7 +186,7 @@ class Monitor:
                 if bad:
                     self._open_drift(src, bl, flags, b)
             # silence
-            if "volume" in bl and bl["volume"].median >= 0.5 and not self.open_for("SOURCE_SILENT", src["id"]):
+            if "volume" in bl and bl["volume"].median >= 0.5 and not pipeline_stalled and not self.open_for("SOURCE_SILENT", src["id"]):
                 k = quality.silence_buckets(bl["volume"].median)
                 tail = rows[-k:]
                 if len(tail) == k and all(r["events"] == 0 for r in tail):
@@ -466,6 +479,243 @@ class Monitor:
                 self.store.execute("UPDATE log_sources SET skew_ms = NULL, skew_applied_at = NULL WHERE id = %s", (source,))
                 self.set_status(inc, "RESOLVED", "DEVICE_CLOCK_FIXED", {"offsetsMs": recent, "correction": "removed"})
 
+    # -- cross-device attack chains --------------------------------------------
+    def detect_attacks(self, cfg: dict) -> None:
+        for ch in correlate.chains(self.store):
+            if not ch["access"]:
+                continue  # chains without gained access stay visible as detections; an incident means likely compromise
+            last_access = max(st["last"] for st in ch["steps"] if st["stage"] == "access")
+            closed = self.store.rows("SELECT 1 FROM ulpf_incidents WHERE kind = 'SECURITY_CORRELATION' AND source_id = %s "
+                                     "AND status = 'RESOLVED' AND resolved_at >= %s LIMIT 1", (ch["actor"], last_access))
+            if closed:
+                continue  # already handled; only a new successful login after the resolution reopens it
+            open_ = self.store.rows("SELECT * FROM ulpf_incidents WHERE kind = 'SECURITY_CORRELATION' AND source_id = %s "
+                                    "AND status <> 'RESOLVED' LIMIT 1", (ch["actor"],))
+            evidence = {"actor": ch["actor"], "steps": ch["steps"], "stages": ch["stages"], "vendors": ch["vendors"],
+                        "sources": ch["sources"], "accessGained": ch["access"]}
+            title = (f"Attack chain from {ch['actor']}: " + " → ".join(ch["stages"]) +
+                     (" (access gained)" if ch["access"] else ""))
+            summary = (f"{len(ch['steps'])} correlated detections from {len(ch['vendors'])} products "
+                       f"({', '.join(ch['vendors'])}) share the source address {ch['actor']} and follow the kill-chain order. "
+                       + ("A login from that address succeeded after the credential attack: treat the account as compromised. "
+                          if ch["access"] else ""))
+            if open_:
+                inc = open_[0]
+                if inc["evidence"].get("stages") != ch["stages"]:
+                    self.store.execute("UPDATE ulpf_incidents SET title = %s, summary = %s, evidence = %s, severity = %s, "
+                                       "updated_at = now() WHERE id = %s",
+                                       (title, summary, json.dumps(evidence, default=str), "CRITICAL" if ch["access"] else "HIGH", inc["id"]))
+                    self.timeline(inc["id"], "CHAIN_EXTENDED", {"stages": ch["stages"]})
+                continue
+            self.open_incident("SECURITY_CORRELATION", ch["actor"], "CRITICAL" if ch["access"] else "HIGH", title, summary,
+                               evidence, ch["first"])
+
+    def _progress_security_correlation(self, inc: dict, cfg: dict) -> None:
+        acts = self.actions(inc["id"])
+        actor = inc["source_id"]
+        if not acts:
+            policy = self.common_rules(2, cfg) + [
+                {"rule": "HUMAN_DECISION", "kind": "safety", "passed": True,
+                 "detail": "blocking an address changes the perimeter: tier 2, always approved by an analyst"},
+                {"rule": "EVIDENCE_FROM_SEVERAL_PRODUCTS", "kind": "safety", "passed": len(inc["evidence"].get("vendors", [])) >= 2,
+                 "detail": f"{len(inc['evidence'].get('vendors', []))} products saw this actor"},
+            ]
+            self.new_action(inc, "BLOCK_SOURCE", 2, {"address": actor, "accounts": sorted({a for s in inc["evidence"].get("steps", [])
+                                                                                            for a in s.get("accounts", [])}),
+                                                       "runbook": os.environ.get("ULPF_SOAR_WEBHOOK") or None}, policy, cfg)
+            return
+        act = acts[0]
+        if act["status"] == "APPROVED":
+            hook = os.environ.get("ULPF_SOAR_WEBHOOK")
+            result = {"address": actor}
+            if hook:
+                try:
+                    result["runbook"] = self._webhook(hook, {"action": "block_source", "address": actor, "incident": inc["incident_key"],
+                                                             "accounts": act["params"].get("accounts")}, str(act["id"]))
+                except Exception as e:
+                    result["runbook_error"] = str(e)
+            else:
+                result["note"] = "no SOAR/firewall runbook endpoint configured (ULPF_SOAR_WEBHOOK); the block request is recorded for the operator"
+            self.store.execute("UPDATE ulpf_actions SET status = 'DONE', executed_at = now(), finished_at = now(), result = %s WHERE id = %s",
+                               (json.dumps(result), act["id"]))
+            self.set_status(inc, "MITIGATED", "BLOCK_REQUESTED", result)
+        if inc["status"] in ("MITIGATED", "ESCALATED", "OPEN"):
+            quiet = self.store.rows("SELECT max(last_seen) AS t FROM sigma_hits WHERE group_key = %s", (actor,))[0]["t"]
+            if quiet and utcnow() - quiet > timedelta(minutes=15):
+                self.set_status(inc, "RESOLVED", "ACTOR_QUIET", {"lastActivity": quiet, "quietMinutes": 15})
+
+    def _webhook(self, url: str, payload: dict, execution_id: str) -> dict:
+        import httpx
+        r = httpx.post(os.environ.get("AI_ENGINE_URL", "http://ai-engine:8000") + "/executors/execute",
+                       headers={"X-Engine-Token": os.environ.get("ENGINE_INTERNAL_TOKEN", "")}, timeout=30,
+                       json={"execution_id": execution_id, "executor": "webhook",
+                             "executor_config": {**self.executor_config("webhook"), "url": url},
+                             "operation": "block_source", "target": payload["address"], "params": payload, "dry_run": False,
+                             "context": {"by": ACTOR}})
+        if r.status_code >= 400:
+            raise RuntimeError(f"webhook executor returned {r.status_code}: {r.text[:200]}")
+        return r.json()
+
+    # -- pipeline self-healing ---------------------------------------------------
+    def detect_pipeline(self, cfg: dict) -> None:
+        now = time.time()
+        beats = {k.decode(): float(v) for k, v in self.redis.hgetall("ulpf:workers").items()}
+        backlog = int(self.redis.xlen("ulpf:raw"))
+        self.backlog_history = (self.backlog_history + [backlog])[-6:]
+        # A worker that stopped cleanly removes its heartbeat; a stale one crashed or hung.
+        dead = {n: round(now - t) for n, t in beats.items() if 20 < now - t < 3600}
+        if dead and not self._open_pipeline():
+            alive = [n for n, t in beats.items() if now - t <= 20]
+            self.open_incident(
+                "PIPELINE", "ulpf-worker", "HIGH", f"{len(dead)} pipeline worker(s) stopped responding",
+                f"Worker(s) {', '.join(dead)} sent no heartbeat for {max(dead.values())} s; {len(alive)} worker(s) still alive, "
+                f"{backlog} event(s) queued. Events the dead worker held are reclaimed by the others; the queue keeps everything "
+                f"received, so nothing is lost while capacity is restored.",
+                {"deadWorkers": dead, "aliveWorkers": alive, "backlog": backlog, "conservation": self._conservation()},
+                datetime.fromtimestamp(now - max(dead.values()), tz=timezone.utc))
+        elif len(self.backlog_history) == 6 and all(b > 1000 for b in self.backlog_history) and \
+                self._stored_delta() == 0 and not self._open_pipeline():
+            self.open_incident("PIPELINE", "ulpf-worker", "HIGH", "Pipeline stalled: events queue up but none are stored",
+                               f"{backlog} events queued; workers are alive but stored nothing for 30 s (database or vault "
+                               f"unavailable or locked). Everything received stays queued until storage resumes.",
+                               {"backlog": self.backlog_history, "conservation": self._conservation()}, utcnow() - timedelta(seconds=30))
+        elif len(self.backlog_history) == 6 and all(b > 5000 for b in self.backlog_history) and \
+                self.backlog_history[-1] > self.backlog_history[0] * 1.3 and not self._open_pipeline():
+            self.open_incident("PIPELINE", "ulpf-worker", "MEDIUM", "Pipeline backlog growing",
+                               f"{backlog} events queued and rising for 30 s: intake is faster than the workers.",
+                               {"backlog": self.backlog_history}, utcnow() - timedelta(seconds=30))
+
+    def _stored_delta(self) -> int:
+        stored = self._conservation()["stored"]
+        hist = getattr(self, "_stored_hist", [])
+        hist = (hist + [stored])[-6:]
+        self._stored_hist = hist
+        return hist[-1] - hist[0] if len(hist) == 6 else 1
+
+    def _open_pipeline(self):
+        rows = self.store.rows("SELECT id FROM ulpf_incidents WHERE kind = 'PIPELINE' AND status <> 'RESOLVED' LIMIT 1")
+        return rows[0] if rows else None
+
+    def _conservation(self) -> dict:
+        snap = self.redis.pipeline(transaction=True)
+        snap.hgetall("ulpf:received")
+        snap.xlen("ulpf:raw")
+        rec, xlen = snap.execute()
+        rec = {k.decode(): int(v) for k, v in rec.items()}
+        return {"received": rec.get("total", 0), "stored": rec.get("stored", 0), "inFlight": int(xlen),
+                "balanced": rec.get("total", 0) == rec.get("stored", 0) + int(xlen)}
+
+    def executor_config(self, kind: str) -> dict:
+        """The same executor settings that govern CausalOps remediation (Setup → remediation executors):
+        if no environment enables this executor, ULPF self-healing does not use it either."""
+        for r in self.store.rows("SELECT name, config->'remediation'->'executors'->%s AS c FROM environments", (kind,)):
+            if r["c"] and r["c"].get("enabled"):
+                return r["c"]
+        raise RuntimeError(f"the {kind} executor is not enabled in any environment (Setup wizard → remediation)")
+
+    def _executor(self, operation: str, target: str, execution_id: str) -> dict:
+        import httpx
+        url = os.environ.get("AI_ENGINE_URL", "http://ai-engine:8000") + "/executors/execute"
+        r = httpx.post(url, headers={"X-Engine-Token": os.environ.get("ENGINE_INTERNAL_TOKEN", "")}, timeout=60, json={
+            "execution_id": execution_id, "executor": "docker", "executor_config": self.executor_config("docker"),
+            "operation": operation, "target": target, "params": {}, "dry_run": False, "context": {"by": ACTOR}})
+        if r.status_code >= 400:
+            raise RuntimeError(f"executor returned {r.status_code}: {r.text[:300]}")
+        return r.json()
+
+    def _progress_pipeline(self, inc: dict, cfg: dict) -> None:
+        acts = self.actions(inc["id"])
+        if not acts:
+            if not inc["evidence"].get("deadWorkers"):
+                if inc["status"] == "OPEN" and self._conservation()["inFlight"] < 1000:
+                    return self.set_status(inc, "RESOLVED", "BACKLOG_CLEARED", {"conservation": self._conservation()})
+                if inc["status"] == "OPEN" and "stalled" not in inc["title"]:
+                    return self.escalate(inc, "backlog growth needs more workers: docker compose up -d --scale ulpf-worker=N")
+                return None
+            policy = self.common_rules(1, cfg) + [
+                {"rule": "NO_DATA_AT_RISK", "kind": "safety", "passed": True,
+                 "detail": "queued events stay in the stream until a worker acknowledges them"},
+                {"rule": "SCOPED_TARGET", "kind": "safety", "passed": True,
+                 "detail": "only stopped replicas of compose service ulpf-worker are started; running ones are untouched"},
+            ]
+            self.new_action(inc, "RESTART_WORKER", 1, {"service": "ulpf-worker", "operation": "start_stopped",
+                                                       "deadWorkers": inc["evidence"]["deadWorkers"]}, policy, cfg)
+            return
+        act = acts[0]
+        if act["status"] == "APPROVED":
+            try:
+                result = self._executor("start_stopped", "ulpf-worker", str(act["id"]))
+            except Exception as e:
+                self.store.execute("UPDATE ulpf_actions SET status = 'FAILED', finished_at = now(), result = %s WHERE id = %s",
+                                   (json.dumps({"error": str(e)}), act["id"]))
+                return self.escalate(inc, f"could not start the worker: {e}")
+            started = (result.get("details") or result.get("state") or {}).get("containers") if isinstance(result, dict) else None
+            if started == [] or "no stopped container" in json.dumps(result):
+                # Nothing crashed: the dead names belong to containers that were replaced (redeploy, scale-down).
+                for n in inc["evidence"]["deadWorkers"]:
+                    self.redis.hdel("ulpf:workers", n)
+                self.store.execute("UPDATE ulpf_actions SET status = 'DONE', executed_at = now(), finished_at = now(), result = %s "
+                                   "WHERE id = %s", (json.dumps({"executor": result, "note": "no stopped replica: workers were replaced"},
+                                                                default=str), act["id"]))
+                return self.set_status(inc, "RESOLVED", "STALE_REGISTRATION_CLEARED",
+                                       {"workers": list(inc["evidence"]["deadWorkers"]), "note": "containers no longer exist"})
+            self.store.execute("UPDATE ulpf_actions SET status = 'VERIFYING', executed_at = now(), result = %s WHERE id = %s",
+                               (json.dumps(result, default=str), act["id"]))
+            self.set_status(inc, "MITIGATING", "WORKER_STARTED", {"executor": result})
+        elif act["status"] == "VERIFYING":
+            now = time.time()
+            beats = {k.decode(): float(v) for k, v in self.redis.hgetall("ulpf:workers").items()}
+            dead = inc["evidence"]["deadWorkers"]
+            back = [n for n in dead if n in beats and now - beats[n] < 10]
+            cons = self._conservation()
+            if back and cons["inFlight"] < 2000:
+                self.store.execute("UPDATE ulpf_actions SET status = 'VERIFIED', finished_at = now(), "
+                                   "result = COALESCE(result, '{}'::jsonb) || %s::jsonb WHERE id = %s",
+                                   (json.dumps({"workersBack": back, "conservation": cons}), act["id"]))
+                self.set_status(inc, "RESOLVED", "VERIFIED", {"workersBack": back, "conservation": cons,
+                                                              "note": "heartbeat restored, queue drained, nothing lost"
+                                                              if cons["balanced"] else "heartbeat restored, queue drained"})
+            elif (utcnow() - act["executed_at"]).total_seconds() > VERIFY_TIMEOUT_S:
+                self.store.execute("UPDATE ulpf_actions SET status = 'FAILED', finished_at = now() WHERE id = %s", (act["id"],))
+                self.escalate(inc, "worker did not come back after start")
+
+    # -- housekeeping: vault integrity, retention, compliance ---------------------
+    def housekeeping(self, cfg: dict) -> None:
+        if time.time() - self.last_vault_check > 1800:
+            self.last_vault_check = time.time()
+            started = time.time()
+            results = [vault.verify_writer(VAULT_DIR, w) for w in vault.writers(VAULT_DIR)]
+            value = {"ok": all(r["ok"] for r in results), "records": sum(r["records"] for r in results),
+                     "seconds": round(time.time() - started, 1), "errors": [e for r in results for e in r["errors"]][:5]}
+            self.store.execute("INSERT INTO ulpf_settings (key, value) VALUES ('lastVaultVerification', %s) ON CONFLICT (key) "
+                               "DO UPDATE SET value = EXCLUDED.value, updated_at = now()", (json.dumps(value),))
+            self.enforce_retention(int(cfg.get("retentionDays", 180)))
+        if time.time() - self.last_compliance > 300:
+            self.last_compliance = time.time()
+            result = compliance.run(self.store, cfg, VAULT_DIR)
+            self.store.execute("INSERT INTO compliance_runs (framework, passed, failed, result) VALUES (%s, %s, %s, %s)",
+                               (result["framework"], result["passed"], result["failed"], json.dumps(result, default=str)))
+
+    def enforce_retention(self, days: int) -> None:
+        """Sealed vault segments older than the retention period (never below 180 days) are removed, oldest first
+        and only as a contiguous prefix per writer, with the chain anchor recorded; the purge is audited."""
+        from pathlib import Path
+        days = max(days, 180)
+        cutoff = time.time() - days * 86400
+        removed = []
+        for writer in vault.writers(VAULT_DIR):
+            old = []
+            for seg in sorted((Path(VAULT_DIR) / writer).glob("*.seg")):
+                meta = vault.Vault._read_meta(seg)
+                if "sealed" in meta and float(meta["sealed"]) < cutoff:
+                    old.append(seg)
+                else:
+                    break
+            vault.purge(VAULT_DIR, writer, old)
+            removed += [f"{writer}/{s.stem}" for s in old]
+        if removed:
+            self.audit("RETENTION_PURGE", None, None, {"segments": removed, "retentionDays": days})
+
     # ── 5. jobs (background thread: detection never waits for a long re-normalization) ──
     def run_jobs(self) -> None:
         import threading
@@ -523,8 +773,17 @@ class Monitor:
             self.calibrate(cfg)
             self.last_calibration = time.time()
         self.detect(cfg)
+        self.detect_pipeline(cfg)
+        try:
+            self.detect_attacks(cfg)
+        except Exception as e:
+            log.warning("attack correlation failed: %s", e)
         self.progress(cfg)
         self.run_jobs()
+        try:
+            self.housekeeping(cfg)
+        except Exception as e:
+            log.warning("housekeeping failed: %s", e)
 
 
 def main() -> None:

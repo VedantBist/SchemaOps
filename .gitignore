@@ -16,3 +16,7 @@ __pycache__/
 **/.pytest_cache/
 package-lock.json
 docs/report
+
+# docs/sih build intermediate
+docs/sih/*.unsubset.pdf
+dist/

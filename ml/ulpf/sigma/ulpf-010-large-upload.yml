@@ -1,0 +1,15 @@
+title: Large upload to the internet
+id: ulpf-010
+status: stable
+level: medium
+description: A single allowed session sent more than 50 MB from an internal host to a public address.
+tags: [attack.exfiltration, attack.t1048]
+logsource:
+  category: firewall
+detection:
+  selection:
+    action: Allowed
+    bytes_out|gte: 50000000
+    src_is_private: true
+    dst_is_private: false
+  condition: selection

@@ -63,6 +63,7 @@ services:
   # ── Reference system (instrumented with the OpenTelemetry Java agent) ────────
   inventory-service:
     build: ./services/inventory-service
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/inventory-service:${CAUSALOPS_VERSION:-latest}"
     deploy: *service-limits
     environment:
       <<: *otel-agent
@@ -73,6 +74,7 @@ services:
     depends_on: [toxiproxy, otel-collector]
   payment-service:
     build: ./services/payment-service
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/payment-service:${CAUSALOPS_VERSION:-latest}"
     deploy: *service-limits
     environment:
       <<: *otel-agent
@@ -80,6 +82,7 @@ services:
     depends_on: [otel-collector]
   order-service:
     build: ./services/order-service
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/order-service:${CAUSALOPS_VERSION:-latest}"
     deploy: *service-limits
     environment:
       <<: *otel-agent
@@ -89,6 +92,7 @@ services:
     depends_on: [inventory-service, payment-service, toxiproxy]
   api-gateway:
     build: ./services/api-gateway
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/api-gateway:${CAUSALOPS_VERSION:-latest}"
     deploy: *service-limits
     environment:
       <<: *otel-agent
@@ -150,12 +154,16 @@ services:
   # Seeds the model store with the snapshot's champion model when the volume is empty.
   model-seed:
     image: alpine:3.20
-    command: ["sh", "-c", "if [ -z \"$$(ls -A /models)\" ] && [ -f /snapshot/models.tar.gz ]; then tar xzf /snapshot/models.tar.gz -C /models && echo 'model store seeded from demo snapshot'; else echo 'model store already initialised'; fi"]
+    # Fresh install only: seeds the calibrated models and the log vault (raw bytes the demo events point to)
+    # from demo/snapshot. Existing volumes are never touched. Keys and TLS certificates are generated per install.
+    command: ["sh", "-c", "if [ -z \"$$(ls -A /models)\" ] && [ -f /snapshot/models.tar.gz ]; then tar xzf /snapshot/models.tar.gz -C /models && echo 'model store seeded from demo snapshot'; else echo 'model store already initialised'; fi; if [ ! -d /ulpf/vault ] && [ -f /snapshot/ulpf-vault.tar.gz ]; then tar xzf /snapshot/ulpf-vault.tar.gz -C /ulpf && echo 'log vault seeded from demo snapshot'; else echo 'log vault already initialised'; fi"]
     volumes:
       - engine-models:/models
+      - ulpf-vault:/ulpf
       - ./demo/snapshot:/snapshot:ro
   ai-engine:
-    build: ./ai-engine
+    build: { context: ., dockerfile: ai-engine/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/ai-engine:${CAUSALOPS_VERSION:-latest}"
     ports: ["8000:8000"]
     environment:
       ENGINE_DB_HOST: postgres
@@ -179,6 +187,7 @@ services:
     healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"], interval: 10s, timeout: 3s, retries: 10 }
   causalops-api:
     build: ./backend/causalops-api
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/causalops-api:${CAUSALOPS_VERSION:-latest}"
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_DB: "${POSTGRES_DB:-causalops}"
@@ -225,13 +234,16 @@ services:
       ENGINE_DB_USER: "${POSTGRES_USER:-causalops}"
       ENGINE_DB_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
       ULPF_REDIS_URL: redis://redis:6379/0
+      # DPDP pseudonymisation key (tokens and the encrypted token map). Set your own in .env.
+      ULPF_PRIVACY_KEY: "${ULPF_PRIVACY_KEY:-dev-privacy-key-change-me}"
     ports:
       - "${ULPF_SYSLOG_UDP_PORT:-5514}:5514/udp"
       - "${ULPF_SYSLOG_TCP_PORT:-5514}:5514/tcp"
       - "${ULPF_SYSLOG_TLS_PORT:-6514}:6514/tcp"
       - "${ULPF_HTTP_PORT:-8090}:8090"
     volumes: [ulpf-vault:/var/lib/ulpf]
-    depends_on: { redis: { condition: service_healthy }, postgres: { condition: service_healthy } }
+    depends_on: { redis: { condition: service_healthy }, postgres: { condition: service_healthy },
+                  model-seed: { condition: service_completed_successfully } }
     healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"], interval: 10s, timeout: 3s, retries: 10 }
   ulpf-worker:
     build: { context: ., dockerfile: infrastructure/ulpf/Dockerfile }
@@ -250,8 +262,37 @@ services:
     environment:
       <<: *ulpf-env
       CAUSALOPS_REMEDIATION_KILL_SWITCH: "${CAUSALOPS_REMEDIATION_KILL_SWITCH:-false}"
+      # Self-healing pipeline: crashed workers are started through the CausalOps Docker executor (AI engine).
+      AI_ENGINE_URL: http://ai-engine:8000
+      ENGINE_INTERNAL_TOKEN: "${ENGINE_INTERNAL_TOKEN:-dev-engine-token-change-me}"
+      CAUSALOPS_DOCKER_PROJECT: "${CAUSALOPS_DOCKER_PROJECT:-causalops}"
     volumes: [ulpf-vault:/var/lib/ulpf]
     depends_on: { ulpf: { condition: service_healthy } }
+  # Outputs and detections: Parquet data lake (full fidelity), SIEM tier (security events whole, routine flows
+  # summarised with lake pointers), optional HEC / CEF syslog / OpenSearch / Kafka sinks, Sigma rules.
+  ulpf-exporter:
+    build: { context: ., dockerfile: infrastructure/ulpf/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/ulpf:${CAUSALOPS_VERSION:-latest}"
+    command: ["python", "-m", "ml.ulpf.exporter"]
+    environment:
+      <<: *ulpf-env
+      # Data lake: Parquet on MinIO (S3 API). Point these at AWS S3 / Ceph / any S3 store instead if you have one.
+      ULPF_S3_ENDPOINT: minio:9000
+      ULPF_S3_ACCESS_KEY: "${MINIO_ROOT_USER:-causalops}"
+      ULPF_S3_SECRET_KEY: "${MINIO_ROOT_PASSWORD:-causalops-lake-secret}"
+      ULPF_S3_BUCKET: ulpf-lake
+    volumes: [ulpf-vault:/var/lib/ulpf]
+    depends_on: { ulpf: { condition: service_healthy }, minio: { condition: service_healthy } }
+  # S3-compatible object store holding the data lake (console: http://localhost:9001).
+  minio:
+    image: bitnamilegacy/minio:2025.4.22
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-causalops}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-causalops-lake-secret}"
+      MINIO_DEFAULT_BUCKETS: ulpf-lake
+    ports: ["${MINIO_API_PORT:-9000}:9000", "${MINIO_CONSOLE_PORT:-9001}:9001"]
+    volumes: [minio-data:/bitnami/minio/data]
+    healthcheck: { test: ["CMD", "curl", "-fs", "http://localhost:9000/minio/health/live"], interval: 10s, timeout: 3s, retries: 12 }
   # Realistic perimeter-device traffic (Palo Alto, FortiGate, Cisco ASA, Check Point, pfSense, Juniper,
   # Sophos, Suricata, F5 WAF, sshd, Windows) for demos; stop it to feed only your own devices.
   log-replayer:
@@ -264,9 +305,32 @@ services:
       ULPF_REDIS_URL: redis://redis:6379/0
     depends_on: { ulpf: { condition: service_healthy } }
 
+  # ── Optional big-data sinks: docker compose --profile full up -d ──────────────
+  kafka:
+    profiles: [full]
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  opensearch:
+    profiles: [full]
+    image: opensearchproject/opensearch:2.17.1
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports: ["${OPENSEARCH_PORT:-9200}:9200"]
+
   # ── Console (http://localhost:3000) ───────────────────────────────────────────
   frontend:
     build: { context: ., dockerfile: infrastructure/frontend/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/console:${CAUSALOPS_VERSION:-latest}"
     ports: ["${CAUSALOPS_UI_PORT:-3000}:80"]
     depends_on: [causalops-api]
 
@@ -278,3 +342,4 @@ volumes:
   engine-models: {}
   redis-data: {}
   ulpf-vault: {}
+  minio-data: {}

@@ -52,6 +52,8 @@ class Worker:
     def run(self) -> None:
         signal.signal(signal.SIGTERM, lambda *_: setattr(self, "stop", True))
         log.info("worker %s started", self.name)
+        import threading
+        threading.Thread(target=self._beat_forever, daemon=True, name="heartbeat").start()
         # First drain anything this consumer had pending before a restart.
         self._handle(self.r.xreadgroup(GROUP, self.name, {STREAM: "0"}, count=self.batch))
         while not self.stop:
@@ -67,6 +69,11 @@ class Worker:
                         self._process(claimed)
                 self._handle(self.r.xreadgroup(GROUP, self.name, {STREAM: ">"}, count=self.batch, block=1000))
                 self._heartbeat()
+                if self.r.getdel("ulpf:chaos:crash"):
+                    # Fault lab: exactly one worker takes the flag and dies like a crashed process would
+                    # (no cleanup, no ack of what it holds). The pipeline must heal and lose nothing.
+                    log.error("fault injection: worker %s crashing now", self.name)
+                    os._exit(137)
             except (redis.ConnectionError, OSError) as e:
                 log.error("transient failure: %s", e)
                 time.sleep(2)
@@ -75,6 +82,7 @@ class Worker:
                 self.store._conn = None
                 time.sleep(2)
         self.vault.seal()
+        self.r.hdel("ulpf:workers", self.name)  # clean stop: not a failure
 
     def _handle(self, response) -> None:
         for _stream, entries in response or []:
@@ -153,6 +161,16 @@ class Worker:
 
     def _heartbeat(self) -> None:
         self.r.hset("ulpf:workers", self.name, f"{time.time():.3f}")
+
+    def _beat_forever(self) -> None:
+        """Liveness: the process is alive even while a batch waits on the database. A crash stops it."""
+        r = redis.Redis.from_url(os.environ.get("ULPF_REDIS_URL", "redis://redis:6379/0"))
+        while not self.stop:
+            try:
+                r.hset("ulpf:workers", self.name, f"{time.time():.3f}")
+            except redis.RedisError:
+                pass
+            time.sleep(5)
 
 
 def main() -> None:

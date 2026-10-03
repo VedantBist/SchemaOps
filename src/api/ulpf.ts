@@ -153,3 +153,52 @@ export const ulpf3 = {
   settings: () => get<UlpfSettings>('/ulpf/settings'),
   saveSettings: (s: Partial<UlpfSettings>) => put<UlpfSettings>('/ulpf/settings', s),
 };
+
+// ── outputs, detections, privacy, bundles, compliance, benchmarks (U4) ───────
+export interface SinkRow {
+  name: string; kind: string; tier: 'lake' | 'siem' | 'all'; enabled: boolean; tokenize: boolean; config: Record<string, unknown>;
+  cursor_seq: number; exported: number; last_ok: string | null; last_error: string | null; last_error_at: string | null;
+}
+export interface CostReport {
+  ratePerGbInr: number; eventsIn: number; eventsOut: number; fullBytes: number; siemBytes: number; reductionPct: number | null;
+  measuredSeconds: number; fullGbPerDay?: number; siemGbPerDay?: number; savedInrPerMonth?: number;
+  byDay: { sink: string; day: string; events_in: number; events_out: number; bytes: number; full_bytes: number; errors: number }[];
+  lake: { exported: number };
+}
+export interface SigmaRule { id: string; title: string; level: string; tags: string[]; enabled: boolean; yaml: string; detections: number; last_hit: string | null }
+export interface SigmaHit {
+  id: string; rule_id: string; rule_title: string; level: string; group_key: string; count: number; distinct_count: number | null;
+  sources: string[]; vendors: string[]; sample_uids: string[]; first_seen: string; last_seen: string;
+}
+export interface PrivacyPreview { uid: string; original: Record<string, unknown>; tokenized: Record<string, unknown>; changed: string[] }
+export interface BundleRow {
+  id: string; direction: 'EXPORT' | 'IMPORT'; purpose: string; file: string | null; bytes: number | null; events: number | null;
+  sha256: string | null; key_id: string | null; verified: boolean | null; detail: Record<string, unknown>; created_by: string; created_at: string;
+}
+export interface BundleVerify { ok: boolean; checks: { check: string; passed: boolean }[]; problems: string[]; manifest?: Record<string, unknown>; ingested?: number }
+export interface ComplianceCheck { id: string; title: string; direction: string; passed: boolean; measured: string; detail: string; sources: { source: string; passed: boolean; value: string }[] }
+export interface ComplianceReport { framework: string; at: string; passed: number; failed: number; checks: ComplianceCheck[] }
+export interface Benchmark { id: number; at: string; kind: string; result: Record<string, unknown> }
+
+export const ulpf4 = {
+  sinks: () => get<SinkRow[]>('/ulpf/sinks'),
+  updateSink: (name: string, body: Partial<SinkRow>) => put<SinkRow[]>(`/ulpf/sinks/${encodeURIComponent(name)}`, body),
+  cost: () => get<CostReport>('/ulpf/cost'),
+  rules: () => get<SigmaRule[]>('/ulpf/sigma/rules'),
+  hits: (rule?: string) => get<SigmaHit[]>('/ulpf/sigma/hits', { rule, limit: 200 }),
+  preview: (uid: string) => get<PrivacyPreview>(`/ulpf/privacy/preview/${encodeURIComponent(uid)}`),
+  detokenize: (token: string, reason: string) => post<{ token: string; kind: string; value: string }>('/ulpf/privacy/detokenize', { token, reason }),
+  privacyAudit: () => get<{ id: number; at: string; actor: string; token: string; reason: string; granted: boolean }[]>('/ulpf/privacy/audit'),
+  bundles: () => get<BundleRow[]>('/ulpf/bundles'),
+  createBundle: (body: { minutes?: number; source?: string; purpose?: string; incident?: unknown }) =>
+    post<BundleRow & { seconds: number; manifest: Record<string, unknown> }>('/ulpf/bundles', body),
+  tamperTest: (id: string) => post<BundleVerify>(`/ulpf/bundles/${id}/tamper-test`),
+  importBundle: async (file: File, ingest: boolean): Promise<BundleVerify> => {
+    const res = await fetch(`/api/ulpf/bundles/import?ingest=${ingest}`, { method: 'POST', body: file, headers: { 'Content-Type': 'application/gzip' } });
+    return res.json();
+  },
+  keys: () => get<{ signer: string; publicKey: string; trusted: string[] }>('/ulpf/keys'),
+  compliance: (refresh = false) => get<ComplianceReport>('/ulpf/compliance', { refresh }),
+  benchmarks: () => get<Benchmark[]>('/ulpf/benchmarks'),
+  runBenchmark: (seconds = 10) => post<Record<string, unknown>>(`/ulpf/benchmarks/processing?seconds=${seconds}`),
+};

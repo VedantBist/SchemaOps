@@ -1,0 +1,12 @@
+title: Web application attack detected by the WAF
+id: ulpf-006
+status: stable
+level: high
+description: SQL injection, cross-site scripting or path traversal reported by a web application firewall.
+tags: [attack.initial_access, attack.t1190]
+logsource:
+  category: finding
+detection:
+  selection:
+    signature|contains: [SQL Injection, Cross Site Scripting, Path Traversal]
+  condition: selection

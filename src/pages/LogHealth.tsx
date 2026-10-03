@@ -154,6 +154,10 @@ const ScenarioPanel: React.FC = () => {
             <input type="number" className={`${inputClass} w-16`} value={skew} onChange={(e) => setSkew(Number(e.target.value))} />
             <Button onClick={() => inject('skewSeconds', skew)} title={s.kinds.skewSeconds}>Clock drift (s)</Button>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="danger" onClick={() => ulpf3.inject('attacker', 'attack', true, 400).then(sc.reload)} title={s.kinds.attack}>Attack: scan → brute force → login</Button>
+            <Button variant="danger" onClick={() => ulpf3.inject('ulpf-worker', 'crash', true, 60).then(sc.reload)} title={s.kinds.crash}>Crash a pipeline worker</Button>
+          </div>
           {Object.keys(s.active).length > 0 ? (
             <Table head={['Device', 'Active', 'Ends in', '']}>
               {Object.entries(s.active).map(([d, a]) => (
@@ -232,6 +236,21 @@ const IncidentBody: React.FC<{ d: IncidentDetailU; reload: () => void; navigate:
             {(ev.attributes as { attribute: string; before: number; after: number }[]).map((a) => (
               <tr key={a.attribute}><Td mono>{a.attribute}</Td><Td mono>{fmtNum(100 * a.before, 0)}%</Td>
                 <Td><Badge tone={a.after < 0.5 ? 'bad' : 'good'}>{fmtNum(100 * a.after, 0)}%</Badge></Td></tr>
+            ))}
+          </Table></div>
+        )}
+        {Array.isArray(ev.steps) && (
+          <div className="mt-3"><Table head={['Kill-chain stage', 'Detection', 'When', 'Events', 'Seen by', 'Evidence']}>
+            {(ev.steps as { stage: string; title: string; first: string; last: string; events: number; distinct: number | null;
+              vendors: string[]; sources: string[]; evidence: string[]; accounts?: string[] }[]).map((st, k) => (
+              <tr key={k}>
+                <Td><Badge tone={st.stage === 'access' ? 'bad' : st.stage === 'credential-attack' ? 'warn' : 'info'}>{k + 1}. {st.stage}</Badge></Td>
+                <Td className="max-w-[360px]">{st.title}{st.accounts?.length ? <div className="text-[11px] text-[#B83A3A]">accounts: {st.accounts.join(', ')}</div> : null}</Td>
+                <Td mono>{fmtTime(st.first)}–{fmtTime(st.last)}</Td>
+                <Td mono>{st.events}{st.distinct ? ` (${st.distinct} distinct)` : ''}</Td>
+                <Td>{st.vendors.map((v) => <span key={v} className="inline-block mr-1"><Badge>{v}</Badge></span>)}<div className="text-[10.5px] text-[#5E6561] font-code">{st.sources.join(', ')}</div></Td>
+                <Td>{st.evidence.slice(-2).map((u) => <button key={u} className="text-[#286B78] font-code text-[11px] block" onClick={() => navigate(`/log-events/${encodeURIComponent(u)}`)}>{u}</button>)}</Td>
+              </tr>
             ))}
           </Table></div>
         )}

@@ -1,0 +1,15 @@
+title: Remote administration port reachable from the internet
+id: ulpf-005
+status: stable
+level: high
+description: A public address was allowed to an internal host on RDP, SSH or SMB.
+tags: [attack.initial_access, attack.t1133]
+logsource:
+  category: firewall
+detection:
+  selection:
+    action: Allowed
+    dst_port: [3389, 22, 445]
+    src_is_private: false
+    dst_is_private: true
+  condition: selection

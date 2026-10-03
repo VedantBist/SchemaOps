@@ -158,7 +158,10 @@ def read(root: str | os.PathLike, segment: str, offset: int) -> dict:
 def verify_writer(root: str | os.PathLike, writer: str) -> dict:
     """Recomputes every hash and the whole chain for one writer's segments, oldest first."""
     folder = Path(root) / writer
-    expected_prev = GENESIS.hex()
+    # After retention removed the oldest segments, the chain continues from the recorded anchor
+    # (the head of the last removed segment), not from genesis.
+    anchor = folder / "ANCHOR"
+    expected_prev = anchor.read_text().strip() if anchor.exists() else GENESIS.hex()
     result = {"writer": writer, "segments": 0, "records": 0, "ok": True, "errors": []}
     for path in sorted(folder.glob("*.seg")):
         meta = Vault._read_meta(path)
@@ -184,6 +187,26 @@ def verify_writer(root: str | os.PathLike, writer: str) -> dict:
         result["segments"] += 1
     result["errors"] = result["errors"][:20]
     return result
+
+
+def purge(root: str | os.PathLike, writer: str, segments: list[Path]) -> None:
+    """Removes the given oldest sealed segments of a writer and records the chain anchor first."""
+    segments = sorted(segments)
+    if not segments:
+        return
+    last = segments[-1]
+    head = Vault._read_meta(last).get("head")
+    if not head:
+        head = GENESIS.hex()
+        for rec in iter_records(last):
+            head = rec["chain"]
+    (Path(root) / writer / "ANCHOR").write_text(head + "\n")
+    for seg in segments:
+        os.chmod(seg, 0o644)
+        seg.unlink()
+        meta = seg.with_suffix(".meta")
+        if meta.exists():
+            meta.unlink()
 
 
 def writers(root: str | os.PathLike) -> list[str]:
