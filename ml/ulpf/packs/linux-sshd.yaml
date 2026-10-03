@@ -1,0 +1,22 @@
+id: linux-sshd
+version: 1
+vendor: OpenBSD
+product: OpenSSH
+priority: 10
+match:
+  app: '^sshd$'
+extract:
+  regex:
+    - pattern: '^(?P<action>Failed|Accepted) (?P<auth_method>password|publickey|keyboard-interactive/pam) for (?:invalid user )?(?P<user>\S+) from (?P<src_ip>[0-9a-fA-F:.]+) port (?P<src_port>\d+) (?P<protocol>ssh2)'
+    - pattern: '^Invalid user (?P<user>\S+) from (?P<src_ip>[0-9a-fA-F:.]+) port (?P<src_port>\d+)'
+class: 3002
+values:
+  action: {Failed: failure, Accepted: success}
+map:
+  user: actor.user.name
+  src_ip: src_endpoint.ip
+  src_port: src_endpoint.port
+  action: disposition
+  auth_method: auth_protocol
+  protocol: connection_info.protocol_name
+expect: [actor.user.name, src_endpoint.ip, disposition]

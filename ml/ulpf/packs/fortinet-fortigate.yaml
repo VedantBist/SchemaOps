@@ -1,0 +1,25 @@
+id: fortinet-fortigate
+version: 1
+vendor: Fortinet
+product: FortiGate
+priority: 10
+match:
+  format: kv
+  fields_present: [logid, devid]
+host: devname
+time: [date, time]
+class: 4001
+map:
+  srcip: src_endpoint.ip
+  srcport: src_endpoint.port
+  dstip: dst_endpoint.ip
+  dstport: dst_endpoint.port
+  proto: connection_info.protocol_name
+  action: disposition
+  user: actor.user.name
+  service: app_name
+  policyid: policy.name
+  sentbyte: traffic.bytes_out
+  rcvdbyte: traffic.bytes_in
+  msg: message
+expect: [src_endpoint.ip, dst_endpoint.ip, src_endpoint.port, dst_endpoint.port, connection_info.protocol_name, disposition]

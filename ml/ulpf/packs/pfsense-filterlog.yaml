@@ -1,0 +1,23 @@
+id: pfsense-filterlog
+version: 1
+vendor: Netgate
+product: pfSense
+priority: 10
+match:
+  format: csv
+  app: '^filterlog$'
+extract:
+  # IPv4 TCP/UDP layout of the pfSense filterlog CSV
+  csv_columns: [rule_number, sub_rule, anchor, tracker, interface, reason, action, direction, ip_version, tos, ecn,
+                ttl, ip_id, offset, ip_flags, protocol_id, protocol, length, src_ip, dst_ip, src_port, dst_port,
+                data_length, tcp_flags, sequence, ack, window, urg, options]
+class: 4001
+map:
+  src_ip: src_endpoint.ip
+  dst_ip: dst_endpoint.ip
+  src_port: src_endpoint.port
+  dst_port: dst_endpoint.port
+  protocol: connection_info.protocol_name
+  action: disposition
+  tracker: policy.name
+expect: [src_endpoint.ip, dst_endpoint.ip, src_endpoint.port, dst_endpoint.port, connection_info.protocol_name, disposition]

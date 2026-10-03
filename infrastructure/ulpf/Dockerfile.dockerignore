@@ -1,0 +1,6 @@
+# Build context is the repository root; only the ULPF package is needed.
+*
+!ml/__init__.py
+!ml/ulpf/
+!infrastructure/ulpf/
+**/__pycache__

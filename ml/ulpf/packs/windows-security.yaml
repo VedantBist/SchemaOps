@@ -1,0 +1,21 @@
+id: windows-security
+version: 1
+vendor: Microsoft
+product: Windows Security Auditing
+priority: 10
+match:
+  format: xml
+  field_regex: {Event.System.Provider@Name: 'Security-Auditing'}
+host: Event.System.Computer
+time: Event.System.TimeCreated@SystemTime
+class: 3002
+values:
+  Event.System.EventID: {'4624': success, '4625': failure, '4634': success, '4648': success}
+map:
+  EventData.TargetUserName: actor.user.name
+  EventData.IpAddress: src_endpoint.ip
+  EventData.WorkstationName: src_endpoint.hostname
+  Event.System.Computer: dst_endpoint.hostname
+  Event.System.EventID: disposition
+  EventData.LogonType: logon_type
+expect: [actor.user.name, src_endpoint.ip, disposition, dst_endpoint.hostname]

@@ -1,0 +1,25 @@
+id: generic-cef
+version: 1
+priority: 90
+match:
+  format: cef
+time: rt
+strict: false   # also use the built-in alias table for vendor extensions
+map:
+  src: src_endpoint.ip
+  dst: dst_endpoint.ip
+  spt: src_endpoint.port
+  dpt: dst_endpoint.port
+  proto: connection_info.protocol_name
+  act: disposition
+  suser: actor.user.name
+  shost: src_endpoint.hostname
+  dhost: dst_endpoint.hostname
+  smac: src_endpoint.mac
+  dmac: dst_endpoint.mac
+  request: http_request.url.url_string
+  requestMethod: http_request.http_method
+  msg: message
+  cef.name: finding_info.title
+  cef.signature_id: finding_info.uid
+expect: [src_endpoint.ip, dst_endpoint.ip]

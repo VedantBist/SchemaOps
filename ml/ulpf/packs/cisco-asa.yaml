@@ -1,0 +1,33 @@
+id: cisco-asa
+version: 1
+vendor: Cisco
+product: ASA
+priority: 10
+match:
+  format: cisco-asa
+extract:
+  regex:
+    - when: {asa.message_id: '^30201[35]$'}
+      pattern: '^(?P<action>Built) outbound (?P<protocol>TCP|UDP) connection (?P<connection_id>\d+) for (?P<dst_zone>[^:]+):(?P<dst_ip>[\d.]+)/(?P<dst_port>\d+) \((?P<dst_mapped_ip>[\d.]+)/(?P<dst_mapped_port>\d+)\) to (?P<src_zone>[^:]+):(?P<src_ip>[\d.]+)/(?P<src_port>\d+) \((?P<src_mapped_ip>[\d.]+)/(?P<src_mapped_port>\d+)\)'
+    - when: {asa.message_id: '^30201[35]$'}
+      pattern: '^(?P<action>Built) inbound (?P<protocol>TCP|UDP) connection (?P<connection_id>\d+) for (?P<src_zone>[^:]+):(?P<src_ip>[\d.]+)/(?P<src_port>\d+) \((?P<src_mapped_ip>[\d.]+)/(?P<src_mapped_port>\d+)\) to (?P<dst_zone>[^:]+):(?P<dst_ip>[\d.]+)/(?P<dst_port>\d+) \((?P<dst_mapped_ip>[\d.]+)/(?P<dst_mapped_port>\d+)\)'
+    - when: {asa.message_id: '^106023$'}
+      pattern: '^(?P<action>Deny) (?P<protocol>\w+) src (?P<src_zone>[^:]+):(?P<src_ip>[\d.]+)/(?P<src_port>\d+) dst (?P<dst_zone>[^:]+):(?P<dst_ip>[\d.]+)/(?P<dst_port>\d+) by access-group "(?P<acl>[^"]+)"'
+    - when: {asa.message_id: '^106001$'}
+      pattern: '^Inbound (?P<protocol>TCP) connection (?P<action>denied) from (?P<src_ip>[\d.]+)/(?P<src_port>\d+) to (?P<dst_ip>[\d.]+)/(?P<dst_port>\d+)'
+    - when: {asa.message_id: '^(113005|611102)$'}
+      pattern: 'user = (?P<user>\S+)'
+class: 4001
+class_rules:
+  - when: {asa.message_id: '^(113004|113005|611101|611102|605004|605005)$'}
+    class: 3002
+map:
+  src_ip: src_endpoint.ip
+  src_port: src_endpoint.port
+  dst_ip: dst_endpoint.ip
+  dst_port: dst_endpoint.port
+  protocol: connection_info.protocol_name
+  action: disposition
+  acl: policy.name
+  user: actor.user.name
+expect: [src_endpoint.ip, dst_endpoint.ip, dst_endpoint.port, connection_info.protocol_name, disposition]

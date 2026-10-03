@@ -10,6 +10,8 @@ import { Calibration, Predictions, Simulation } from './pages/Intelligence';
 import { Logs, Metrics, Traces } from './pages/Observability';
 import { Changes, FaultLab } from './pages/Operations';
 import { Setup } from './pages/Setup';
+import { EventExplorer, LogSources } from './pages/LogPipeline';
+import { Entities, PackList, ParserStudio } from './pages/LogStudio';
 import { ChangePassword, Login, Users } from './pages/Auth';
 
 /** One failing page must not blank the whole console; the boundary resets on navigation. */
@@ -58,6 +60,11 @@ const Routes: React.FC = () => {
     case 'changes': return <Changes />;
     case 'setup': return <Setup navigate={navigate} />;
     case 'users': return <Users />;
+    case 'log-sources': return <LogSources navigate={navigate} />;
+    case 'log-events': return <EventExplorer navigate={navigate} id={id} query={query} />;
+    case 'log-entities': return <Entities navigate={navigate} query={query} />;
+    case 'log-studio': return <ParserStudio navigate={navigate} query={query} />;
+    case 'log-packs': return <PackList navigate={navigate} />;
     default: return <Page title="Not found"><Empty title={`No page "${page}"`} /></Page>;
   }
 };
@@ -68,7 +75,7 @@ const Authenticated: React.FC = () => {
   if (checking) return <Loading label="Checking session…" />;
   if (!user) return <Login />;
   if (user.mustChangePassword) return <ChangePassword forced />;
-  const title = route.page === 'incidents' && route.id ? 'Incident' : TITLES[route.page] ?? 'CausalOps';
+  const title = route.page === 'incidents' && route.id ? 'Incident' : route.page === 'log-events' && route.id ? 'Event lineage' : TITLES[route.page] ?? 'CausalOps';
   return (
     <EnvironmentProvider>
       <AppShell page={route.page} navigate={navigate} title={title}>

@@ -1,0 +1,21 @@
+id: checkpoint-firewall
+version: 1
+vendor: Check Point
+product: Quantum Firewall
+priority: 10
+match:
+  format: leef
+  vendor: '^Check Point'
+host: origin
+time: devTime
+class: 4001
+map:
+  src: src_endpoint.ip
+  dst: dst_endpoint.ip
+  srcPort: src_endpoint.port
+  dstPort: dst_endpoint.port
+  proto: connection_info.protocol_name
+  action: disposition
+  usrName: actor.user.name
+  rule_name: policy.name
+expect: [src_endpoint.ip, dst_endpoint.ip, dst_endpoint.port, connection_info.protocol_name, disposition]

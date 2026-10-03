@@ -1,0 +1,26 @@
+id: suricata-eve
+version: 1
+vendor: OISF
+product: Suricata
+priority: 10
+match:
+  format: json
+  fields_present: [event_type, flow_id]
+host: host
+time: timestamp
+class: 4001
+class_rules:
+  - when: {event_type: '^alert$'}
+    class: 2004
+map:
+  src_ip: src_endpoint.ip
+  src_port: src_endpoint.port
+  dest_ip: dst_endpoint.ip
+  dest_port: dst_endpoint.port
+  proto: connection_info.protocol_name
+  alert.action: disposition
+  alert.signature: finding_info.title
+  alert.signature_id: finding_info.uid
+  alert.category: finding_info.desc
+  app_proto: app_name
+expect: [src_endpoint.ip, dst_endpoint.ip, dst_endpoint.port, connection_info.protocol_name]

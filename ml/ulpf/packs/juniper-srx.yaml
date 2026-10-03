@@ -1,0 +1,23 @@
+id: juniper-srx
+version: 1
+vendor: Juniper Networks
+product: SRX
+priority: 10
+match:
+  app: '^RT_FLOW$'
+class: 4001
+values:
+  syslog.msgid: {RT_FLOW_SESSION_CREATE: allowed, RT_FLOW_SESSION_CLOSE: allowed, RT_FLOW_SESSION_DENY: denied}
+  sd.junos@2636.1.1.1.2.129.username: {N/A: ''}
+map:
+  sd.junos@2636.1.1.1.2.129.source-address: src_endpoint.ip
+  sd.junos@2636.1.1.1.2.129.source-port: src_endpoint.port
+  sd.junos@2636.1.1.1.2.129.destination-address: dst_endpoint.ip
+  sd.junos@2636.1.1.1.2.129.destination-port: dst_endpoint.port
+  sd.junos@2636.1.1.1.2.129.protocol-id: connection_info.protocol_name
+  sd.junos@2636.1.1.1.2.129.policy-name: policy.name
+  sd.junos@2636.1.1.1.2.129.service-name: app_name
+  sd.junos@2636.1.1.1.2.129.username: actor.user.name
+  syslog.msgid: disposition
+  message: message
+expect: [src_endpoint.ip, dst_endpoint.ip, src_endpoint.port, dst_endpoint.port, connection_info.protocol_name, disposition]

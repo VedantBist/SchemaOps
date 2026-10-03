@@ -1,0 +1,31 @@
+id: paloalto-panos-traffic
+version: 1
+vendor: Palo Alto Networks
+product: PAN-OS
+priority: 10
+match:
+  format: csv
+  field_regex: {col4: '^(TRAFFIC|THREAT)$', col2: '^\d{4}/\d\d/\d\d '}
+extract:
+  # PAN-OS 10.x traffic log, documented column order
+  csv_columns: [future_use1, receive_time, serial, type, subtype, future_use2, generated_time, src, dst, natsrc,
+                natdst, rule, srcuser, dstuser, app, vsys, from_zone, to_zone, inbound_if, outbound_if, log_action,
+                future_use3, session_id, repeat_count, sport, dport, natsport, natdport, flags, proto, action, bytes,
+                bytes_sent, bytes_received, packets, start_time, elapsed, category, future_use4, seqno, actionflags,
+                srcloc, dstloc, future_use5, pkts_sent, pkts_received, session_end_reason]
+time: generated_time
+class: 4001
+map:
+  src: src_endpoint.ip
+  dst: dst_endpoint.ip
+  sport: src_endpoint.port
+  dport: dst_endpoint.port
+  proto: connection_info.protocol_name
+  action: disposition
+  srcuser: actor.user.name
+  app: app_name
+  rule: policy.name
+  bytes_sent: traffic.bytes_out
+  bytes_received: traffic.bytes_in
+  session_end_reason: message
+expect: [src_endpoint.ip, dst_endpoint.ip, src_endpoint.port, dst_endpoint.port, connection_info.protocol_name, disposition]

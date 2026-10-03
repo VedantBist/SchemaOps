@@ -16,6 +16,8 @@ management.endpoints.web.exposure.include: health,info,prometheus
 
 causalops:
   ai-url: ${AI_ENGINE_URL:http://ai-engine:8000}
+  # ULPF service (log intake, vault, OCSF events); proxied under /api/ulpf/**.
+  ulpf-url: ${ULPF_URL:http://ulpf:8090}
   # Shared secret for the AI engine's executor endpoints (they change the monitored system).
   engine-token: ${ENGINE_INTERNAL_TOKEN:}
   cors:

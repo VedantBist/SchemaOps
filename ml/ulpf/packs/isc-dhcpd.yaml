@@ -1,0 +1,18 @@
+id: isc-dhcpd
+version: 1
+vendor: ISC
+product: DHCP Server
+priority: 10
+match:
+  app: '^dhcpd$'
+extract:
+  regex:
+    - pattern: '^(?P<dhcp_type>DHCPACK) on (?P<ip>[\d.]+) to (?P<mac>[0-9a-fA-F:]{17})(?: \((?P<hostname>[^)]+)\))? via (?P<interface>\S+)'
+    - pattern: '^(?P<dhcp_type>DHCPREQUEST) for (?P<ip>[\d.]+)(?: \([\d.]+\))? from (?P<mac>[0-9a-fA-F:]{17})(?: \((?P<hostname>[^)]+)\))? via (?P<interface>\S+)'
+class: 4004
+map:
+  ip: src_endpoint.ip
+  mac: src_endpoint.mac
+  hostname: src_endpoint.hostname
+  dhcp_type: activity_name
+expect: [src_endpoint.ip, src_endpoint.mac]

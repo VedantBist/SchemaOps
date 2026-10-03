@@ -203,8 +203,55 @@ services:
       # name unless COMPOSE_PROJECT_NAME is set). Empty disables the Docker executor.
       CAUSALOPS_BOOTSTRAP_DOCKER_PROJECT: "${CAUSALOPS_DOCKER_PROJECT:-causalops}"
       CAUSALOPS_REMEDIATION_KILL_SWITCH: "${CAUSALOPS_REMEDIATION_KILL_SWITCH:-false}"
+      ULPF_URL: http://ulpf:8090
     ports: ["${CAUSALOPS_API_PORT:-8080}:8080"]
     depends_on: { postgres: { condition: service_healthy }, ai-engine: { condition: service_healthy } }
+
+  # ── ULPF: Universal Log Pre-processing Framework ──────────────────────────────
+  # devices --syslog udp/tcp/tls, http--> ulpf (intake + API) --> redis stream --> ulpf-worker x N
+  #   --> hash-chained raw vault + OCSF events (Postgres) --> console via causalops-api /api/ulpf
+  redis:
+    image: redis:7.4-alpine
+    # Append-only file: queued events survive a Redis restart (nothing accepted is lost).
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--save", ""]
+    volumes: [redis-data:/data]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 3s, retries: 10 }
+  ulpf:
+    build: { context: ., dockerfile: infrastructure/ulpf/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/ulpf:${CAUSALOPS_VERSION:-latest}"
+    environment: &ulpf-env
+      ENGINE_DB_HOST: postgres
+      ENGINE_DB_NAME: "${POSTGRES_DB:-causalops}"
+      ENGINE_DB_USER: "${POSTGRES_USER:-causalops}"
+      ENGINE_DB_PASSWORD: "${POSTGRES_PASSWORD:-causalops}"
+      ULPF_REDIS_URL: redis://redis:6379/0
+    ports:
+      - "${ULPF_SYSLOG_UDP_PORT:-5514}:5514/udp"
+      - "${ULPF_SYSLOG_TCP_PORT:-5514}:5514/tcp"
+      - "${ULPF_SYSLOG_TLS_PORT:-6514}:6514/tcp"
+      - "${ULPF_HTTP_PORT:-8090}:8090"
+    volumes: [ulpf-vault:/var/lib/ulpf]
+    depends_on: { redis: { condition: service_healthy }, postgres: { condition: service_healthy } }
+    healthcheck: { test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"], interval: 10s, timeout: 3s, retries: 10 }
+  ulpf-worker:
+    build: { context: ., dockerfile: infrastructure/ulpf/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/ulpf:${CAUSALOPS_VERSION:-latest}"
+    command: ["python", "-m", "ml.ulpf.worker"]
+    environment: *ulpf-env
+    volumes: [ulpf-vault:/var/lib/ulpf]
+    deploy: { replicas: 2 }
+    depends_on: { redis: { condition: service_healthy }, causalops-api: { condition: service_started } }
+  # Realistic perimeter-device traffic (Palo Alto, FortiGate, Cisco ASA, Check Point, pfSense, Juniper,
+  # Sophos, Suricata, F5 WAF, sshd, Windows) for demos; stop it to feed only your own devices.
+  log-replayer:
+    build: { context: ., dockerfile: infrastructure/ulpf/Dockerfile }
+    image: "${DOCKERHUB_NAMESPACE:-causalops}/ulpf:${CAUSALOPS_VERSION:-latest}"
+    command: ["python", "-m", "ml.ulpf.replay"]
+    environment:
+      ULPF_TARGET_HOST: ulpf
+      ULPF_REPLAY_RATE: "${ULPF_REPLAY_RATE:-40}"
+      ULPF_REDIS_URL: redis://redis:6379/0
+    depends_on: { ulpf: { condition: service_healthy } }
 
   # ── Console (http://localhost:3000) ───────────────────────────────────────────
   frontend:
@@ -218,3 +265,5 @@ volumes:
   loki-data: {}
   tempo-data: {}
   engine-models: {}
+  redis-data: {}
+  ulpf-vault: {}

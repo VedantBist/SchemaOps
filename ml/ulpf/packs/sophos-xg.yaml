@@ -1,0 +1,26 @@
+id: sophos-xg
+version: 1
+vendor: Sophos
+product: XG Firewall
+priority: 10
+match:
+  format: kv
+  fields_present: [log_id, log_component, device_id]
+host: device_id
+time: [date, time]
+class: 4001
+values:
+  status: {Allow: allowed, Deny: denied}
+  user_name: {'': ''}
+map:
+  src_ip: src_endpoint.ip
+  dst_ip: dst_endpoint.ip
+  src_port: src_endpoint.port
+  dst_port: dst_endpoint.port
+  protocol: connection_info.protocol_name
+  status: disposition
+  user_name: actor.user.name
+  fw_rule_id: policy.name
+  sent_bytes: traffic.bytes_out
+  recv_bytes: traffic.bytes_in
+expect: [src_endpoint.ip, dst_endpoint.ip, src_endpoint.port, dst_endpoint.port, connection_info.protocol_name, disposition]
