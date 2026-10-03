@@ -183,3 +183,11 @@ def test_http_contract(store, monkeypatch):
     bad_unit = c.post("/counterfactual", json={"environment_id": ENV, "start": store.t[FAULT[0] - 20].isoformat(),
                                                "end": store.t[FAULT[0] + 20].isoformat(), "unit": "nothing"})
     assert bad_unit.status_code == 422
+
+
+def test_responses_never_carry_nan():
+    from app.engine_api import clean
+    import json
+    out = clean({"band": [float("nan"), 1.0, float("inf")], "nested": {"x": (float("-inf"),)}, "ok": 2})
+    assert out == {"band": [None, 1.0, None], "nested": {"x": [None]}, "ok": 2}
+    json.dumps(out, allow_nan=False)

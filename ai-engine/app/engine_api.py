@@ -1,6 +1,7 @@
 """HTTP API of the environment-agnostic engine. Errors use real status codes."""
 from __future__ import annotations
 
+import math
 from datetime import datetime
 from typing import Optional
 
@@ -11,6 +12,18 @@ from ml.engine import calibrate, pipeline
 from ml.engine.store import Store
 
 router = APIRouter()
+
+
+def clean(value):
+    """JSON cannot carry NaN or infinity (e.g. an uncertainty band over a gap in telemetry after a
+    restart); they become null, which clients treat as a missing sample."""
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {k: clean(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [clean(v) for v in value]
+    return value
 _store: Store | None = None
 
 
@@ -67,7 +80,7 @@ class EvaluateRequest(BaseModel):
 def evaluate(body: EvaluateRequest):
     _environment(body.environment_id)
     try:
-        return pipeline.evaluate(store(), body.environment_id, body.at)
+        return clean(pipeline.evaluate(store(), body.environment_id, body.at))
     except pipeline.NoModelError as e:
         raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
@@ -88,7 +101,7 @@ def analyse(body: AnalyseRequest):
     if body.end <= body.start:
         raise HTTPException(status_code=422, detail="end must be after start")
     try:
-        return pipeline.analyse(store(), body.environment_id, body.start, body.end, body.onset)
+        return clean(pipeline.analyse(store(), body.environment_id, body.start, body.end, body.onset))
     except pipeline.NoModelError as e:
         raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
@@ -110,8 +123,8 @@ def counterfactual(body: CounterfactualRequest):
     if body.end <= body.start:
         raise HTTPException(status_code=422, detail="end must be after start")
     try:
-        return pipeline.counterfactual(store(), body.environment_id, body.start, body.end, body.unit,
-                                       body.magnitude, body.intervene_from)
+        return clean(pipeline.counterfactual(store(), body.environment_id, body.start, body.end, body.unit,
+                                             body.magnitude, body.intervene_from))
     except pipeline.NoModelError as e:
         raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
