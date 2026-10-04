@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { api } from '../api/causalops';
+import { useAuth, useEnv } from '../context/AppContext';
+import { ULPF_DEMO_MODE } from '../config/uiMode';
 import { ulpf3, type IncidentDetailU, type UlpfAction, type UlpfIncident } from '../api/ulpf';
 import { useApi } from '../hooks/useApi';
 import { LineChart, type Series } from '../components/LineChart';
@@ -198,12 +201,45 @@ const SettingsPanel: React.FC = () => {
             ['Learning window', `${s.learningMinutes} min`], ['Bucket', `${s.bucketSeconds} s`],
             ['Alarm', `${s.consecutiveBuckets} buckets in a row beyond max(z ${s.zFloor}, ${(1 - s.maxFalsePositiveRate) * 100}% quantile of normal)`],
             ['Clock skew threshold', `${s.skewThresholdSeconds} s`], ['Promotion cooldown', `${s.promotionCooldownMinutes} min`],
-            ['Kill switch', 'shared with CausalOps remediation (Remediation center)'],
+            ...(!ULPF_DEMO_MODE ? [['Kill switch', 'shared with CausalOps remediation (Remediation center)'] as [string, string]] : []),
           ]} />
+          {ULPF_DEMO_MODE && <PipelineKillSwitch />}
         </div>
       )}</Async>
     </Panel>
   );
+};
+
+/** Keep the existing shared automation control reachable when the AIOps console is hidden. */
+const PipelineKillSwitch: React.FC = () => {
+  const { envId } = useEnv();
+  const { user, can } = useAuth();
+  const policy = useApi(() => api.policy(envId), [envId], 15000);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const toggle = async () => {
+    if (!policy.data) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.setAutonomy(envId, { killSwitch: !policy.data.settings.killSwitch, changedBy: user?.username ?? 'operator' });
+      policy.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return <div className="space-y-2 border-t border-[#E6E8E4] pt-2">
+    <Async state={policy}>{(p) => <>
+      <Button variant={p.settings.killSwitch ? 'danger' : 'secondary'} disabled={busy || !can('OPERATOR')} onClick={toggle}>
+        {busy ? 'Saving…' : p.settings.killSwitch ? 'Release automation kill switch' : 'Engage automation kill switch'}
+      </Button>
+      <div className="text-[11px] text-[#5E6561]">Shared automation control; also applies to pipeline repairs.</div>
+      {p.globalKillSwitch && <div className="text-[11px] text-[#9A6412]">A deployment-level kill switch is enabled.</div>}
+    </>}</Async>
+    {error && <div role="alert" className="text-[#B83A3A]">{error}</div>}
+  </div>;
 };
 
 const IncidentView: React.FC<{ id: string; navigate: Navigate }> = ({ id, navigate }) => {

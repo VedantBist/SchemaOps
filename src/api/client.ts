@@ -53,16 +53,24 @@ export async function request<T>(method: string, path: string, options: {
   const token = getToken();
   if (token && options.auth !== false) headers.Authorization = `Bearer ${token}`;
   let res: Response;
+  let text: string;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), method === 'GET' ? 20000 : 180000);
   try {
     res = await fetch(apiUrl(path, options.params), {
       method,
       headers,
+      signal: controller.signal,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
     });
+    text = await res.text();
   } catch (e) {
-    throw new ApiError(0, `CausalOps API unreachable (${(e as Error).message})`);
+    throw new ApiError(0, controller.signal.aborted
+      ? 'The request timed out. Please retry. A submitted operation may still be running.'
+      : `API unreachable (${(e as Error).message})`);
+  } finally {
+    clearTimeout(timeout);
   }
-  const text = await res.text();
   let data: unknown = undefined;
   if (text) {
     try {

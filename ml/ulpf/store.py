@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Iterator
@@ -22,9 +23,21 @@ def dsn() -> str:
 
 
 class Store:
-    def __init__(self, conninfo: str | None = None):
+    def __init__(self, conninfo: str | None = None, *, thread_local: bool = False):
         self.conninfo = conninfo or dsn()
+        self._local = threading.local() if thread_local else None
         self._conn = None
+
+    @property
+    def _conn(self):
+        return getattr(self._local, 'conn', None) if self._local is not None else self._shared_conn
+
+    @_conn.setter
+    def _conn(self, value):
+        if self._local is not None:
+            self._local.conn = value
+        else:
+            self._shared_conn = value
 
     def conn(self):
         import psycopg

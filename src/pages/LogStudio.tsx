@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { LOG_PRODUCT_NAME } from '../config/uiMode';
 import { ulpf, ulpf2, type AnalyzeResult, type EntityDetail, type TestResult, type TestSummary } from '../api/ulpf';
 import { useApi } from '../hooks/useApi';
 import {
@@ -59,7 +60,7 @@ export const ParserStudio: React.FC<{ navigate: Navigate; query?: URLSearchParam
   const champions = (packList.data ?? []).filter((p) => p.status === 'CHAMPION');
 
   return (
-    <Page title="Parser studio" subtitle="Onboard any log source without code: paste or load samples, let ULPF detect the format and propose a pack, test it, activate it."
+    <Page title="Parser studio" subtitle={`Onboard any log source without code: paste or load samples, let ${LOG_PRODUCT_NAME} detect the format and propose a pack, test it, activate it.`}
           actions={<Button onClick={() => navigate('/log-packs')}>All packs</Button>}>
       <OnboardingPanel />
       {error && <ErrorBox error={error} />}
@@ -158,8 +159,16 @@ export const OnboardingPanel: React.FC = () => {
             <pre className="font-code text-[11px] bg-[#F7F8F6] border border-[#E6E8E4] rounded-[3px] p-2 overflow-auto">{`curl -X POST ${window.location.origin}${o.httpIngestPath} \\
   -H 'X-Source: my-app' --data-binary @app.log`}</pre>
             {o.tlsCertificate && (
-              <a className="text-[#286B78] text-[11px]" download="causalops-ulpf.crt"
-                 href={`data:application/x-pem-file;charset=utf-8,${encodeURIComponent(o.tlsCertificate)}`}>Download the TLS certificate</a>
+              <Button variant="ghost" onClick={() => {
+                const url = URL.createObjectURL(new Blob([o.tlsCertificate!], { type: 'application/x-pem-file' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'schemaops.crt';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }}>Download the TLS certificate</Button>
             )}
           </div>
         </div>

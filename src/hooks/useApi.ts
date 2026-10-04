@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '../api/client';
+import { requestLoop } from './requestLoop';
 
 export interface ApiState<T> {
   data: T | null;
@@ -16,36 +17,25 @@ export function useApi<T>(load: () => Promise<T>, deps: unknown[], intervalMs?: 
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(true);
-  const seq = useRef(0);
+  const reloadRef = useRef<() => void>(() => {});
   const loadRef = useRef(load);
   loadRef.current = load;
-
-  const run = useCallback(() => {
-    const mine = ++seq.current;
-    setLoading(true);
-    loadRef.current()
-      .then((d) => {
-        if (mine !== seq.current) return;
-        setData(d);
-        setError(null);
-      })
-      .catch((e) => {
-        if (mine !== seq.current) return;
-        setError(e instanceof ApiError ? e : new ApiError(0, String(e)));
-      })
-      .finally(() => {
-        if (mine === seq.current) setLoading(false);
-      });
-  }, []);
+  const reload = useCallback(() => reloadRef.current(), []);
 
   useEffect(() => {
+    const loop = requestLoop(loadRef.current, {
+      start: () => setLoading(true),
+      success: (result) => { setData(result); setError(null); },
+      error: (e) => setError(e instanceof ApiError ? e : new ApiError(0, String(e))),
+      settled: () => setLoading(false),
+    }, intervalMs);
+    reloadRef.current = loop.reload;
     setData(null);
-    run();
-    if (!intervalMs) return;
-    const t = setInterval(run, intervalMs);
-    return () => clearInterval(t);
+    setError(null);
+    loop.reload();
+    return () => { loop.dispose(); reloadRef.current = () => {}; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [...deps, intervalMs]);
 
-  return { data, error, loading, reload: run };
+  return { data, error, loading, reload };
 }

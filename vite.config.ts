@@ -2,10 +2,20 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
+import { LOG_PRODUCT_NAME, ULPF_DEMO_MODE } from './src/config/uiMode';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), {
+      name: 'demo-branding',
+      transformIndexHtml(html) {
+        if (!ULPF_DEMO_MODE) return html;
+        return html
+          .replaceAll('CausalOps - AI Root Cause Analysis &amp; Failure Prediction', `${LOG_PRODUCT_NAME} — Universal Log Pre-processing Framework`)
+          .replaceAll('AI-based root cause analysis, 3D causal topology, and failure prediction operations console for cloud microservices.',
+            'Collect, normalize and verify logs with traceable, lossless processing.');
+      },
+    }],
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),

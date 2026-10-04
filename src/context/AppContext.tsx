@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ApiError, get, onUnauthorized, post, setToken } from '../api/client';
 import { api, type Environment } from '../api/causalops';
+import { HOME_PAGE, visiblePage } from '../config/uiMode';
 
 // ── routing (hash based, deep-linkable) ─────────────────────────────────────
 export interface Route { page: string; id?: string; query: URLSearchParams }
@@ -9,13 +10,23 @@ export function parseHash(hash: string = window.location.hash): Route {
   const raw = hash.replace(/^#\/?/, '');
   const [path, qs] = raw.split('?');
   const [page, id] = path.split('/');
-  return { page: page || 'overview', id: id ? decodeURIComponent(id) : undefined, query: new URLSearchParams(qs ?? '') };
+  const requested = page || HOME_PAGE;
+  const visible = visiblePage(requested);
+  return { page: visible, id: visible === requested && id ? decodeURIComponent(id) : undefined,
+    query: new URLSearchParams(visible === requested ? qs ?? '' : '') };
 }
 
 export function useRoute(): [Route, (path: string) => void] {
   const [route, setRoute] = useState<Route>(() => parseHash());
   useEffect(() => {
-    const on = () => setRoute(parseHash());
+    const on = () => {
+      const requested = window.location.hash.replace(/^#\/?/, '').split(/[/?]/)[0];
+      if (requested && visiblePage(requested) !== requested) {
+        window.history.replaceState(null, '', `#/${HOME_PAGE}`);
+      }
+      setRoute(parseHash());
+    };
+    on();
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
   }, []);

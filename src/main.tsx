@@ -14,6 +14,15 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { LOG_PRODUCT_NAME, ULPF_DEMO_MODE } from './config/uiMode';
+
+if (ULPF_DEMO_MODE) {
+  document.title = `${LOG_PRODUCT_NAME} — Universal Log Pre-processing Framework`;
+  document.querySelector('meta[property="og:title"]')?.setAttribute('content', document.title);
+  for (const selector of ['meta[name="description"]', 'meta[property="og:description"]']) {
+    document.querySelector(selector)?.setAttribute('content', 'Collect, normalize and verify logs with traceable, lossless processing.');
+  }
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

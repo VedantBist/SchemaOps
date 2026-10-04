@@ -1,6 +1,8 @@
 import React from 'react';
 import { AuthProvider, EnvironmentProvider, useAuth, useEnv, useRoute } from './context/AppContext';
 import { AppShell, NAV } from './components/AppShell';
+import { UlpfShell } from './components/UlpfShell';
+import { LOG_PRODUCT_NAME, ULPF_DEMO_MODE } from './config/uiMode';
 import { Empty, Loading, Page, Panel, Button } from './components/ui';
 import { Overview } from './pages/Overview';
 import { Services, Topology } from './pages/Services';
@@ -37,7 +39,7 @@ const Routes: React.FC = () => {
   const { can } = useAuth();
   const { page, id, query } = route;
 
-  if (loaded && !error && environments.length === 0 && page !== 'setup') {
+  if (!ULPF_DEMO_MODE && loaded && !error && environments.length === 0 && page !== 'setup') {
     return (
       <Page title="Welcome to CausalOps">
         <Panel><Empty title="No environment yet">Connect your first system: CausalOps reads its OpenTelemetry data, discovers the topology and starts learning.</Empty>
@@ -80,15 +82,16 @@ const Routes: React.FC = () => {
 const Authenticated: React.FC = () => {
   const { user, checking } = useAuth();
   const [route, navigate] = useRoute();
+  const Shell = ULPF_DEMO_MODE ? UlpfShell : AppShell;
   if (checking) return <Loading label="Checking session…" />;
   if (!user) return <Login />;
   if (user.mustChangePassword) return <ChangePassword forced />;
-  const title = route.page === 'incidents' && route.id ? 'Incident' : route.page === 'log-events' && route.id ? 'Event lineage' : route.page === 'log-health' && route.id ? 'Pipeline incident' : TITLES[route.page] ?? 'CausalOps';
+  const title = route.page === 'incidents' && route.id ? 'Incident' : route.page === 'log-events' && route.id ? 'Event lineage' : route.page === 'log-health' && route.id ? 'Pipeline incident' : TITLES[route.page] ?? (ULPF_DEMO_MODE ? LOG_PRODUCT_NAME : 'CausalOps');
   return (
     <EnvironmentProvider>
-      <AppShell page={route.page} navigate={navigate} title={title}>
+      <Shell page={route.page} navigate={navigate} title={title}>
         <PageBoundary key={`${route.page}/${route.id ?? ''}`}><Routes /></PageBoundary>
-      </AppShell>
+      </Shell>
     </EnvironmentProvider>
   );
 };

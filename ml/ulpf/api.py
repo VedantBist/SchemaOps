@@ -13,8 +13,9 @@ from pathlib import Path
 
 import redis
 import redis.asyncio as aioredis
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Body
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from . import collector, entities, lossless, packs, packstore, studio, vault
 from .pipeline import process
@@ -23,7 +24,7 @@ from .store import Store
 log = logging.getLogger("ulpf.api")
 VAULT_DIR = os.environ.get("ULPF_VAULT_DIR", "/var/lib/ulpf/vault")
 REDIS_URL = os.environ.get("ULPF_REDIS_URL", "redis://redis:6379/0")
-store = Store()
+store = Store(thread_local=True)
 sync_redis = redis.Redis.from_url(REDIS_URL)
 state: dict = {}
 
@@ -50,7 +51,7 @@ async def _seed_packs():
     import asyncio
     for _ in range(120):
         try:
-            added = packstore.seed_builtin(store)
+            added = await run_in_threadpool(packstore.seed_builtin, store)
             log.info("parser packs seeded (%d new)", added)
             return
         except Exception as e:
@@ -258,8 +259,7 @@ def vault_verify():
 
 # ── parser test bench (no storage) ───────────────────────────────────────────
 @app.post("/parse")
-async def parse_sample(request: Request):
-    body = await request.json()
+def parse_sample(body: dict = Body(default={})):
     raw = str(body.get("raw", "")).encode()
     if not raw.strip():
         raise HTTPException(400, "raw is empty")
@@ -332,9 +332,8 @@ def get_pack(pack_id: str, version: int):
 
 
 @app.post("/packs")
-async def save_pack(request: Request):
+def save_pack(body: dict = Body(default={})):
     """Saves a new pack version. activate=true makes it the champion; bindSource binds a source to it."""
-    body = await request.json()
     text = body.get("yaml", "")
     try:
         tested = studio.test(text, body["samples"], None)["summary"] if body.get("samples") else None
@@ -358,8 +357,7 @@ def activate_pack(pack_id: str, version: int):
 
 
 @app.post("/sources/{source_id}/bind")
-async def bind_source(source_id: str, request: Request):
-    body = await request.json()
+def bind_source(source_id: str, body: dict = Body(default={})):
     packstore.bind(store, source_id, body.get("packId"))
     return {"source": source_id, "packId": body.get("packId")}
 
@@ -381,8 +379,7 @@ def studio_samples(source: str, limit: int = Query(100, le=500)):
 
 
 @app.post("/studio/analyze")
-async def studio_analyze(request: Request):
-    body = await request.json()
+def studio_analyze(body: dict = Body(default={})):
     samples = [s for s in body.get("samples", []) if s.strip()][:500]
     if not samples:
         raise HTTPException(400, "no samples")
@@ -390,8 +387,7 @@ async def studio_analyze(request: Request):
 
 
 @app.post("/studio/test")
-async def studio_test(request: Request):
-    body = await request.json()
+def studio_test(body: dict = Body(default={})):
     samples = [s for s in body.get("samples", []) if s.strip()][:500]
     try:
         candidate = packs.load(body.get("yaml", ""))
@@ -520,11 +516,10 @@ def incident_detail(incident_id: str):
 
 
 @app.post("/actions/{action_id}/{decision}")
-async def decide(action_id: str, decision: str, request: Request):
+def decide(action_id: str, decision: str, body: dict = Body(default={})):
     """Human approval for a PROPOSED action (approve → the monitor executes it on its next tick)."""
     if decision not in ("approve", "reject"):
         raise HTTPException(400, "decision is approve or reject")
-    body = await request.json() if (await request.body()) else {}
     user = body.get("user") or "local operator"
     rows = store.rows("UPDATE ulpf_actions SET status = %s, decided_by = %s WHERE id::text = %s AND status = 'PROPOSED' RETURNING incident_id, action",
                       ("APPROVED" if decision == "approve" else "REJECTED", user, action_id))
@@ -538,8 +533,7 @@ async def decide(action_id: str, decision: str, request: Request):
 
 
 @app.post("/renormalize")
-async def request_renormalization(request: Request):
-    body = await request.json()
+def request_renormalization(body: dict = Body(default={})):
     if not body.get("source"):
         raise HTTPException(400, "source is required")
     row = store.rows("""INSERT INTO renormalization_jobs (source_id, window_from, window_to, only_degraded, status, requested_by)
@@ -579,9 +573,8 @@ def list_scenarios():
 
 
 @app.post("/scenarios")
-async def set_scenario(request: Request):
+def set_scenario(body: dict = Body(default={})):
     """Fault injection for the demo traffic (the replayer applies it within 2 s)."""
-    body = await request.json()
     device, kind = body.get("device"), body.get("kind")
     if kind not in SCENARIOS:
         raise HTTPException(400, f"kind must be one of {list(SCENARIOS)}")
@@ -619,8 +612,7 @@ def get_settings():
 
 
 @app.put("/settings")
-async def put_settings(request: Request):
-    body = await request.json()
+def put_settings(body: dict = Body(default={})):
     allowed = {"autoExecuteMaxTier", "dryRun", "learningMinutes", "consecutiveBuckets", "maxFalsePositiveRate", "zFloor",
                "promotionCooldownMinutes", "skewThresholdSeconds"}
     before = get_settings()
@@ -642,8 +634,7 @@ def list_sinks():
 
 
 @app.put("/sinks/{name}")
-async def update_sink(name: str, request: Request):
-    body = await request.json()
+def update_sink(name: str, body: dict = Body(default={})):
     sets, params = [], []
     for k in ("enabled", "tokenize", "tier"):
         if k in body:
@@ -723,10 +714,9 @@ def privacy_preview(uid: str):
 
 
 @app.post("/privacy/detokenize")
-async def detokenize(request: Request):
+def detokenize(body: dict = Body(default={})):
     """Reveals the value behind a token. A reason is required; every request is recorded, granted or not."""
     from .privacy import Tokenizer
-    body = await request.json()
     token, reason, user = body.get("token", "").strip(), (body.get("reason") or "").strip(), body.get("user") or "local operator"
     if len(reason) < 8:
         raise HTTPException(400, "state the reason (at least 8 characters); it is recorded in the audit trail")
@@ -746,9 +736,8 @@ def privacy_audit():
 
 # ── signed bundles (data diode, CERT-In evidence) ─────────────────────────────
 @app.post("/bundles")
-async def create_bundle(request: Request):
+def create_bundle(body: dict = Body(default={})):
     from . import bundle
-    body = await request.json()
     minutes = int(body.get("minutes", 15))
     until = datetime.fromisoformat(body["until"]) if body.get("until") else datetime.now(timezone.utc)
     since = datetime.fromisoformat(body["since"]) if body.get("since") else until - timedelta(minutes=minutes)
@@ -789,13 +778,17 @@ async def import_bundle(request: Request, ingest: bool = False, purpose: str = "
     events into this pipeline (they are normalized and proven lossless again on this side)."""
     from . import bundle
     blob = await request.body()
-    result = bundle.verify(blob)
+    result = await run_in_threadpool(bundle.verify, blob)
     ingested = 0
     if result["ok"] and ingest:
-        for source, raw in bundle.raw_events(blob):
+        for source, raw in await run_in_threadpool(lambda: list(bundle.raw_events(blob))):
             await state["intake"].put(raw, None, "bundle", f"import:{source}")
             ingested += 1
     result["ingested"] = ingested
+    return await run_in_threadpool(_record_bundle_import, purpose, blob, result, ingested)
+
+
+def _record_bundle_import(purpose, blob, result, ingested):
     row = store.rows("""INSERT INTO ulpf_bundles (direction, purpose, bytes, events, sha256, key_id, verified, detail, created_by)
                         VALUES ('IMPORT', %s, %s, %s, %s, %s, %s, %s, 'local operator') RETURNING id""",
                      (purpose, len(blob), (result.get("manifest") or {}).get("events"), hashlib.sha256(blob).hexdigest(),
@@ -807,7 +800,7 @@ async def import_bundle(request: Request, ingest: bool = False, purpose: str = "
 
 
 @app.post("/bundles/{bundle_id}/tamper-test")
-async def tamper_test(bundle_id: str):
+def tamper_test(bundle_id: str):
     """Demo: flip one byte in one raw event of an exported bundle and try to import it."""
     from . import bundle
     row = store.rows("SELECT file FROM ulpf_bundles WHERE id::text = %s AND direction = 'EXPORT'", (bundle_id,))
@@ -850,8 +843,7 @@ def list_benchmarks():
 
 
 @app.post("/benchmarks")
-async def store_benchmark(request: Request):
-    body = await request.json()
+def store_benchmark(body: dict = Body(default={})):
     store.execute("INSERT INTO benchmarks (kind, result) VALUES (%s, %s)", (body.get("kind", "END_TO_END"), json.dumps(body)))
     return {"stored": True}
 
